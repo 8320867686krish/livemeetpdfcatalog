@@ -1,0 +1,242 @@
+/* #06771a*/
+.text-center {
+    text-align: center;
+}
+
+.font-bold {
+    font-weight: bold;
+}
+
+.pdf_data.disabled-div {
+    opacity: 0.5;
+}
+
+input:disabled,
+.Polaris-TextField__Input:disabled,
+.Polaris-Select__Input,
+.disabled {
+    cursor: not-allowed;
+}
+
+.heading_title {
+    background: var(--p-color-bg-fill-brand);
+    font-size: 20px;
+    color: var(--p-color-bg-surface);
+    border-radius: 10px;
+    padding: var(--p-space-400);
+}
+
+.heading_title1 {
+    color: var(--p-color-bg-fill-brand);
+    font-size: 20px;
+    padding-bottom: var(--p-space-300);
+    border-bottom: 2px solid var(--p-color-bg-fill-brand);
+    margin-bottom: var(--p-space-400);
+    font-weight: bold;
+}
+
+.heading_title2 {
+    color: var(--p-color-bg-fill-brand);
+    font-size: 20px;
+    padding-bottom: var(--p-space-300);
+    border-bottom: 4px double var(--p-color-bg-fill-brand);
+    margin-bottom: var(--p-space-400);
+    font-weight: bold;
+}
+
+/* Button Spinner Style */
+.btn_loader {
+    position: absolute;
+    margin: 0 auto;
+    left: 0;
+    top: 0;
+    text-align: center;
+    width: 100%;
+}
+
+.btn_loader .Polaris-Spinner--sizeSmall svg {
+    height: 15px;
+    width: 15px;
+    fill: var(--p-color-bg-fill-brand);
+}
+
+/* Spinner Style */
+.spinner_area {
+    position: fixed;
+    /* margin: auto; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    height: 100vh;
+    width: 100%;
+    top: 0;
+    left: 0;
+}
+
+.Polaris-Frame,
+.Polaris-Spinner {
+    z-index: 1;
+}
+
+.Polaris-Spinner--sizeLarge svg {
+    height: 5.75rem;
+    width: 5.75rem;
+}
+
+/* Color Input Style */
+.custom_lbl {
+    margin-bottom: var(--p-space-100);
+}
+
+.color_area.disabled {
+    opacity: 0.5
+}
+
+.color_area {
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 3px 5px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    text-transform: uppercase;
+    position: relative;
+    height: 31px;
+}
+
+.color_area .color_code {
+    background: #f5f5f5;
+    border-radius: 3px;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.color_area input[type="color"] {
+    border: none;
+    border-radius: 0;
+    background: no-repeat;
+    box-shadow: none;
+    inline-size: 45px;
+    block-size: 31px;
+    padding: 0;
+    position: absolute;
+    top: -1px;
+    right: 1px;
+}
+
+.color_area .Polaris-Connected {
+    width: 50px;
+}
+
+.color_area .Polaris-TextField__Input {
+    padding: 0;
+}
+
+.color_area .Polaris-TextField__Backdrop {
+    border: none;
+    border-radius: 0;
+}
+
+
+.tab_container {
+    margin-bottom: 50px;
+}
+
+.plan_card {
+    padding: 50px;
+}
+
+.plan_card h3,
+.plan_card h5 {
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.plan_card h3 {
+    font-size: 22px;
+}
+
+.plan_card h5 {
+    font-size: 18px;
+}
+
+.plan_card button {
+    background: var(--p-color-bg-fill-brand);
+    color: var(--p-color-bg-surface);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 25px;
+    margin-bottom: 20px;
+    box-shadow: none;
+}
+
+.plan_card button:hover {
+    background: var(--p-color-bg-fill-brand);
+    color: var(--p-color-bg-surface);
+}
+
+.box_card .Polaris-Box {
+    border: 5px solid transparent;
+}
+
+.active .Polaris-Box,
+.box_card:hover .Polaris-Box {
+    border: 5px solid var(--p-color-bg-fill-brand);
+}
+
+.tab_container .Polaris-LegacyTabs__Panel {
+    padding: var(--p-space-500);
+    background: var(--p-color-bg-surface);
+}
+
+/* Custom Collapsible */
+.custom_collapsible {
+    margin-bottom: 50px;
+}
+
+.custom_collapsible .collapsible_title {
+    background: var(--p-color-bg-fill-brand);
+    font-size: 20px;
+    color: var(--p-color-bg-surface);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.custom_collapsible .collapsible_title,
+.custom_collapsible .Polaris-Collapsible {
+    padding: var(--p-space-400);
+}
+
+.custom_collapsible .collapsible_title.active {
+    border-radius: 10px 10px 0 0;
+}
+
+.custom_collapsible .heading_title {
+    width: -webkit-fill-available;
+    text-transform: uppercase;
+}
+
+.custom_collapsible .Polaris-Icon {
+    width: 50px;
+}
+
+.custom_collapsible .Polaris-Icon--toneBase svg {
+    fill: var(--p-color-bg-surface);
+}
+
+.custom_collapsible .Polaris-Collapsible {
+    background: var(--p-color-bg-surface);
+}
+
+.sm_title {
+    border-bottom: var(--p-border-width-025) solid var(--p-color-border-secondary);
+    padding-bottom: 5px;
+}
+
+/* .custom_collapsible .Polaris-DropZone-FileUpload--large {
+    padding: var(--p-space-1600);
+} */

@@ -1,0 +1,39 @@
+upload foldr on live
+style.css
+
+in public folder past FlipPdfJs(done)
+js folder all copy
+
+in resources folder 
+resources\views\flipbook.blade.php copy(done)
+
+in web.php
+Route::get('/flipBook/{flipId}',[HomeController::class,'flipBook']);(done)
+
+in HomeController
+use App\Models\Settings;(done)
+
+public function flipBook($flipId){(done)
+    $settingsData = Settings::where('flipId', $flipId)->first();
+    $pdfurl = 'public/uploads/pdfFile/shop_'.$settingsData['shop_id']."/"."collections_".$settingsData['collectionName']."/".$settingsData['pdfUrl'];
+    return view('flipBook',compact('pdfurl'));
+
+}
+
+now in model settings also add in table
+flipHtml,flipId,isLarge(done)
+
+migration changes(done)
+$table->longText('flipHtml')->nullable();
+$table->string('flipId',20)->nullable();
+$table->boolean('isLarge')->default(0)
+
+now in apiController
+copy (done)
+
+now changes in api.php(done)
+Route::post('flipPdfGenrate/{settings_id}',[ApiController::class,'flipPdfGenrate']);
+Route::get('flipPdf/{flipId}',[ApiController::class,'flipPdfGet']); 
+
+
+per request 1000 change(done)

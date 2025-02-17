@@ -1,0 +1,783 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@100&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&family=Roboto:wght@100&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@100&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Roboto:wght@100&display=swap');
+
+.mb_10 {
+    margin-bottom: 10px;
+}
+
+.mb_15 {
+    margin-bottom: 15px;
+}
+
+.mb_20 {
+    margin-bottom: 20px;
+}
+
+.mb_25 {
+    margin-bottom: 25px;
+}
+
+.Polaris-Page:not(.Polaris-Page--fullWidth) {
+    max-width: 65.375rem;
+}
+
+.font_preview {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 88%;
+    align-items: center;
+    text-align: center;
+    border-radius: var(--p-border-radius-300);
+    box-shadow: var(--p-shadow-bevel-100);
+    font-size: initial;
+    padding: 15px;
+}
+
+.is-disabled {
+    cursor: not-allowed;
+}
+
+.page_layout_item .is-disabled {
+    opacity: 0.5;
+}
+
+.banner_area {
+    margin-bottom: 25px;
+}
+
+.month_yearly {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.btnimg_close {
+    background: #000;
+    display: inline-block;
+    padding: 1px;
+    border-radius: 100%;
+    color: #fff;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    z-index: 30;
+}
+
+.btnimg_close svg {
+    fill: #fff;
+}
+
+/* Table Style */
+.Polaris-DataTable thead th {
+    font-weight: var(--p-font-weight-bold);
+    font-size: var(--p-font-size-400);
+}
+
+.btn_area button {
+    margin-left: 5px;
+}
+
+.btn_area button:first-child {
+    margin-left: 0;
+}
+
+/* End Table Style */
+
+/* Tab Style */
+.tab_area .Polaris-Tabs__Outer>.Polaris-Box {
+    --pc-box-padding-block-end-md: 0 !important;
+    --pc-box-padding-block-start-md: 0 !important;
+    --pc-box-padding-inline-start-md: 0 !important;
+    --pc-box-padding-inline-end-md: 0 !important;
+}
+
+.tab_area .Polaris-Tabs__Panel {
+    /* border: 1px solid var(--p-color-bg-fill-brand);
+    padding: 25px; */
+    /* border-radius: 0 0 10px 10px; */
+    padding-top: 15px;
+    margin-bottom: 25px;
+}
+
+/* .tab_area .Polaris-Tabs__Panel .Polaris-ShadowBevel {
+    --pc-shadow-bevel-border-radius-xs: 0 0 5px 5px !important;
+} */
+
+.tab_area .Polaris-Tabs__Wrapper ul {
+    padding: 0;
+}
+
+/* .tab_area .Polaris-Tabs__Wrapper ul button {
+    padding: 20px 15px;
+    background: none;
+    box-shadow: none;
+    border: none;
+    /* border-radius: 5px 5px 0 0; *\/
+} */
+
+/* .tab_area .Polaris-Tabs__Wrapper ul button span {
+    font-size: var(--p-font-size-400);
+}
+
+.tab_area .Polaris-Tabs__Wrapper ul button.Polaris-Tabs__Tab--active {
+    background: var(--p-color-bg-fill-brand);
+    color: #FFFFFF;
+} */
+
+/* End Tab Style */
+
+/* Color Input Style */
+.custom_lbl {
+    margin-bottom: var(--p-space-100);
+}
+
+.color_area.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.color_area input:disabled {
+    cursor: not-allowed;
+}
+
+.color_area {
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 3px 5px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    text-transform: uppercase;
+    position: relative;
+    height: 31px;
+}
+
+.color_area .color_code {
+    background: #f5f5f5;
+    border-radius: 3px;
+    width: 100px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.color_area input[type="color"] {
+    border: none;
+    border-radius: 0;
+    background: no-repeat;
+    box-shadow: none;
+    inline-size: 45px;
+    block-size: 31px;
+    padding: 0;
+    position: absolute;
+    top: -1px;
+    right: 1px;
+}
+
+.color_area .Polaris-Connected {
+    width: 50px;
+}
+
+.color_area .Polaris-TextField__Input {
+    padding: 0;
+}
+
+.color_area .Polaris-TextField__Backdrop {
+    border: none;
+    border-radius: 0;
+}
+
+/* End Color Style */
+.collection_list_area {
+    position: relative;
+}
+
+.collection_list_area .Polaris-Spinner {
+    position: absolute;
+    right: 8px;
+    bottom: 1px;
+    z-index: 11;
+}
+
+/* Page Layout Style */
+.page_layout_container {
+    /* height: 140px; */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    /* margin-bottom: 25px; */
+}
+
+.page_layout_area {
+    flex-direction: row;
+    /* column-gap: 20px; */
+    gap: 20px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 15px 5px;
+    /* flex-wrap: wrap; */
+}
+
+.page_layout_area .page_layout_item {
+    flex: 1 1 auto;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+}
+
+.page_layout_area .page_layout_item.active .layout_btn,
+.page_layout_area .page_layout_item:hover .layout_btn {
+    border: 2px solid #000;
+}
+
+.page_layout_item .layout_btn {
+    width: 66px;
+    height: 100%;
+    padding: 0px;
+    outline: none;
+}
+
+.layout_btn .img_inner {
+    border: 1px solid rgb(201, 204, 208);
+    margin: 1px;
+    justify-content: center;
+    color: grey;
+    display: flex;
+}
+
+.page_layout_item .item_box_txt {
+    justify-content: center;
+    color: grey;
+}
+
+.page_layout_item .item_box_txt,
+.page_layout_item .item_box_img {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* End Page Layout Style */
+
+/* Table Style */
+.table_area .image_area .Polaris-Icon {
+    margin: initial;
+    height: 2.25rem;
+    width: 2.25rem;
+}
+
+.table_area th.Polaris-IndexTable__TableHeading {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.table_area .Polaris-Spinner,
+.catalog_container>.Polaris-Spinner,
+.plans_container>.Polaris-Spinner,
+.main_container>.Polaris-Spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100%;
+    z-index: 1;
+}
+
+.main_container>.Polaris-Spinner {
+    background: #fff;
+}
+
+.table_area .Polaris-Spinner,
+.catalog_container>.Polaris-Spinner {
+    z-index: 31;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.table_area .Polaris-Spinner {
+    z-index: 32;
+}
+
+.table_area .pagination_area {
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    border-top: var(--p-border-width-025) solid var(--p-color-border-secondary);
+}
+
+.tab_area .search_area {
+    width: 96%;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.tab_area .show_more {
+    align-content: center;
+    display: flex;
+    justify-content: center;
+    min-height: 1.375rem;
+    padding: var(--p-space-300) var(--p-space-500) var(--p-space-500);
+}
+
+.tbl_variants tr td:first-child {
+    /* padding-left: 50px !important; */
+    width: 85px;
+}
+
+.tbl_variants tr td:nth-child(2) {
+    width: 90px;
+}
+
+.tbl_variants tr td:nth-child(3) {
+    width: 586px; 
+}
+
+.variant_icon {
+    width: 27px;
+    height: 27px;
+    display: flex;
+    /* background: #333 !important;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px; */
+}
+
+/* .variant_icon svg {
+    fill: #FFF;
+} */
+
+.page_limit>div {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* End Table Style */
+
+
+
+/* PDF Page Payout */
+.pdf_preview_container .color_area input[type="color"] {
+    /* inline-size: 52px; */
+    inline-size: 96%;
+}
+
+/* .pdf_preview_container .Polaris-DropZone__Container .Polaris-LegacyStack .Polaris-LegacyStack__Item:nth-child(2), */
+.pdf_preview_container .Polaris-DropZone__Container .Polaris-LegacyStack .file_data {
+    display: none;
+}
+
+.pdf_preview_container .Polaris-DropZone__Container .Polaris-LegacyStack {
+    justify-content: center;
+    --pc-stack-spacing: 0;
+}
+
+.pdf_preview_container .Polaris-DropZone--hasOutline:not(.Polaris-DropZone--isDisabled)::after {
+    border: none;
+}
+
+.pdf_preview_container .Polaris-DropZone__Container .Polaris-LegacyStack {
+    justify-content: flex-start;
+}
+
+.pdf_preview_container .Polaris-Select {
+    height: 41px;
+}
+
+.pdf_preview_container .Polaris-Select__Content {
+    line-height: 28px;
+}
+
+.custom_form {
+    display: flex;
+    justify-content: space-between;
+    column-gap: 15px;
+}
+
+.custom_form .Polaris-FormLayout {
+    flex: 1 1 0;
+}
+
+.pdf_preview_container .color_area {
+    height: 41px;
+}
+
+.pdf_preview_container .color_area input[type="color"] {
+    block-size: 41px;
+    inline-size: 98%;
+}
+
+.custom_form .btnimg_close {
+    height: 16px;
+    width: 16px;
+    right: -5px;
+    top: -5px;
+}
+
+/* .custom_form .Polaris-FormLayout__Item {
+    margin: 0;
+} */
+
+.pdf_layout_area {
+    font-family: sans-serif;
+    /* overflow-y: auto; */
+    /* background-color: rgb(199, 199, 199); */
+    /* padding: 20px; */
+    width: 100%;
+    /* height: 70vh; */
+}
+
+.page {
+    width: 21cm;
+    min-height: 29.7cm;
+    padding: 0cm;
+    /* margin: 0cm auto; */
+    overflow: hidden;
+    border: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-content: stretch;
+    width: 100%;
+    height: 100%;
+}
+
+.row {
+    align-self: stretch;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.img-container {
+    overflow: hidden;
+}
+
+.img-container.active:hover {
+    opacity: 1;
+}
+
+.img-container:hover {
+    opacity: 0.8;
+}
+
+.img {
+    display: block;
+}
+
+.slot-row {
+    align-self: stretch;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.top {
+    flex: 1 1 auto
+}
+
+.bottom {
+    flex: 0 0 auto
+}
+
+.bottom p {
+    margin: 5px 0;
+}
+
+.column-wrapper {
+    display: flex;
+    height: 100%;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.column-2 {
+    width: 50%;
+}
+
+.slot-placeholder {
+    width: 100%;
+    height: 100%;
+    /* background-color: #e1e1e1; */
+    margin: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: dimgray;
+}
+
+.hover-indicator:hover {
+    opacity: 0.2 !important;
+}
+
+.page-settings-current-components .Polaris-OptionList {
+    padding: 0
+}
+
+.page-settings-current-components .Polaris-OptionList__Options {
+    list-style: circle;
+}
+
+.back-button .Polaris-Icon {
+    max-height: 14px;
+}
+
+.back-button .Polaris-Button {
+    padding: 0;
+}
+
+.delete-button .Polaris-Icon {
+    max-height: 18px
+}
+
+.watermark {
+    position: absolute;
+    opacity: 0.4;
+    z-index: 9999;
+    color: gray;
+    filter: invert(1) grayscale(1) contrast(9);
+    font-size: 6em;
+    text-align: center;
+}
+
+.tab-button:hover {
+    background-color: #eee
+}
+
+/* Start Bar code style. */
+.barcode_area {
+    position: absolute;
+    bottom: 35px;
+    right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 150px;
+    height: 50px;
+}
+
+.barcode_area:is(.left, .right) {
+    bottom: 60px;
+    right: -35px;
+    transform: rotate(-90deg);
+}
+
+.barcode_area.right {
+    transform: rotate(90deg);
+}
+
+.barcode_area.invert {
+    transform: rotate(-180deg);
+}
+
+.barcode_area:is(.top-left, .top-right) {
+    top: 15px;
+    bottom: initial;
+}
+
+.barcode_area.top-left {
+    left: 10px;
+}
+
+.barcode_area.top-right {
+    right: 10px;
+}
+
+.barcode_area.bottom-left {
+    top: initial;
+    bottom: 15px;
+    left: 10px;
+}
+
+/* .barcode_area.left:is(.top-left, .bottom-left) */
+.barcode_area:is(.top-left, .bottom-left):is(.left, .right) {
+    left: -35px;
+}
+
+
+/* .barcode_area.left:is(.top-left, .top-right) */
+.barcode_area:is(.left, .right):is(.top-left, .top-right) {
+    top: 60px;
+    bottom: initial;
+}
+
+/* .barcode_area.left.top-right, */
+.barcode_area.top-right:is(.left, .right) {
+    right: -35px;
+}
+
+/* .barcode_area.left.bottom-left, */
+.barcode_area.bottom-left:is(.left, .right) {
+    top: initial;
+    bottom: 60px;
+}
+
+/* End Bar code style. */
+
+/* End PDF Page Payout */
+
+/* Start Plans style. */
+.box_card {
+    transition: all 1s ease-in-out;
+    position: relative;
+    margin-top: 50px;
+}
+
+.box_card:hover,
+.box_card:is(.active) {
+    /* margin: 20px -25px; */
+    margin: 20px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.box_card .active_plan {
+    background: #00875f;
+    color: #fff;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: -22.5px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    border-radius: 100%;
+}
+
+.box_card .active_plan .Polaris-Icon svg {
+    fill: #fff;
+}
+
+.box_card .Polaris-Box {
+    padding: 0;
+}
+
+.box_card .plan_card {
+    text-align: center;
+}
+
+.box_card .plan_title,
+.box_card .price_area {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.box_card .plan_title {
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background: #000;
+    color: #fff;
+    font-size: 20px;
+    text-transform: uppercase;
+    /* border-radius: 0 0 50px 50px; */
+}
+
+.box_card button,
+.box_card button:hover {
+    color: #fff;
+    font-size: 15px;
+    text-transform: uppercase;
+    padding: 15px;
+    width: 150px;
+    margin: 20px 0;
+    background: #00875f;
+}
+
+/* .box_card .free .plan_title,
+.box_card .free button {
+    background: #00875f;
+}
+
+.box_card .basic .plan_title,
+.box_card .basic button {
+    background: #012b39;
+}
+
+.box_card .unlimited .plan_title,
+.box_card .unlimited button {
+    background: #dc6d01;
+} */
+
+.price_area {
+    font-size: 12px;
+    margin: 25px 0;
+}
+
+.price_area h5 {
+    font-size: 40px;
+    margin-bottom: 15px;
+    font-weight: 300;
+}
+
+.box_card .Polaris-List {
+    list-style: none;
+    text-align: left;
+    padding: 0 20px;
+    margin-bottom: 25px;
+}
+
+.box_card .Polaris-List li {
+    padding: 10px 15px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.box_card .Polaris-List li .Polaris-Icon {
+    width: 50px;
+    max-width: 50px;
+    margin: 0;
+}
+
+.box_card .Polaris-List li:nth-child(odd) {
+    background: #f2f2f2;
+}
+
+.box_card .Polaris-List li:last-child {
+    margin: 0;
+}
+
+.box_card p {
+    padding: 0 20px;
+}
+
+div.page_layout_item.active {
+    border: 2px solid #FF8000 !important;
+    /* Example border */
+    /* Your styles here */
+    /* border: "#0A3981 solid 2px !important"; */
+}
+
+
+/* End Plans style. */
+
+/* .react-pdf__Document {
+    display: inline-block;
+}
+
+.react-pdf__Page {
+    width: 400px;
+    height: 500px;
+} */
+
+/* .demoPage > .page {
+    height: 21.24cm !important;
+} */
