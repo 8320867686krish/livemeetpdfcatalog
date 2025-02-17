@@ -1034,7 +1034,7 @@ class ApiController extends Controller
             'name' => $plans->name,
             'returnUrl' => url('/plan/process/' . $shopDetail['id'] . "/" . $plan_id),
             'trialDays' => $plans->trial_days,
-            'test' => false,
+            'test' => true,
             'lineItems' => [
                 [
                     'plan' => [

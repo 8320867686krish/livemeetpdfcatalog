@@ -21,7 +21,8 @@ return new class extends Migration
             $table->string('collection_id'); // Foreign Key
             $table->string('current_page',5);
             $table->string('total_page',5);
-            $table->text('uploadRequest');
+            $table->string('page',20)->default(0);
+            $table->text('uploadRequest')->nullable();
             $table->longText('pdfRequest')->nullable();
             $table->foreign('shop_id')->references('id')->on('users')->onDelete('cascade'); // Assuming 'shops' is the related table.
             $table->foreign('settings_id')->references('id')->on('settings')->onDelete('cascade');

@@ -19,9 +19,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->tinyInteger('isPayment');
-            $table->string('theam_id');
+            $table->tinyInteger('isPayment')->default(0);
+            $table->string('theam_id')->default(0);
             $table->rememberToken();
+            $table->string('money_format',20)->nullable();
             $table->timestamps();
         });
     }
