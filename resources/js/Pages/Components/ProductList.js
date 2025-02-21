@@ -474,7 +474,7 @@ const ProductList = ({
                         size="large"
                     />
                 )}
-                {productList.length > 0 && (
+                {/* {productList.length > 0 && ( */}
                     <div className="search_area">
                         <TextField
                             type="text"
@@ -495,7 +495,7 @@ const ProductList = ({
                             }
                         />
                     </div>
-                )}
+                {/* )} */}
                 <IndexTable
                     selectable={false}
                     selectedItems={selectedResources}

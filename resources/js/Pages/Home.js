@@ -37,7 +37,8 @@ const Home = (props = {}) => {
     const [successBannerMessage, setSuccessBannerMessage] = useState("");
     const [activeBannerWarning, setActiveBannerWarning] = useState(false);
     const [warningBannerMessage, setWarningBannerMessage] = useState("");
-    3;
+    const [bannerErrorMessage, setBannerErrorMessage] = useState("Upgrade your plan to create more catelogs");
+    const [activeBannerError, setActiveBannerError] = useState(false);
     const location = useLocation();
     console.log("location :", location);
 
@@ -93,6 +94,21 @@ const Home = (props = {}) => {
         </div>
     ) : null;
 
+    const bannerError = activeBannerError ? (
+        <div className="banner_area">
+            <Banner
+                title="Plan limit has been reached."
+                action={{
+                    content: "Upgrade Plan",
+                    onAction: () => navigate(`${URL_PREFIX}plans`),
+                }}
+                tone="critical"
+            >
+                <p>{bannerErrorMessage}</p>
+            </Banner>
+        </div>
+    ) : null;
+
     const bannerTimeout = (duration = 3000) => {
         setTimeout(() => {
             setActiveBannerSuccess(false);
@@ -133,6 +149,14 @@ const Home = (props = {}) => {
     useEffect(() => {
         getCatalogCollections();
     }, []);
+
+    useEffect(() => {
+        if (catalogList.length >= Number(catelog_limit) ||
+            catelog_limit === "false") {
+            // setActiveBannerWarning(true)
+            setActiveBannerError(true)
+        }
+    }, [catalogList])
 
     //Handle to delete catalog for selected records.
     const deleteSelectedRecord = async () => {
@@ -264,18 +288,18 @@ const Home = (props = {}) => {
                             index >= Number(catelog_limit) ||
                             catelog_limit === "false"
                         ) && (
-                            <Button
-                                variant="primary"
-                                onClick={() =>
-                                    navigate(
-                                        `${URL_PREFIX}dashboard?id=${id}`,
-                                        { state: { planExpired } }
-                                    )
-                                }
-                            >
-                                Edit
-                            </Button>
-                        )}
+                                <Button
+                                    variant="primary"
+                                    onClick={() =>
+                                        navigate(
+                                            `${URL_PREFIX}dashboard?id=${id}`,
+                                            { state: { planExpired } }
+                                        )
+                                    }
+                                >
+                                    Edit
+                                </Button>
+                            )}
                         {/* <Button variant="primary" onClick={() => navigate(`${URL_PREFIX}pdf-preview-flip`, { state: { pdfUrl } })}>Flip Preview</Button> */}
                         {flipId && flipId !== null ? (
                             <>
@@ -326,15 +350,15 @@ const Home = (props = {}) => {
                     }
                     onClick={
                         catalogList.length >= Number(catelog_limit) ||
-                        catelog_limit === "false" /* || planExpired */
-                            ? () => {}
+                            catelog_limit === "false" /* || planExpired */
+                            ? () => { }
                             : () =>
-                                  navigate(`${URL_PREFIX}dashboard`, {
-                                      state: {
-                                          planExpired,
-                                          totalCatelog: catalogList.length,
-                                      },
-                                  })
+                                navigate(`${URL_PREFIX}dashboard`, {
+                                    state: {
+                                        planExpired,
+                                        totalCatelog: catalogList.length,
+                                    },
+                                })
                     }
                 >
                     Create a New Catalog
@@ -360,6 +384,7 @@ const Home = (props = {}) => {
             {toastSaveData}
             {bannerSuccess}
             {bannerWarning}
+            {bannerError}
             <div className="mb_10">
                 <Text variant="headingLg" as="h5">
                     Created Catalogs

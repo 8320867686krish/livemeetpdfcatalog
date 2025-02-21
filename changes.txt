@@ -1,0 +1,33 @@
+Pdf Catalog required changes  
+
+Password not getting empty on its own 
+
+Security issue ( user able to edit anyone's pdf just by changing the id in the url )
+
+In please select collection option no product should be loaded in the list 
+( page : dashboard , tab : select collection )
+
+
+After search and changing option it shows list of all the product even if they are not in the selected collection
+( page : dashboard , tab : select collection )
+
+In search if a product is not found then all the values from the table are removed event the search is removed due to which user cannot change or search other product 
+
+Fonts are not visible properly in the linux system which makes in it hard to read , works well on window system , probably due to old polaris version 
+
+
+
+No message displayed when the user reaches it limit to create the catalog according to the plan only button is disabled 
+
+
+CONCEPT : Creating a new pdf with same collection disable all the other pdf with the same collection which is partly correct but then user can enable all the pdf with same collection name from the index table which result into failure of the disable functionality 
+
+Fonts are conflicting in some of the layout of the pdf specially font ( Roboto condensed which is default font for the app )
+
+CONCEPT : User can add multiple product from different collection other then the selected collection , which will be then showed in the front for the selected collection ( which will lead to confusion among shoppers as the product cannot be found for the same collection ) ( solution : either we should not allow user to select product from different collection , OR we should state/make pdf collection wise )
+
+
+Need to improve the pdf quality for images 
+
+
+

@@ -15,7 +15,11 @@ window.URL_PREFIX = '/';
 // window.URL_PREFIX = '/pdfcatalog/';//staging
 
 
-window.IMAGE_PREFIX = `${window.location.origin}/public/`;
+window.IMAGE_PREFIX = `${window.location.origin}/`;
+// window.IMAGE_PREFIX = `${window.location.origin}/public/`;
+
+
+
 // window.IMAGE_PREFIX = `${window.location.origin}/pdfcatalog/public/`; //for staging
 
 
@@ -31,8 +35,8 @@ window.postMethodType = 'POST';
 window.getMethodType = 'GET';
 window.putMethodType = 'PUT';
 window.deleteMethodType = 'DELETE';
-window.shopifyApiKey = '096a269d4de043bf37c691a4540451f8';
-// window.shopifyApiKey = '67c6b06a5ed3454e8ce7ef18faed64ee';
+// window.shopifyApiKey = '096a269d4de043bf37c691a4540451f8';
+window.shopifyApiKey = '67c6b06a5ed3454e8ce7ef18faed64ee';
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
