@@ -8,7 +8,7 @@ import Main from './Pages/Main'
 import { Frame } from '@shopify/polaris';
 
 export default function Index(props) {
-    console.log = function () {};
+    // console.log = function () {};
 
     return (
         <BrowserRouter>

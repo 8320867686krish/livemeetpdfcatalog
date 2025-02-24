@@ -1,0 +1,301 @@
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { Modal, Button, Select, TextField, Autocomplete, Icon, LegacyStack, Tag } from "@shopify/polaris";
+import { SearchIcon } from "@shopify/polaris-icons";
+import { fetchMethod } from "../helper";
+
+const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductData, productData }) => {
+    const productStatusOptions = [
+        { label: "All products", value: "all_products" },
+        { label: "Active", value: "active" },
+        { label: "Draft", value: "draft" },
+        { label: "Archived", value: "archived" },
+    ];
+
+    const [productStatus, setProductStatus] = useState("active");
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [vendorOptionsList, setVendorOptionsList] = useState([]);
+    const [productTypeOptionsList, setProductTypeOptionsList] = useState([]);
+    const [productTagsOptionsList, setProductTagsOptionsList] = useState([]);
+    const [vendorLoader, setVendorLoader] = useState(false);
+    const [productTypeLoader, setProductTypeLoader] = useState(false);
+    const [productTagLoader, setProductTagLoder] = useState(false);
+    // Fetch vendor list
+    useEffect(() => {
+        const fetchVendors = async () => {
+            setVendorLoader(true);
+            try {
+                if (vendorOptionsList.length == 0) {
+                    const responseData = await fetchMethod(getMethodType, "getAllVendors", shopid);
+                    if (responseData?.status === "success" && Array.isArray(responseData.vendors)) {
+                        setVendorOptionsList(responseData.vendors);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching vendors:", error);
+            }
+            finally {
+                setVendorLoader(false);
+            }
+        };
+
+        fetchVendors();
+    }, [shopid]);
+
+    // Fetch product types
+    useEffect(() => {
+        const fetchProductTypes = async () => {
+            setProductTypeLoader(true);
+            try {
+                if (productTypeOptionsList.length == 0) {
+                    const responseData = await fetchMethod(getMethodType, "getAllProductTypes", shopid);
+                    if (responseData?.status === "success" && Array.isArray(responseData.types)) {
+                        setProductTypeOptionsList(responseData.types);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching product types:", error);
+            }
+            finally {
+                setProductTypeLoader(false);
+            }
+        };
+
+        fetchProductTypes();
+    }, [shopid]);
+
+    // Fetch product tags
+    useEffect(() => {
+        const fetchProductTags = async () => {
+            setProductTagLoder(true);
+            try {
+                if (productTagsOptionsList.length == 0) {
+                    const responseData = await fetchMethod(getMethodType, "getAllProductTags", shopid);
+                    if (responseData?.status === "success" && Array.isArray(responseData.tags)) {
+                        setProductTagsOptionsList(responseData.tags);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching product tags:", error);
+            }
+            finally {
+                setProductTagLoder(false);
+            }
+        };
+
+        fetchProductTags();
+    }, [shopid]);
+
+    // Common Autocomplete Hook
+    const useMultiAutocomplete = (optionsList) => {
+        const [selected, setSelected] = useState([]);
+        const [inputValue, setInputValue] = useState("");
+        const [options, setOptions] = useState(optionsList);
+
+        useEffect(() => {
+            setOptions(optionsList);
+        }, [optionsList]);
+
+        const updateText = useCallback((value) => {
+            setInputValue(value);
+            if (value === "") {
+                setOptions(optionsList);
+                return;
+            }
+
+            const filterRegex = new RegExp(value, "i");
+            setOptions(optionsList.filter((option) => option.label.match(filterRegex)));
+        }, [optionsList]);
+
+        const updateSelection = useCallback((selectedItems) => {
+            setSelected(selectedItems);
+            setInputValue("");
+        }, []);
+
+        const removeTag = useCallback((tag) => () => {
+            setSelected(selected.filter((item) => item !== tag));
+        }, [selected]);
+
+        const verticalContentMarkup = selected.length > 0 ? (
+            <LegacyStack spacing="extraTight" alignment="center">
+                {selected.map((option) => (
+                    <Tag key={option} onRemove={removeTag(option)}>
+                        {optionsList.find(o => o.value === option)?.label || option}
+                    </Tag>
+                ))}
+            </LegacyStack>
+        ) : null;
+
+        return { selected, inputValue, updateText, updateSelection, options, verticalContentMarkup };
+    };
+
+    const vendorAutocomplete = useMultiAutocomplete(vendorOptionsList);
+    const productTypeAutocomplete = useMultiAutocomplete(productTypeOptionsList);
+    const productTagsAutocomplete = useMultiAutocomplete(productTagsOptionsList);
+
+    const applyFilters = async () => {
+        // Construct the filters object
+        const filters = {
+            productStatus,
+            vendors: vendorAutocomplete.selected,
+            productTypes: productTypeAutocomplete.selected,
+            productTags: productTagsAutocomplete.selected,
+            minPrice,
+            maxPrice,
+        };
+
+        // Remove keys with empty values
+        const filteredFilters = Object.fromEntries(
+            Object.entries(filters).filter(([_, value]) => {
+                if (Array.isArray(value)) {
+                    return value.length > 0; // Keep arrays with values
+                }
+                return value !== "" && value !== null; // Keep non-empty values
+            })
+        );
+
+        try {
+            const response = await fetchMethod(
+                postMethodType,
+                `getProductsUsingFilter`,
+                shopid,
+                filteredFilters
+            );
+
+            console.log("Filtered products response:", response);
+
+            if (response?.status === "success" && Array.isArray(response.products)) {
+                const lastPriority = productData.length > 0
+                    ? Math.max(...productData.map(item => item.priority))
+                    : 0;
+
+                let newProducts = [];
+
+                response.products.forEach((product, index) => {
+                    const isAlreadySelected = productData.some(existing => existing.productId === product.id);
+
+                    if (!isAlreadySelected) {
+                        newProducts.push({
+                            id: product.id,
+                            productId: product.id,
+                            name: product.title,
+                            priority: lastPriority + newProducts.length + 1, // Maintain priority sequence
+                            price: product.variants?.[0]?.price || "N/A",
+                            compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
+                            currency: product.variants?.[0]?.presentmentPrices?.[0]?.price?.currencyCode || "USD"
+                        });
+                    }
+                });
+
+                // Append new products while maintaining priority order
+                setProductData(prevData => [...prevData, ...newProducts]);
+            }
+
+        } catch (error) {
+            console.error("Error fetching filtered products:", error);
+        }
+
+        // Optionally close the modal after applying filters
+        onClose();
+    };
+
+    return (
+        <Modal open={open} onClose={onClose} title="Filter Products">
+            <Modal.Section>
+                <Select label="Product Status" options={productStatusOptions} onChange={setProductStatus} value={productStatus} />
+
+                {/* Vendor Autocomplete */}
+                <div style={{ marginTop: "15px" }}>
+                    <Autocomplete
+                        loading={vendorLoader}
+                        allowMultiple
+                        options={vendorAutocomplete.options}
+                        selected={vendorAutocomplete.selected}
+                        onSelect={vendorAutocomplete.updateSelection}
+                        textField={
+                            <Autocomplete.TextField
+                                label="Vendors"
+                                value={vendorAutocomplete.inputValue}
+                                onChange={vendorAutocomplete.updateText}
+                                prefix={<Icon source={SearchIcon} />}
+                                placeholder="Search Vendors"
+                                verticalContent={vendorAutocomplete.verticalContentMarkup}
+                                autoComplete="off"
+                                loading={vendorLoader}
+                            />
+                        }
+                    />
+                </div>
+
+                {/* Product Type Autocomplete */}
+                <div style={{ marginTop: "15px" }}>
+                    <Autocomplete
+                        loading={productTypeLoader}
+                        allowMultiple
+                        options={productTypeAutocomplete.options}
+                        selected={productTypeAutocomplete.selected}
+                        onSelect={productTypeAutocomplete.updateSelection}
+                        textField={
+                            <Autocomplete.TextField
+                                label="Product Types"
+                                value={productTypeAutocomplete.inputValue}
+                                onChange={productTypeAutocomplete.updateText}
+                                prefix={<Icon source={SearchIcon} />}
+                                placeholder="Search Product Types"
+                                verticalContent={productTypeAutocomplete.verticalContentMarkup}
+                                autoComplete="off"
+                                loading={productTypeLoader}
+                            />
+                        }
+                    />
+                </div>
+
+                {/* Product Tags Autocomplete */}
+                <div style={{ marginTop: "15px" }}>
+                    <Autocomplete
+                        loading={productTagLoader}
+                        allowMultiple
+                        options={productTagsAutocomplete.options}
+                        selected={productTagsAutocomplete.selected}
+                        onSelect={productTagsAutocomplete.updateSelection}
+                        textField={
+                            <Autocomplete.TextField
+                                label="Product Tags"
+                                value={productTagsAutocomplete.inputValue}
+                                onChange={productTagsAutocomplete.updateText}
+                                prefix={<Icon source={SearchIcon} />}
+                                placeholder="Search Product Tags"
+                                verticalContent={productTagsAutocomplete.verticalContentMarkup}
+                                autoComplete="off"
+                                loading={productTagLoader}
+                            />
+                        }
+                    />
+                </div>
+
+                <div style={{ marginTop: "15px" }}>
+                    Filter products by price
+                </div>
+                <div style={{ display: "flex", gap: "20px" }}>
+                    <div style={{ width: "50%" }}>
+                        <TextField label="Min Price" type="number" value={minPrice} onChange={setMinPrice} autoComplete="off" placeholder="Start price" />
+                    </div>
+                    <div style={{ width: "50%" }}>
+                        <TextField label="Max Price" type="number" value={maxPrice} onChange={setMaxPrice} autoComplete="off" placeholder="End price" />
+                    </div>
+                </div>
+
+
+            </Modal.Section>
+
+            <Modal.Section>
+                <div align="right" style={{ display: "flex", gap: "15px", justifyContent: "end" }}>
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button onClick={applyFilters} variant="primary">Apply Filters</Button>
+                </div>
+            </Modal.Section>
+        </Modal>
+    );
+};
+
+export default ProductFilterModal;

@@ -9,6 +9,7 @@ import Support from "../Pages/helpCenter.js";
 import ProductSelection from "../Pages/Components/ProductSelection.jsx";
 
 export default function Routing(props) {
+    console.log("props are as below ", props);
     return (
         <Routes>
             <Route exact path={URL_PREFIX} element={<Home {...props} />} />
@@ -16,8 +17,8 @@ export default function Routing(props) {
             <Route exact path={`${URL_PREFIX}dashboard`} element={<Dashboard {...props} />} />
             <Route exact path={`${URL_PREFIX}pdf-flip`} element={<PDFFlip1 {...props} />} />
             <Route exact path={`${URL_PREFIX}pdf-preview-flip`} element={<PDFPreviewFlip {...props} />} />
-            <Route exact path={`${URL_PREFIX}help-center`} element={<Support />}/>
-            <Route exact path={`${URL_PREFIX}add-product`} element={<ProductSelection />} ></Route>
+            <Route exact path={`${URL_PREFIX}help-center`} element={<Support />} />
+            <Route exact path={`${URL_PREFIX}add-product`} element={<ProductSelection props={props} />} ></Route>
         </Routes>
     );
 }

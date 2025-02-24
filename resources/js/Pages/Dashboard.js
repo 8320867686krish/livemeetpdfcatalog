@@ -151,6 +151,7 @@ const initConfigData = {
 //Function component start.
 const Dashboard = (props = {}) => {
     const { shopid = "", activePlan = {} } = props;
+    console.log("shopid from dashboard ", shopid);
     const location = useLocation();
     const navigate = useNavigate();
     //Initialize and declare state
@@ -284,8 +285,7 @@ const Dashboard = (props = {}) => {
             id === 0
         ) {
             setErrorMessage(
-                `Catalog limit reached! Your current plan allows up to ${
-                    catelog_limit === "false" ? 0 : catelog_limit
+                `Catalog limit reached! Your current plan allows up to ${catelog_limit === "false" ? 0 : catelog_limit
                 } catalogs. Please upgrade your plan to increase the limit.`
             );
             setActiveToastError(true);
@@ -310,7 +310,7 @@ const Dashboard = (props = {}) => {
             bannerTimeout();
         } else if (
             getCurrentPDFPageSize(productPageLayoutId, selectedProducts) >
-                Number(catelog_page_limit) ||
+            Number(catelog_page_limit) ||
             catelog_page_limit === "false"
         ) {
             setActiveBannerError(true);
@@ -554,8 +554,8 @@ const Dashboard = (props = {}) => {
                     validImageTypes.includes(fileLogo.type)
                         ? window.URL.createObjectURL(fileLogo)
                         : configData?.logo !== ""
-                        ? `${IMAGE_PREFIX}uploads/logo/${configData?.logo}`
-                        : NoteMinor
+                            ? `${IMAGE_PREFIX}uploads/logo/${configData?.logo}`
+                            : NoteMinor
                 }
             />
             {fileLogo.size > 0 && (
@@ -591,8 +591,8 @@ const Dashboard = (props = {}) => {
                     validImageTypes.includes(fileFrontImage.type)
                         ? window.URL.createObjectURL(fileFrontImage)
                         : configData?.frontImage !== ""
-                        ? `${IMAGE_PREFIX}uploads/frontImage/${configData?.frontImage}`
-                        : NoteMinor
+                            ? `${IMAGE_PREFIX}uploads/frontImage/${configData?.frontImage}`
+                            : NoteMinor
                 }
             />
             {fileFrontImage.size && (
@@ -628,8 +628,8 @@ const Dashboard = (props = {}) => {
                     validImageTypes.includes(fileBackImage.type)
                         ? window.URL.createObjectURL(fileBackImage)
                         : configData?.backImage !== ""
-                        ? `${IMAGE_PREFIX}uploads/backImage/${configData?.backImage}`
-                        : NoteMinor
+                            ? `${IMAGE_PREFIX}uploads/backImage/${configData?.backImage}`
+                            : NoteMinor
                 }
             />
             {fileBackImage.size && (
@@ -770,7 +770,7 @@ const Dashboard = (props = {}) => {
                         const imgs = document.querySelectorAll("img");
                         imgs.forEach((img) => {
                             if (!img.complete) {
-                                img.onload = () => {};
+                                img.onload = () => { };
                             }
                         });
                     },
@@ -870,8 +870,8 @@ const Dashboard = (props = {}) => {
                                         ] == undefined
                                             ? null
                                             : additionalStringChunks[
-                                                  additionalStringPageIndex
-                                              ],
+                                            additionalStringPageIndex
+                                            ],
                                     current_page: isLastRequest
                                         ? totalChunks
                                         : currentPageCount,
@@ -1129,8 +1129,7 @@ const Dashboard = (props = {}) => {
                                 console.log("flipChunk iD :", flipChunkId);
 
                                 console.log(
-                                    `Chunk ${i + 1}/${
-                                        chunks.length
+                                    `Chunk ${i + 1}/${chunks.length
                                     } sent successfully.`
                                 );
                             } catch (error) {
@@ -1256,7 +1255,7 @@ const Dashboard = (props = {}) => {
             }
         }
         //setBtnSpinner(false);
-      //  setLoader(false);
+        //  setLoader(false);
         // const generatePdf = async () => {
         //     const pdf = new jsPDF({
         //         orientation: pdfLayout ?? "p",
@@ -1452,13 +1451,13 @@ const Dashboard = (props = {}) => {
                                                                                 key={`btn_optionkey_${optionIndex}`}
                                                                                 tone={
                                                                                     enabled ===
-                                                                                    value
+                                                                                        value
                                                                                         ? "success"
                                                                                         : ""
                                                                                 }
                                                                                 variant={
                                                                                     enabled ===
-                                                                                    value
+                                                                                        value
                                                                                         ? "primary"
                                                                                         : ""
                                                                                 }
@@ -2000,7 +1999,7 @@ const Dashboard = (props = {}) => {
                                                                         }
                                                                         disabled={
                                                                             footerDateEnabled ==
-                                                                            1
+                                                                                1
                                                                                 ? false
                                                                                 : true
                                                                         }
@@ -2227,7 +2226,7 @@ const Dashboard = (props = {}) => {
                                                                         type="number"
                                                                         value={Math.ceil(
                                                                             productDescriptionCharLimit ??
-                                                                                50
+                                                                            50
                                                                         )}
                                                                         disabled={
                                                                             !convertStrToArr(
@@ -2393,14 +2392,14 @@ const Dashboard = (props = {}) => {
                                                                 onChange={
                                                                     priceAdjustment ===
                                                                         null ||
-                                                                    priceAdjustment ===
+                                                                        priceAdjustment ===
                                                                         ""
-                                                                        ? () => {}
+                                                                        ? () => { }
                                                                         : (e) =>
-                                                                              handleConfigData(
-                                                                                  e,
-                                                                                  "productChangeInPercentage"
-                                                                              )
+                                                                            handleConfigData(
+                                                                                e,
+                                                                                "productChangeInPercentage"
+                                                                            )
                                                                 }
                                                                 type="number"
                                                                 value={
@@ -2411,9 +2410,9 @@ const Dashboard = (props = {}) => {
                                                                 max={100}
                                                                 disabled={
                                                                     priceAdjustment ===
-                                                                        null ||
+                                                                    null ||
                                                                     priceAdjustment ===
-                                                                        ""
+                                                                    ""
                                                                 }
                                                                 helpText="Minus value converted to positive number."
                                                             />
@@ -2628,7 +2627,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 3 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2646,7 +2645,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 4 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2664,7 +2663,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 5 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2682,7 +2681,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 6 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2700,7 +2699,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 7 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2718,7 +2717,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 8 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2736,7 +2735,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 9 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2754,7 +2753,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 10 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2772,7 +2771,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 11 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2790,7 +2789,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 12 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2808,7 +2807,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 13 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2826,7 +2825,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 14 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2844,7 +2843,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 15 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"
@@ -2862,7 +2861,7 @@ const Dashboard = (props = {}) => {
                                                                                 layout_limit
                                                                             ) >=
                                                                                 16 ||
-                                                                            layout_limit ===
+                                                                                layout_limit ===
                                                                                 "true"
                                                                                 ? ""
                                                                                 : "is-disabled"

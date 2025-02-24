@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+
 class ApiController extends Controller
 {
     //
@@ -162,40 +163,39 @@ class ApiController extends Controller
         }
         return response()->json(['message' => 'Catalog saved successfully.', 'setting_id' => $saveData->id, 'logo' => $saveData->logo, 'frontImage' => $saveData->frontImage, 'backImage' => $saveData->backImage, 'responseCode' => 1, 'errorCode' => 0]);
     }
-    public function settingGet(Request $request,$id)
+    public function settingGet(Request $request, $id)
     {
         $data = Settings::with('products')->where('id', $id)->first();
         $shop = base64_decode($request->header('token'));
         $shop_id = User::where('name', $shop)->pluck('id')->first();
-        if($shop_id == $data['shop_id']){
-        if ($data) {
-            $products = $data->products->map(function ($product) {
-                // Include the desired fields from the "products" relationship
-                return [
-                    'id' => $product->product_id,
-                    'title' => $product->title,
-                    'image' => $product->image,
-                    'description' => $product->desc ?? '', // Set a blank value if null
-                    'sku' => $product->sku ?? '', // Set a blank value if null
-                    'price' => $product->price,
-                    'storeurl' => $product->store_url,
-                    'barcode' => $product->barcode,
-                     'compareAtPrice' => $product->compareAtPrice ?? "",
-                    // Add more fields as needed
-                ];
-            });
+        if ($shop_id == $data['shop_id']) {
+            if ($data) {
+                $products = $data->products->map(function ($product) {
+                    // Include the desired fields from the "products" relationship
+                    return [
+                        'id' => $product->product_id,
+                        'title' => $product->title,
+                        'image' => $product->image,
+                        'description' => $product->desc ?? '', // Set a blank value if null
+                        'sku' => $product->sku ?? '', // Set a blank value if null
+                        'price' => $product->price,
+                        'storeurl' => $product->store_url,
+                        'barcode' => $product->barcode,
+                        'compareAtPrice' => $product->compareAtPrice ?? "",
+                        // Add more fields as needed
+                    ];
+                });
 
-            $dataArray = $data->toArray();
+                $dataArray = $data->toArray();
 
-            unset($dataArray['products']);
-            $dataArray['selectedProducts'] = $products;
-            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
+                unset($dataArray['products']);
+                $dataArray['selectedProducts'] = $products;
+                return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
+            } else {
+                return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
+            }
         } else {
-            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
-        }
-        }else{
-                        return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denide', 'data' => []]);
-
+            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denide', 'data' => []]);
         }
     }
     public function collectionsGet(Request $request)
@@ -417,7 +417,7 @@ class ApiController extends Controller
     //                     $variants = array_map(function ($variant) {
     //                         $variant['node']['compareAtPrice'] = $variant['node']['compareAtPrice'] ?? "0";
     //                         return $variant;
-                            
+
     //                     }, $variants);
 
     //                     // If there are more variants, recursively fetch them
@@ -481,7 +481,7 @@ class ApiController extends Controller
     //                     $item_array['variants'] = $variants;
 
     //                     $priceValue = $value['node']['variants']['edges'][0]['node']['price'];
-                      
+
     //                   if($value['node']['variants']['edges'][0]['node']['compareAtPrice']){
     //                           $comparePrice = $value['node']['variants']['edges'][0]['node']['compareAtPrice'];
     //                           $formattedComparePrice = @$this->formatMoney($comparePrice, $priceFormat) ?? "0";
@@ -490,11 +490,11 @@ class ApiController extends Controller
     //                              $formattedComparePrice = "0.00";
     //                     }
     //                     $formattedPrice = $this->formatMoney($priceValue, $priceFormat);
-                       
+
     //                     $item_array['price'] = $formattedPrice;
     //                     $item_array['orignalPrice'] = $priceValue;
     //                     $collections_array[] = $item_array; // Use [] to push $item_array into $collections_array
-                        
+
     //                     $item_array['compareAtPrice'] =     $formattedComparePrice;
     //                     $item_array['orignalcompareAtPrice'] = $comparePrice;
     //                     $data['products'] = $collections_array;
@@ -526,7 +526,7 @@ class ApiController extends Controller
     //     }
     //     return response()->json(['responseCode' => $responseCode, 'errorCode' => 0, 'message' => $message, 'data' => $data, 'priceFormate' => $priceFormat]);
     // }
-      public function collectionProductGet(Request $request)
+    public function collectionProductGet(Request $request)
     {
         $shop = base64_decode($request->header('token'));
         $post = $request->input();
@@ -858,7 +858,7 @@ class ApiController extends Controller
         }
 
 
-        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl','flipId')
+        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl', 'flipId')
             ->where('shop_id', $shop_id)
             ->orderBy('id', 'desc')
             ->get();
@@ -954,7 +954,7 @@ class ApiController extends Controller
         $data['usersPlan']['planName'] = $planDetail;
         return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => "Succesffully Fetched", 'data' => $data]);
     }
- public function buyPlan(Request $request)
+    public function buyPlan(Request $request)
     {
         $shop = base64_decode($request->header('token'));
         $plan_id = $request->input('planId');
@@ -962,30 +962,30 @@ class ApiController extends Controller
         $plans = DB::table('plans')->where('id', $plan_id)->first();
         $shopDetail = User::where('name', $shop)->first();
 
-       if($isFree == 1){
+        if ($isFree == 1) {
             $chargeData =  DB::table('charges')->where('user_id', $shopDetail['id'])->first();
             $charge_id = $chargeData->charge_id;
-            
-             $graphqlEndpointRecuring = 'https://' . $shop . '/admin/api/2023-10/recurring_application_charges/'. $charge_id.'.json'; // Replace with your actual GraphQL endpoint URL
-          $customHeaders = [
-            'X-Shopify-Access-Token' => $shopDetail['password'], // Replace with your actual authorization token
-        ];
 
-        // Send a cURL request to the GraphQL endpoint
+            $graphqlEndpointRecuring = 'https://' . $shop . '/admin/api/2023-10/recurring_application_charges/' . $charge_id . '.json'; // Replace with your actual GraphQL endpoint URL
+            $customHeaders = [
+                'X-Shopify-Access-Token' => $shopDetail['password'], // Replace with your actual authorization token
+            ];
+
+            // Send a cURL request to the GraphQL endpoint
             $response = Http::withHeaders($customHeaders)->delete($graphqlEndpointRecuring);
-              $latestRecords = Settings::where('shop_id', $shopDetail['id'])
-            ->orderByDesc('created_at')
-            ->take($plans->catelog_limit)
-            ->pluck('id')
-            ->toArray();
+            $latestRecords = Settings::where('shop_id', $shopDetail['id'])
+                ->orderByDesc('created_at')
+                ->take($plans->catelog_limit)
+                ->pluck('id')
+                ->toArray();
             $allRecords = Settings::where('shop_id', $shopDetail['id'])->where('enabled', 1)->whereNotIn('id', $latestRecords)->get();
-                foreach ($allRecords as $val) {
-                    $val->update(['status' => 'your_new_status']);
-                    Settings::where('id', $val['id'])->update(['enabled' => 0]);
-                }
-             $shopDetail->plan_id = $plans->id;
+            foreach ($allRecords as $val) {
+                $val->update(['status' => 'your_new_status']);
+                Settings::where('id', $val['id'])->update(['enabled' => 0]);
+            }
+            $shopDetail->plan_id = $plans->id;
             $shopDetail->save();
-             DB::table('charges')->where('user_id', $shopDetail['id'])->update([
+            DB::table('charges')->where('user_id', $shopDetail['id'])->update([
                 'charge_id' => 0,
                 'test' => true,
                 'status' => 'active',
@@ -999,10 +999,10 @@ class ApiController extends Controller
                 'activated_on' => date('Y-m-d H:i:s'),
                 'name' => $plans->name,
             ]);
-               $redirect_url = "https://" . $shopDetail['name'] . "/admin/apps/".env('SHOPIFY_APP');
+            $redirect_url = "https://" . $shopDetail['name'] . "/admin/apps/" . env('SHOPIFY_APP');
 
-           return response()->json(['responseCode' => 1, 'errorCode' => 0, 'buyUrl' => $redirect_url , 'message' => "Successfully Fetched", 'data' => []]);
-       }
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'buyUrl' => $redirect_url, 'message' => "Successfully Fetched", 'data' => []]);
+        }
         $query = '
         mutation appSubscriptionCreate(
             $name: String!,
@@ -1131,13 +1131,13 @@ class ApiController extends Controller
             $path = url('uploads/pdfFile/shop_' . $user . "/collections_" . $settings['collectionName'] . "/"
                 . $settings['pdfUrl']);
             //return response()->download($path);
-            if(@$settings['flipId']){
+            if (@$settings['flipId']) {
                 $flipstatus = true;
-                $flipUrl = 'https://pdf.meetanshi.work/flipBook/'.$settings['flipId'];
-            }else{
-                 $flipstatus = false;
+                $flipUrl = 'https://pdf.meetanshi.work/flipBook/' . $settings['flipId'];
+            } else {
+                $flipstatus = false;
             }
-            return response()->json(['status' => 'true', 'pdfName' => $settings['pdfUrl'],'flipstatus'=>$flipstatus,'flipUrl'=>$flipUrl]);
+            return response()->json(['status' => 'true', 'pdfName' => $settings['pdfUrl'], 'flipstatus' => $flipstatus, 'flipUrl' => $flipUrl]);
         } else {
             return response()->json(['status' => 'false']);
         }
@@ -1194,7 +1194,7 @@ class ApiController extends Controller
         }
         return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully Upload', 'data' => []]);
     }
-    
+
     //   public function flipPdfGenrate(Request $request, $settings_id)
     // {
     //     $post = $request->input();
@@ -1207,19 +1207,19 @@ class ApiController extends Controller
     //     $settingsData = Settings::find($settings_id);
     //     if ($post['current_page'] == $post['total_page']) {
     //         $newJsonData = [];
-           
+
     //         foreach ($getAllRequest as $key => $value) {
     //             $jsonData = []; // Initialize as an empty array for each iteration
-          
+
     //             $jsonData['page'] = 'page' . $value['page']; 
     //             $jsonData['value'] = $value['uploadRequest']; 
     //             $newJsonData[] = $jsonData;
     //         }
-           
+
 
     //         $jsonString = json_encode($newJsonData, JSON_PRETTY_PRINT);
     //         $base64JsonString = base64_encode($jsonString);
-            
+
     //         Settings::where('id', $settings_id)->update(['flipHtml' => NULL]);
     //         if (@$settingsData) {
     //           $settingsData->flipHtml = $base64JsonString;
@@ -1255,8 +1255,8 @@ class ApiController extends Controller
     //         $logo = base64_decode($img);
     //         $success = file_put_contents($path, $logo);
     //         $post['pdfUrl'] = $png_url;
-            
-         
+
+
     //         if (@$settingsData['pdfUrl']) {
     //             $image_path = $collectionFolder . "/" . $settingsData['pdfUrl'];
     //             if (file_exists($image_path)) {
@@ -1265,7 +1265,7 @@ class ApiController extends Controller
     //         }
     //         $settingsData->pdfUrl = $png_url;
     //         $settingsData->save();
-       
+
     //     }
     //     if($post['total_page'] >= $post['totalBase64Page']){
     //         if( $post['current_page'] == $post['total_page']){
@@ -1273,14 +1273,14 @@ class ApiController extends Controller
 
     //             return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully save', 'data' => ['flipId' => $flipId]]);
     //         }
-           
+
 
     //     }else{
     //         if($post['totalBase64Page'] == $post['currentBase64Page']){
     //             $settingsData = Settings::find($settings_id);
 
     //             ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
-     
+
     //             return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully save', 'data555' => ['flipId' => $settingsData['flipId']]]);
     //         }
     //     }
@@ -1296,7 +1296,7 @@ class ApiController extends Controller
             return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Not found', 'data' => []]);
         }
     }*/
-     public function flipPdfGenrate(Request $request, $settings_id)
+    public function flipPdfGenrate(Request $request, $settings_id)
     {
         $post = $request->input();
 
@@ -1308,19 +1308,18 @@ class ApiController extends Controller
         $settingsData = Settings::find($settings_id);
         if ($post['current_page'] == $post['total_page']) {
 
-            
-            if(!@$settingsData['flipId']){
-                            $flipId = Str::random(10);
 
-                   $settingsData->flipId = $flipId;
-                  
-            }else{
-                 $flipId =  $settingsData['flipId'];
+            if (!@$settingsData['flipId']) {
+                $flipId = Str::random(10);
+
+                $settingsData->flipId = $flipId;
+            } else {
+                $flipId =  $settingsData['flipId'];
             }
-              $settingsData->isLarge = $post['isLarge'];
+            $settingsData->isLarge = $post['isLarge'];
             $settingsData->save();
             ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
-          
+
             $concatRequest = [];
             foreach ($getAllRequest as $key => $value) {
                 if ($value['pdfRequest'] != NULL) {
@@ -1328,8 +1327,8 @@ class ApiController extends Controller
                 }
             }
             $commaSeparatedString = implode('', $concatRequest);
-           
-            
+
+
             $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $post['shop_id'];
             if (!file_exists($shopFolder)) {
                 mkdir($shopFolder, 0777, true);
@@ -1355,12 +1354,10 @@ class ApiController extends Controller
             $settingsData->save();
         }
         if ($post['isLastRequest'] == true) {
-          
-                ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
-                return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully save', 'data' => ['flipId' => $flipId]]);
-            
-        } 
-       
+
+            ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully save', 'data' => ['flipId' => $flipId]]);
+        }
     }
     public function flipPdfGet($flipId)
     {
@@ -1371,6 +1368,385 @@ class ApiController extends Controller
             return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully fetch', 'data' => ['flipHtml' => $decode]]);
         } else {
             return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Not found', 'data' => []]);
+        }
+    }
+
+    public function getAllVendors(Request $request)
+    {
+        // Decode shop URL from request header
+        $shop = base64_decode($request->header('token'));
+
+        // Get access token from DB
+        $token = User::where('name', $shop)->pluck('password')->first();
+        if (!$token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'vendors' => [],
+                'count' => 0
+            ], 400);
+        }
+
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
+
+        $vendors = [];
+        $endCursor = null;
+        $hasNextPage = true;
+
+        try {
+            // Fetch all vendors in batches
+            while ($hasNextPage) {
+                $query = '{
+                productVendors(first: 900' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                    nodes
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
+            }';
+
+                // Send GraphQL request
+                $response = Http::withHeaders($headers)->post($shopifyUrl, [
+                    'query' => $query,
+                ]);
+
+                $data = $response->json();
+
+                if (!isset($data['data']['productVendors'])) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Failed to fetch vendors',
+                        'vendors' => [],
+                        'count' => 0
+                    ], 500);
+                }
+
+                // Extract vendors
+                $vendors = array_merge($vendors, $data['data']['productVendors']['nodes']);
+
+                // Pagination details
+                $hasNextPage = $data['data']['productVendors']['pageInfo']['hasNextPage'];
+                $endCursor = $data['data']['productVendors']['pageInfo']['endCursor'];
+            }
+
+            // Remove duplicates & sort vendors alphabetically
+            $uniqueVendors = array_values(array_unique($vendors));
+            sort($uniqueVendors);
+
+            // Transform the response format for frontend compatibility
+            $formattedVendors = array_map(fn($vendor) => ['value' => $vendor, 'label' => $vendor], $uniqueVendors);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Vendors fetched successfully',
+                'vendors' => $formattedVendors,
+                'count' => count($formattedVendors),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'vendors' => [],
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    public function getAllProductTags(Request $request)
+    {
+        // Decode shop URL from request header
+        $shop = base64_decode($request->header('token'));
+
+        // Get access token from DB
+        $token = User::where('name', $shop)->pluck('password')->first();
+        if (!$token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'tags' => [],
+                'count' => 0
+            ], 400);
+        }
+
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
+
+        $tags = [];
+        $endCursor = null;
+        $hasNextPage = true;
+
+        try {
+            // Fetch all product tags in batches
+            while ($hasNextPage) {
+                $query = '{
+                productTags(first: 4000' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                    nodes
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
+            }';
+
+                // Send GraphQL request
+                $response = Http::withHeaders($headers)->post($shopifyUrl, [
+                    'query' => $query,
+                ]);
+
+                $data = $response->json();
+
+                if (!isset($data['data']['productTags'])) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Failed to fetch product tags',
+                        'tags' => [],
+                        'count' => 0
+                    ], 500);
+                }
+
+                // Extract tags
+                $tags = array_merge($tags, $data['data']['productTags']['nodes']);
+
+                // Pagination details
+                $hasNextPage = $data['data']['productTags']['pageInfo']['hasNextPage'];
+                $endCursor = $data['data']['productTags']['pageInfo']['endCursor'];
+            }
+
+            // Remove duplicates & sort tags alphabetically
+            $uniqueTags = array_values(array_unique($tags));
+            sort($uniqueTags);
+
+            // Transform the response format for frontend compatibility
+            $formattedTags = array_map(fn($tag) => ['value' => $tag, 'label' => $tag], $uniqueTags);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product tags fetched successfully',
+                'tags' => $formattedTags,
+                'count' => count($formattedTags),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'tags' => [],
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    public function getAllProductTypes(Request $request)
+    {
+        $shop = base64_decode($request->header('token'));
+
+        $token = User::where('name', $shop)->pluck('password')->first();
+        if (!$token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'types' => [],
+                'count' => 0
+            ], 400);
+        }
+
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
+
+        $types = [];
+        $endCursor = null;
+        $hasNextPage = true;
+
+        try {
+            while ($hasNextPage) {
+                $query = '{
+                productTypes(first: 900' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                    nodes
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
+            }';
+
+                $response = Http::withHeaders($headers)->post($shopifyUrl, [
+                    'query' => $query,
+                ]);
+
+                $data = $response->json();
+
+                if (!isset($data['data']['productTypes'])) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Failed to fetch product types',
+                        'types' => [],
+                        'count' => 0
+                    ], 500);
+                }
+
+                $types = array_merge($types, $data['data']['productTypes']['nodes']);
+
+                $hasNextPage = $data['data']['productTypes']['pageInfo']['hasNextPage'];
+                $endCursor = $data['data']['productTypes']['pageInfo']['endCursor'];
+            }
+
+            $uniqueTypes = array_values(array_unique($types));
+            sort($uniqueTypes);
+
+            $formattedTypes = array_map(fn($type) => ['value' => $type, 'label' => $type], $uniqueTypes);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product types fetched successfully',
+                'types' => $formattedTypes,
+                'count' => count($formattedTypes),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'types' => [],
+                'count' => 0
+            ], 500);
+        }
+    }
+
+    public function getProductsUsingFilter(Request $request)
+    {
+        // Decode the shop name from the token header
+        $shop = base64_decode($request->header('token'));
+
+        // Retrieve the access token from the database
+        $token = User::where('name', $shop)->pluck('password')->first();
+        if (!$token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'products' => [],
+                'count' => 0
+            ], 400);
+        }
+
+        // Shopify API URL
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
+
+        // Extract filter parameters
+        $filters = [
+            'title'        => $request->input('title'),
+            'product_type' => $request->input('productTypes'),
+            'vendor'       => $request->input('vendors'),
+            'status'       => $request->input('productStatus'),
+            'tags'          => $request->input('productTags'),
+        ];
+
+        // Construct dynamic query conditions
+        // Construct dynamic query conditions
+        $queryConditions = [];
+        foreach ($filters as $key => $values) {
+            if (!empty($values) && is_array($values)) {
+                $conditions = array_map(fn($value) => "$key:'$value'", $values);
+                $queryConditions[] = '(' . implode(' OR ', $conditions) . ')';
+            }
+        }
+
+        $products = [];
+        $endCursor = null;
+        $hasNextPage = true;
+
+        try {
+            while ($hasNextPage) {
+                // Build the GraphQL query
+                $query = '{
+                            products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+                            edges {
+                            node {
+                                id
+                                title
+                                handle
+                                variants(first: 10) {
+                                    edges {
+                                        node {
+                                            id
+                                            title
+                                            price
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            endCursor
+                        }
+                    }
+                }';
+                // Send request to Shopify API
+                $response = Http::withHeaders($headers)->post($shopifyUrl, [
+                    'query' => $query,
+                ]);
+
+                $data = $response->json();
+
+                // Validate response
+                if (!isset($data['data']['products'])) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Failed to fetch products',
+                        'products' => [],
+                        'count' => 0
+                    ], 500);
+                }
+
+                // Extract product data
+                foreach ($data['data']['products']['edges'] as $productEdge) {
+                    $product = $productEdge['node'];
+                    $products[] = [
+                        'id'    => isset($product['id']) ? $product['id'] : null,
+                        'title' => isset($product['title']) ? $product['title'] : null,
+                        'variants' => array_map(function ($variantEdge) {
+                            $variant = $variantEdge['node'];
+                            return [
+                                'id'      => isset($variant['id']) ? $variant['id'] : null,
+                                'title'   => isset($variant['title']) ? $variant['title'] : null,
+                                'price'   => isset($variant['price']) ? $variant['price'] : null,
+                                'product' => isset($variant['product']['id']) ? $variant['product']['id'] : null,
+                            ];
+                        }, isset($product['variants']['edges']) ? $product['variants']['edges'] : [])
+                    ];
+                }
+
+                // Check if more pages exist
+                $hasNextPage = $data['data']['products']['pageInfo']['hasNextPage'];
+                $endCursor = $data['data']['products']['pageInfo']['endCursor'];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Products fetched successfully',
+                'products' => $products,
+                'count' => count($products),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'products' => [],
+                'count' => 0
+            ], 500);
         }
     }
 }

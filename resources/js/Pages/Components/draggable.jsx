@@ -3,7 +3,8 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 
-const DraggableTable = ({ productData }) => {
+const DraggableTable = ({ productData, setProductData }) => {
+    console.log("productData from the draggable table ", productData)
     const [searchQuery, setSearchQuery] = useState("");
     const [sortOption, setSortOption] = useState("default");
     const [items, setItems] = useState(() => {
@@ -12,15 +13,6 @@ const DraggableTable = ({ productData }) => {
             priority: item.priority || index + 1,
         }));
     });
-
-    useEffect(() => {
-        console.log("Current Priority Order:");
-        console.table(items.map(item => ({
-            id: item.id,
-            name: item.name,
-            priority: item.priority
-        })));
-    }, [items]);
 
     const handleDragEnd = (result) => {
         if (!result.destination || sortOption !== "default") return;
@@ -36,6 +28,7 @@ const DraggableTable = ({ productData }) => {
         }));
 
         setItems(reorderedItems);
+        setProductData(reorderedItems)
         console.log(`Item "${movedItem.name}" moved from position ${result.source.index + 1} to ${result.destination.index + 1}`);
     };
 
@@ -49,12 +42,14 @@ const DraggableTable = ({ productData }) => {
         }));
 
         setItems(updatedItems);
+        setProductData(updatedItems);
         console.log(`Deleted item "${itemToDelete?.name}" (previous priority: ${itemToDelete?.priority})`);
     };
 
     const handleDeleteAll = () => {
         console.log("All items deleted");
         setItems([]);
+        setProductData([]);
     };
 
     // Filter items based on search query
@@ -85,6 +80,28 @@ const DraggableTable = ({ productData }) => {
             }
         });
     }
+
+    useEffect(() => {
+        setItems([...productData].map((item, index) => ({
+            ...item,
+            priority: item.priority || index + 1,
+        })));
+    }, [productData]);
+
+    useEffect(() => {
+        console.log("Current Priority Order:");
+        console.table(items.map(item => ({
+            id: item.id,
+            name: item.name,
+            priority: item.priority
+        })));
+    }, [items, productData]);
+
+    useEffect(() => {
+        setItems([...productData]);
+    }, [productData]);
+
+
 
     return (
         <div style={styles.container}>
@@ -175,7 +192,6 @@ const DraggableTable = ({ productData }) => {
                                                         </div>
                                                     </td>
                                                     <td style={styles.td}>
-                                                        <img src={item.image} alt={item.name} style={styles.productImage} />
                                                         {item.name}
                                                     </td>
                                                     <td style={styles.td}>
@@ -212,8 +228,7 @@ const DraggableTable = ({ productData }) => {
 // Styles remain unchanged
 const styles = {
     container: {
-        width: "80%",
-        margin: "auto",
+        width: "100%",
         padding: "20px",
         fontFamily: "Arial, sans-serif",
     },
