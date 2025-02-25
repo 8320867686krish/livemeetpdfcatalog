@@ -1645,23 +1645,40 @@ class ApiController extends Controller
         ];
 
         // Extract filter parameters
+        // Extract filter parameters
         $filters = [
-            'title'        => $request->input('title'),
             'product_type' => $request->input('productTypes'),
             'vendor'       => $request->input('vendors'),
-            'status'       => $request->input('productStatus'),
-            'tags'          => $request->input('productTags'),
+            'status'       => strtoupper($request->input('productStatus')), // Ensure uppercase (ACTIVE, ARCHIVED, DRAFT)
+            'tags'         => $request->input('productTags'), // Ensure tags are handled correctly
         ];
 
         // Construct dynamic query conditions
-        // Construct dynamic query conditions
         $queryConditions = [];
+
         foreach ($filters as $key => $values) {
             if (!empty($values) && is_array($values)) {
-                $conditions = array_map(fn($value) => "$key:'$value'", $values);
-                $queryConditions[] = '(' . implode(' OR ', $conditions) . ')';
+                if ($key === 'tags') {
+                    // Shopify uses `tag:` instead of `tags:`
+                    $conditions = array_map(fn($value) => "tag:'$value'", $values);
+                    $queryConditions[] = '(' . implode(' AND ', $conditions) . ')'; // Use AND for filtering
+                } elseif ($key === 'product_type' && in_array('all_products', $values)) {
+                    continue; // Skip adding product_type filter if 'all_products' is selected
+                } else {
+                    $conditions = array_map(fn($value) => "$key:'$value'", $values);
+                    $queryConditions[] = '(' . implode(' OR ', $conditions) . ')';
+                }
             }
         }
+
+        // Ensure status filter is applied correctly
+        if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
+            $queryConditions[] = "status:{$filters['status']}";
+        }
+
+        // Price filters
+        $minPrice = floatval($request->input('minPrice', 0));
+        $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
 
         $products = [];
         $endCursor = null;
@@ -1671,29 +1688,37 @@ class ApiController extends Controller
             while ($hasNextPage) {
                 // Build the GraphQL query
                 $query = '{
-                            products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
-                            edges {
-                            node {
-                                id
-                                title
-                                handle
-                                variants(first: 10) {
-                                    edges {
-                                        node {
-                                            id
-                                            title
-                                            price
+                products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+                    edges {
+                        node {
+                            id
+                            title
+                            handle
+                            status
+                            vendor
+                            productType
+                            tags
+                            variants(first: 10) {
+                                edges {
+                                    node {
+                                        id
+                                        title
+                                        price
+                                        product {
+                                            id  
                                         }
                                     }
                                 }
                             }
                         }
-                        pageInfo {
-                            hasNextPage
-                            endCursor
-                        }
                     }
-                }';
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
+            }';
+
                 // Send request to Shopify API
                 $response = Http::withHeaders($headers)->post($shopifyUrl, [
                     'query' => $query,
@@ -1714,19 +1739,46 @@ class ApiController extends Controller
                 // Extract product data
                 foreach ($data['data']['products']['edges'] as $productEdge) {
                     $product = $productEdge['node'];
-                    $products[] = [
-                        'id'    => isset($product['id']) ? $product['id'] : null,
-                        'title' => isset($product['title']) ? $product['title'] : null,
-                        'variants' => array_map(function ($variantEdge) {
-                            $variant = $variantEdge['node'];
-                            return [
-                                'id'      => isset($variant['id']) ? $variant['id'] : null,
-                                'title'   => isset($variant['title']) ? $variant['title'] : null,
-                                'price'   => isset($variant['price']) ? $variant['price'] : null,
-                                'product' => isset($variant['product']['id']) ? $variant['product']['id'] : null,
-                            ];
-                        }, isset($product['variants']['edges']) ? $product['variants']['edges'] : [])
+
+                    // Extract numeric ID from Shopify GraphQL ID format
+                    $productId = $product['id'];
+                    $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
+
+                    $productData = [
+                        'id'              => $productId,
+                        'normalizedId'    => $normalizedProductId,
+                        'title'           => $product['title'] ?? null,
+                        'vendor'          => $product['vendor'] ?? null,
+                        'productType'     => $product['productType'] ?? null,
+                        'tags'            => $product['tags'] ?? [],
+                        'status'          => $product['status'] ?? null,
+                        'variants'        => []
                     ];
+
+                    if (isset($product['variants']['edges'])) {
+                        foreach ($product['variants']['edges'] as $variantEdge) {
+                            $variant = $variantEdge['node'];
+                            $variantId = $variant['id'];
+                            $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
+                            $price = floatval($variant['price']);
+                            // Apply price filter
+                            if ($price >= $minPrice && $price <= $maxPrice) {
+                                $productData['variants'][] = [
+                                    'id'                  => $variantId,
+                                    'normalizedId'        => $normalizedVariantId,
+                                    'title'               => $variant['title'] ?? null,
+                                    'price'               => $variant['price'] ?? null,
+                                    'product'             => $variant['product']['id'] ?? null,
+                                    'normalizedProductId' => $normalizedProductId
+                                ];
+                            }
+                        }
+                    }
+
+                    // Add product only if it has variants matching price criteria
+                    if (!empty($productData['variants'])) {
+                        $products[] = $productData;
+                    }
                 }
 
                 // Check if more pages exist

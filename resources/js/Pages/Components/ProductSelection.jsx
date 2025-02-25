@@ -51,73 +51,187 @@ const ProductSelection = ({ props }) => {
         return Object.values(selectedProducts);
     };
 
-    
+    // Add these utility functions at the top of your file or in a separate utilities file
+
+    /**
+     * Normalizes Shopify IDs to a consistent format for comparison
+     * Works with both GraphQL GIDs and regular IDs
+     */
+    const normalizeId = (gid) => {
+        if (!gid) return "";
+        // For Shopify GID format: "gid://shopify/Product/1234567890"
+        if (typeof gid === 'string' && gid.includes('gid://shopify/')) {
+            const parts = gid.split('/');
+            return parts[parts.length - 1];
+        }
+        // For numeric IDs or other formats
+        return String(gid).replace(/\D/g, '');
+    };
+
+    /**
+     * Builds maps of existing product and variant IDs for duplicate checking
+     */
+    const buildExistingIdMaps = (productData) => {
+        const productMap = {};
+        const variantMap = {};
+
+        productData.forEach(item => {
+            const normProductId = normalizeId(item.productId);
+            if (normProductId) productMap[normProductId] = true;
+
+            const normVariantId = normalizeId(item.variantId);
+            if (normVariantId) variantMap[normVariantId] = true;
+        });
+
+        return { productMap, variantMap };
+    };
+
+    /**
+     * Utility for debugging - checks for duplicate products in your data
+     */
+    const checkForDuplicates = (productData) => {
+        const variantMap = {};
+        const productMap = {};
+        const duplicates = [];
+
+        productData.forEach((item, index) => {
+            const normProductId = normalizeId(item.productId);
+            const normVariantId = normalizeId(item.variantId || item.productId);
+
+            const key = normVariantId || normProductId;
+
+            if (variantMap[key]) {
+                duplicates.push({
+                    index,
+                    item,
+                    normalizedId: key,
+                    duplicateOf: variantMap[key]
+                });
+            } else {
+                variantMap[key] = index;
+            }
+
+            // Also track products
+            if (normProductId && !item.variantId && productMap[normProductId]) {
+                if (!duplicates.some(d => d.index === index)) {
+                    duplicates.push({
+                        index,
+                        item,
+                        normalizedProductId: normProductId,
+                        duplicateOf: productMap[normProductId]
+                    });
+                }
+            } else if (normProductId && !item.variantId) {
+                productMap[normProductId] = index;
+            }
+        });
+
+        console.log('Duplicate products/variants found:', duplicates);
+        return duplicates;
+    };
+
+
     const handleAddProductClick = () => {
         console.log("Opening product picker...");
-    
+
         const productPicker = ResourcePicker.create(app, {
             resourceType: ResourcePicker.ResourceType.Product,
             options: {
-                initialSelectionIds: getSelectedProductIds(), // Pass correctly formatted selections
-                showVariants: true, // Allow variant selection
+                initialSelectionIds: getSelectedProductIds(),
+                showVariants: true,
             },
         });
-    
+
         productPicker.subscribe(ResourcePicker.Action.SELECT, (selection) => {
             console.log("Selection from picker:", selection);
-    
+
+            // Get last priority for sorting
             const lastPriority = productData.length > 0
                 ? Math.max(...productData.map(item => item.priority))
                 : 0;
-    
+
+            // Get maps of existing product/variant IDs
+            const { productMap, variantMap } = buildExistingIdMaps(productData);
+
+            // Process new selections
             let selectedProducts = [];
-    
-            selection.selection.forEach((product) => {
-                if (product.variants.length > 0) {
-                    product.variants.forEach((variant, index) => {
-                        const isAlreadySelected = productData.some(existing => existing.variantId === variant.id);
-                        if (!isAlreadySelected) {
+            let newCount = 0;
+
+            selection.selection.forEach(product => {
+                const productNormalizedId = normalizeId(product.id);
+                console.log(`Processing product: ${product.title}, ID: ${product.id}, Normalized: ${productNormalizedId}`);
+
+                if (product.variants && product.variants.length > 0) {
+                    // Process variants
+                    product.variants.forEach(variant => {
+                        const variantNormalizedId = normalizeId(variant.id);
+                        console.log(`  - Variant: ${variant.title}, ID: ${variant.id}, Normalized: ${variantNormalizedId}`);
+
+                        // Check if this variant is already in our data
+                        if (!variantMap[variantNormalizedId]) {
+                            console.log(`    Adding new variant: ${variantNormalizedId}`);
+                            newCount++;
+
                             selectedProducts.push({
-                                id: variant.id, // Use variant ID directly
+                                id: variant.id,
                                 productId: product.id,
                                 variantId: variant.id,
+                                normalizedProductId: productNormalizedId,
+                                normalizedVariantId: variantNormalizedId,
                                 name: `${product.title} - ${variant.title}`,
-                                priority: lastPriority + selectedProducts.length + 1,
+                                priority: lastPriority + newCount,
                                 price: variant.price || "N/A",
                                 compareAtPrice: variant.compareAtPrice || "N/A",
                                 currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
                             });
+
+                            // Mark as existing to prevent duplicates within this selection
+                            variantMap[variantNormalizedId] = true;
+                        } else {
+                            console.log(`    Skipping existing variant: ${variantNormalizedId}`);
                         }
                     });
                 } else {
-                    const isAlreadySelected = productData.some(existing => existing.productId === product.id);
-                    if (!isAlreadySelected) {
+                    // Process product without variants
+                    if (!productMap[productNormalizedId]) {
+                        console.log(`  Adding new product: ${productNormalizedId}`);
+                        newCount++;
+
                         selectedProducts.push({
                             id: product.id,
                             productId: product.id,
+                            normalizedProductId: productNormalizedId,
                             name: product.title,
-                            priority: lastPriority + selectedProducts.length + 1,
+                            priority: lastPriority + newCount,
                             price: product.variants?.[0]?.price || "N/A",
                             compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
-                            currency: product.variants?.[0]?.presentmentPrices?.[0]?.price?.currencyCode || "USD"
+                            currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
                         });
+
+                        // Mark as existing
+                        productMap[productNormalizedId] = true;
+                    } else {
+                        console.log(`  Skipping existing product: ${productNormalizedId}`);
                     }
                 }
             });
-    
+
             if (selectedProducts.length > 0) {
-                console.log("Processed selected products and variants:", selectedProducts);
+                console.log(`Adding ${selectedProducts.length} new products/variants`);
                 setProductData(prevData => [...prevData, ...selectedProducts]);
+
+                // Optional: Check for duplicates after adding
+                // setTimeout(() => checkForDuplicates(productData), 500);
             } else {
                 console.log("No new products or variants selected.");
             }
-    
+
             productPicker.dispatch(ResourcePicker.Action.CLOSE);
         });
-    
+
         productPicker.dispatch(ResourcePicker.Action.OPEN);
     };
-    
+
 
     return (
         <>

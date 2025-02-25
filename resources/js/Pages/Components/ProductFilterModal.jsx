@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Modal, Button, Select, TextField, Autocomplete, Icon, LegacyStack, Tag } from "@shopify/polaris";
+import { Modal, Button, Select, TextField, Autocomplete, Icon, LegacyStack, Tag, Toast, Frame } from "@shopify/polaris";
 import { SearchIcon } from "@shopify/polaris-icons";
 import { fetchMethod } from "../helper";
 
@@ -20,6 +20,9 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
     const [vendorLoader, setVendorLoader] = useState(false);
     const [productTypeLoader, setProductTypeLoader] = useState(false);
     const [productTagLoader, setProductTagLoder] = useState(false);
+    const [fetchProductLoader, setFetchProductLoader] = useState(false);
+    const [toastMessage, setToastMessage] = useState(null);
+    
     // Fetch vendor list
     useEffect(() => {
         const fetchVendors = async () => {
@@ -91,31 +94,33 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         const [selected, setSelected] = useState([]);
         const [inputValue, setInputValue] = useState("");
         const [options, setOptions] = useState(optionsList);
-
+    
         useEffect(() => {
             setOptions(optionsList);
         }, [optionsList]);
-
+    
         const updateText = useCallback((value) => {
             setInputValue(value);
             if (value === "") {
                 setOptions(optionsList);
                 return;
             }
-
+    
             const filterRegex = new RegExp(value, "i");
             setOptions(optionsList.filter((option) => option.label.match(filterRegex)));
         }, [optionsList]);
-
+    
         const updateSelection = useCallback((selectedItems) => {
             setSelected(selectedItems);
             setInputValue("");
-        }, []);
-
+            setOptions(optionsList); // Reset options back to full list after selection
+        }, [optionsList]);
+    
         const removeTag = useCallback((tag) => () => {
             setSelected(selected.filter((item) => item !== tag));
-        }, [selected]);
-
+            setOptions(optionsList); // Ensure full list is shown again after removal
+        }, [selected, optionsList]);
+    
         const verticalContentMarkup = selected.length > 0 ? (
             <LegacyStack spacing="extraTight" alignment="center">
                 {selected.map((option) => (
@@ -125,7 +130,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 ))}
             </LegacyStack>
         ) : null;
-
+    
         return { selected, inputValue, updateText, updateSelection, options, verticalContentMarkup };
     };
 
@@ -133,16 +138,23 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
     const productTypeAutocomplete = useMultiAutocomplete(productTypeOptionsList);
     const productTagsAutocomplete = useMultiAutocomplete(productTagsOptionsList);
 
+    const showToast = (message) => {
+        setToastMessage(message);
+        setTimeout(() => setToastMessage(null), 3000); // Hide toast after 3 seconds
+    };
+
     const applyFilters = async () => {
         // Construct the filters object
+        setFetchProductLoader(true);
         const filters = {
-            productStatus,
+            ...(productStatus !== "all_products" && { productStatus }), // Add only if not "all_products"
             vendors: vendorAutocomplete.selected,
             productTypes: productTypeAutocomplete.selected,
             productTags: productTagsAutocomplete.selected,
             minPrice,
             maxPrice,
         };
+
 
         // Remove keys with empty values
         const filteredFilters = Object.fromEntries(
@@ -165,6 +177,31 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
             console.log("Filtered products response:", response);
 
             if (response?.status === "success" && Array.isArray(response.products)) {
+                // Normalize ID function - handles both Shopify GID format and regular IDs
+                const normalizeId = (gid) => {
+                    if (!gid) return "";
+                    // For Shopify GID format: "gid://shopify/Product/1234567890"
+                    if (typeof gid === 'string' && gid.includes('gid://shopify/')) {
+                        const parts = gid.split('/');
+                        return parts[parts.length - 1];
+                    }
+                    // For numeric IDs or other formats
+                    return String(gid).replace(/\D/g, '');
+                };
+
+                // Build lookup maps of existing products and variants using normalized IDs
+                const existingProductMap = {};
+                const existingVariantMap = {};
+
+                productData.forEach(item => {
+                    // Normalize IDs of existing data
+                    const normProductId = normalizeId(item.productId);
+                    if (normProductId) existingProductMap[normProductId] = true;
+
+                    const normVariantId = normalizeId(item.variantId);
+                    if (normVariantId) existingVariantMap[normVariantId] = true;
+                });
+
                 const lastPriority = productData.length > 0
                     ? Math.max(...productData.map(item => item.priority))
                     : 0;
@@ -172,34 +209,87 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 let newProducts = [];
 
                 response.products.forEach((product, index) => {
-                    const isAlreadySelected = productData.some(existing => existing.productId === product.id);
+                    const productNormalizedId = normalizeId(product.id);
+                    console.log(`Checking product: ${product.title}, ID: ${product.id}, Normalized ID: ${productNormalizedId}`);
 
-                    if (!isAlreadySelected) {
-                        newProducts.push({
-                            id: product.id,
-                            productId: product.id,
-                            name: product.title,
-                            priority: lastPriority + newProducts.length + 1, // Maintain priority sequence
-                            price: product.variants?.[0]?.price || "N/A",
-                            compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
-                            currency: product.variants?.[0]?.presentmentPrices?.[0]?.price?.currencyCode || "USD"
+                    // Check if the product has variants
+                    if (product.variants && product.variants.length > 0) {
+                        product.variants.forEach(variant => {
+                            const variantNormalizedId = normalizeId(variant.id);
+                            console.log(`  - Checking variant: ${variant.title || 'Default'}, ID: ${variant.id}, Normalized ID: ${variantNormalizedId}`);
+
+                            // Check if this variant is already in our data
+                            if (!existingVariantMap[variantNormalizedId]) {
+                                console.log(`    - Adding new variant: ${variantNormalizedId}`);
+
+                                newProducts.push({
+                                    id: variant.id,
+                                    productId: product.id,
+                                    variantId: variant.id,
+                                    normalizedProductId: productNormalizedId,
+                                    normalizedVariantId: variantNormalizedId,
+                                    name: `${product.title} - ${variant.title || 'Default'}`,
+                                    priority: lastPriority + newProducts.length + 1,
+                                    price: variant.price || "N/A",
+                                    compareAtPrice: variant.compareAtPrice || "N/A",
+                                    currency: "USD" // Adjust if you have currency info
+                                });
+
+                                // Mark as existing to prevent duplicates within this batch
+                                existingVariantMap[variantNormalizedId] = true;
+                            } else {
+                                console.log(`    - Skipping existing variant: ${variantNormalizedId}`);
+                            }
                         });
+                    } else {
+                        // Handle products without variants
+                        if (!existingProductMap[productNormalizedId]) {
+                            console.log(`  - Adding new product: ${productNormalizedId}`);
+
+                            newProducts.push({
+                                id: product.id,
+                                productId: product.id,
+                                normalizedProductId: productNormalizedId,
+                                name: product.title,
+                                priority: lastPriority + newProducts.length + 1,
+                                price: product.variants?.[0]?.price || "N/A",
+                                compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
+                                currency: "USD" // Adjust if you have currency info
+                            });
+
+                            // Mark as existing
+                            existingProductMap[productNormalizedId] = true;
+                        } else {
+                            console.log(`  - Skipping existing product: ${productNormalizedId}`);
+                        }
                     }
                 });
 
+                console.log(`Adding ${newProducts.length} new products/variants from API`);
+
                 // Append new products while maintaining priority order
                 setProductData(prevData => [...prevData, ...newProducts]);
+
+                const count = newProducts.length || 0;
+                if (count > 0) {
+                    showToast(`${count} product(s) added successfully`);
+                } else {
+                    showToast("No new products were added");
+                }
             }
-
+            else {
+                showToast("Failed to fetch products");
+            }
         } catch (error) {
-            console.error("Error fetching filtered products:", error);
+            showToast("Failed to fetch products");
         }
-
-        // Optionally close the modal after applying filters
-        onClose();
+        finally {
+            setFetchProductLoader(false);
+            onClose();
+        }
     };
 
-    return (
+    return (<>
         <Modal open={open} onClose={onClose} title="Filter Products">
             <Modal.Section>
                 <Select label="Product Status" options={productStatusOptions} onChange={setProductStatus} value={productStatus} />
@@ -290,11 +380,13 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
 
             <Modal.Section>
                 <div align="right" style={{ display: "flex", gap: "15px", justifyContent: "end" }}>
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button onClick={applyFilters} variant="primary">Apply Filters</Button>
+                    <Button loading={fetchProductLoader} onClick={onClose}>Cancel</Button>
+                    <Button loading={fetchProductLoader} onClick={applyFilters} variant="primary">Apply Filters</Button>
                 </div>
             </Modal.Section>
         </Modal>
+        {toastMessage && <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />}
+    </>
     );
 };
 
