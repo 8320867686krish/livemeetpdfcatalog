@@ -1,0 +1,1 @@
+Spatie\LaravelIgnition\Exceptions\ViewException: Trying to access array offset on value of type null in file /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/resources/views/welcome.blade.php on line 56

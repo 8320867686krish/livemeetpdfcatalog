@@ -14,44 +14,36 @@ use App\Models\User;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('callback', [WebhookController::class,'callback']);
+
+Route::get('callback', [WebhookController::class, 'callback']);
 
 Route::get('demo', function () {
-  $allUser =  User::get();
-      foreach($allUser as $value){
-          if(@$value['password']){
-             $token = $value->password; // Assuming the token is stored in the password field
-             $shopDomain =$value->name;
-                   $shopUrl = "https://{$shopDomain}/admin/api/2023-10/webhooks.json";
-                      $response = Http::withHeaders([
-            'X-Shopify-Access-Token' => $token,
-        ])->get($shopUrl);
-  $shopJsonResponse = $response->json();
-  $array = ['shop'=>$value->name,'re' =>$shopJsonResponse];
-      dump($array);
-          
-      }
-      }
-     
-
-   
-
-  
-
-       
-     
+    $allUser =  User::get();
+    foreach ($allUser as $value) {
+        if (@$value['password']) {
+            $token = $value->password; // Assuming the token is stored in the password field
+            $shopDomain = $value->name;
+            $shopUrl = "https://{$shopDomain}/admin/api/2023-10/webhooks.json";
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $token,
+            ])->get($shopUrl);
+            $shopJsonResponse = $response->json();
+            $array = ['shop' => $value->name, 're' => $shopJsonResponse];
+            dump($array);
+        }
+    }
 });
-Route::get('/', [HomeController::class,'index'])->middleware(['verify.shop','verify.shopify'])->name('home') ;
-Route::post('customers/update',[webhookController::class,'customersUpdate']);
-Route::post('customers/delete',[webhookController::class,'customersDelete']);
-Route::post('shop/update',[webhookController::class,'shopUpdate']);
-Route::post('products/update',[webhookController::class,'productUpdate']);
-Route::post('themes/publish',[webhookController::class,'themsPublish']);
+Route::get('/', [HomeController::class, 'index'])->middleware(['verify.shop', 'verify.shopify'])->name('home');
+Route::post('customers/update', [webhookController::class, 'customersUpdate']);
+Route::post('customers/delete', [webhookController::class, 'customersDelete']);
+Route::post('shop/update', [webhookController::class, 'shopUpdate']);
+Route::post('products/update', [webhookController::class, 'productUpdate']);
+Route::post('themes/publish', [webhookController::class, 'themsPublish']);
 
-Route::get('/plan/process/{shop}/{plan_id}',[HomeController::class,'billingProcess']);
-Route::get('/flipBook/{flipId}',[HomeController::class,'flipBook']);
+Route::get('/plan/process/{shop}/{plan_id}', [HomeController::class, 'billingProcess']);
+Route::get('/flipBook/{flipId}', [HomeController::class, 'flipBook']);
 
-Route::get('/{path}', [HomeController::class,'common']);
+Route::get('/{path?}', [HomeController::class, 'common'])->where('path', '.*');
 
 // Route::get('/{path?}', [HomeController::class, 'common'])
 //     ->where('path', '^(?!uploads).*')

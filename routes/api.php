@@ -38,3 +38,4 @@ Route::get('/getAllVendors', [ApiController::class, 'getAllVendors']);
 Route::get('/getAllProductTags', [ApiController::class, 'getAllProductTags']);
 Route::get('/getAllProductTypes', [ApiController::class, 'getAllProductTypes']);
 Route::post('/getProductsUsingFilter', [ApiController::class, 'getProductsUsingFilter']);
+Route::post('/getProductsByCollections', [ApiController::class, 'getProductsByCollections']);

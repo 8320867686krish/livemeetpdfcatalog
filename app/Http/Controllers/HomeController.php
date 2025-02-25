@@ -15,7 +15,20 @@ use PDF;
 use Symfony\Component\Mailer\Exception\TransportException;
 
 class HomeController extends Controller
-{
+{   
+
+    // function index(){
+    //     $shop_exist = $shopDetail;
+    //     return view('welcome', compact('shop','shop_exist'));
+    // }
+
+
+    // public function common(Request $request)
+    // {
+    //     $shop = $request->input('shop');
+    //     $shop_exist = User::where('name', $shop)->first();
+    //     return view('welcome', compact('shop','shop_exist'));
+    // }
    
     public function Index(Request $request)
     {

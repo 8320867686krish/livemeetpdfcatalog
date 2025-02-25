@@ -10,6 +10,7 @@ import ProductSelection from "../Pages/Components/ProductSelection.jsx";
 
 export default function Routing(props) {
     console.log("props are as below ", props);
+    console.log("window.URL_PREFIX ", window.URL_PREFIX);
     return (
         <Routes>
             <Route exact path={URL_PREFIX} element={<Home {...props} />} />
@@ -19,6 +20,8 @@ export default function Routing(props) {
             <Route exact path={`${URL_PREFIX}pdf-preview-flip`} element={<PDFPreviewFlip {...props} />} />
             <Route exact path={`${URL_PREFIX}help-center`} element={<Support />} />
             <Route exact path={`${URL_PREFIX}add-product`} element={<ProductSelection props={props} />} ></Route>
+            <Route exact path={`${URL_PREFIX}edit-product/:pdfId`} element={<ProductSelection props={props} />} ></Route>
+            <Route exact path={`${URL_PREFIX}configrations`} element={<ProductSelection props={props} />} ></Route>
         </Routes>
     );
 }

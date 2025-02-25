@@ -265,15 +265,13 @@ export const fetchMethod = async (methodType = postMethodType, methodName, heade
                 token: btoa(headers),
             }
         }
-        let requestUrl = API_PREFIX + methodName;
+        let requestUrl = "/" + API_PREFIX + methodName;
         console.log("api prefix ", API_PREFIX);
         console.log("methodName : ", methodName);
-        if ( ['pdfCollections/get','collections/remove','collections/status'].includes(methodName) && window.location.hostname === 'lara.meetanshi.org') {
-            requestUrl = 'https://lara.meetanshi.org/ReactMpdf/api/'+methodName;
+        if (['pdfCollections/get', 'collections/remove', 'collections/status'].includes(methodName) && window.location.hostname === 'lara.meetanshi.org') {
+            requestUrl = 'https://lara.meetanshi.org/ReactMpdf/api/' + methodName;
         }
-       
-        
-        console.log("requsted url " , requestUrl);
+        console.log("requsted url ", requestUrl);
         const response = await fetch(
             requestUrl,
             requestData

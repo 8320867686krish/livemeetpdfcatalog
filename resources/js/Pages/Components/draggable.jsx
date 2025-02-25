@@ -105,7 +105,6 @@ const DraggableTable = ({ productData, setProductData }) => {
 
     return (
         <div style={styles.container}>
-            <h2 style={styles.heading}>Draggable Product List</h2>
 
             {/* Search and Sort */}
             <div style={{ display: "flex", gap: "20px", marginBottom: "15px" }} >
@@ -171,7 +170,7 @@ const DraggableTable = ({ productData, setProductData }) => {
                                             {(provided, snapshot) => (
                                                 <tr
                                                     ref={provided.innerRef}
-                                                    {...(sortOption === "default" ? provided.draggableProps : {})}
+                                                    {...(sortOption === "default" ? provided.draggableProps : {})}  
                                                     {...(sortOption === "default" ? provided.dragHandleProps : {})}
                                                     style={{
                                                         ...styles.row,

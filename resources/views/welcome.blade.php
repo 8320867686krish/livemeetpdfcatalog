@@ -32,7 +32,6 @@
 
     <body>
         <div id="loader" class="loader"></div>
-
         <div class="app-wrapper">
             <div class="app-content">
                 <main role="main">
@@ -54,12 +53,7 @@
 
             loader.style.display = "none"; // Hide the loader
         });
-    var shopUrl = "{{ $shop_exist['name'] }}"; // Shopify shop domain
-            var installUrl = "https://" + shopUrl + "/admin/oauth/authorize?client_id=5b7fd5bcc773fe3efc10fdc89ce5e8e6&scope=read_products,write_products&redirect_uri=https://pdf.meetanshi.work/callback";
-var needs_update = "{{$shop_exist['needs_update']}}";
-if(needs_update == 1){
-      window.top.location = installUrl; // Redirect to the installation URL
-}
+   
             </script>
 
 <script src="{{url('js/app.js?v=55561')}}"></script>
