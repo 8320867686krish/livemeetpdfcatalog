@@ -781,3 +781,8 @@ div.page_layout_item.active {
 /* .demoPage > .page {
     height: 21.24cm !important;
 } */
+
+.custom-description{
+    font-size : 0.7em !important ; 
+    line-height : 1.4em !important
+}

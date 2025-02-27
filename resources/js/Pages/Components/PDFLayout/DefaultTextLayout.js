@@ -117,6 +117,46 @@ const DefaultTextLayout = (data) => {
                         <div>{title}</div>
                     </div>
                 )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>{title}</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>{title}</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>{title}</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>{title}</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>{title}</div>
+                    </div>
+                )}
                 {productAttributes.includes("sku") && sku !== "" && (
                     <div className="custom-sku" style={{ opacity: "0.7" }}>
                         {sku}

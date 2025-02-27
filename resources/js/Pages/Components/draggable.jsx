@@ -105,7 +105,7 @@ const DraggableTable = ({ productData, setProductData }) => {
 
     return (
         <div style={styles.container}>
-
+            
             {/* Search and Sort */}
             <div style={{ display: "flex", gap: "20px", marginBottom: "15px" }} >
                 <div style={{ width: "50%" }}>

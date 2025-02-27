@@ -149,7 +149,7 @@ const initConfigData = {
 };
 
 //Function component start.
-const Dashboard = (props = {}) => {
+const Configrations = (props = {}) => {
     const { shopid = "", activePlan = {} } = props;
     console.log("shopid from dashboard ", shopid);
     const location = useLocation();
@@ -1366,7 +1366,7 @@ const Dashboard = (props = {}) => {
                 />
             )}
             <Page
-                // fullWidth
+                fullWidth
                 backAction={{
                     content: "Products",
                     onAction: () => navigate(URL_PREFIX),
@@ -1402,6 +1402,7 @@ const Dashboard = (props = {}) => {
                             {toastError}
                             {toastSuccess}
                             {bannerError}
+                            
                             <Tabs
                                 tabs={tabs}
                                 selected={tabSelected}
@@ -3240,5 +3241,5 @@ const Dashboard = (props = {}) => {
     );
 };
 
-export default Dashboard;
+export default Configrations;
 //Function component end.
