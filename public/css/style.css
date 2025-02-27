@@ -211,6 +211,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    /* flex-wrap: wrap; */
     /* margin-bottom: 25px; */
 }
 
@@ -222,7 +223,7 @@
     justify-content: flex-start;
     align-items: stretch;
     padding: 15px 5px;
-    /* flex-wrap: wrap; */
+    flex-wrap: wrap;
 }
 
 .page_layout_area .page_layout_item {
@@ -760,7 +761,7 @@
 }
 
 div.page_layout_item.active {
-    border: 2px solid #FF8000 !important;
+    /* border: 2px solid #FF8000 !important;     */
     /* Example border */
     /* Your styles here */
     /* border: "#0A3981 solid 2px !important"; */

@@ -30,6 +30,14 @@ import {
     ButtonGroup,
     Icon,
     Banner,
+    InlineGrid,
+    Collapsible,
+    TextContainer,
+    Link,
+    Card,
+    Checkbox,
+    Tooltip
+
 } from "@shopify/polaris";
 const ProductList = lazy(() => import("./Components/ProductList"));
 const PDFPreview = lazy(() => import("./Components/PDFPreview"));
@@ -59,6 +67,7 @@ import {
     NoteMinor,
     RefreshMinor,
     MobileCancelMajor,
+    QuestionCircleIcon,
 } from "@shopify/polaris-icons";
 import {
     optionsFontFamily,
@@ -146,6 +155,9 @@ const initConfigData = {
     collectionId: "",
     collectionName: "",
     selectedProducts: [],
+    utmSource: "",
+    excludeOutOfStock: false,
+    excludeNotInStock: false,
 };
 
 //Function component start.
@@ -170,6 +182,25 @@ const Configrations = (props = {}) => {
     const [successMessage, setSuccessMessage] = useState();
     const [activeBannerError, setActiveBannerError] = useState(false);
     const [errorBannerMessage, setErrorBannerMessage] = useState();
+    const [generalCollapsibleOpen, setGeneralCollapsibleOpen] = useState(true);
+    const [productSettingCollapsibleOpen, setProductSettingCollapsibleOpen] = useState(true);
+    const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(true);
+
+    const handleTogglegeneralCollapsible = useCallback(() => {
+        setGeneralCollapsibleOpen((open) => !open);
+        setProductSettingCollapsibleOpen(false);
+        setLayoutSettingCollapsibleOpen(false);
+    }, []);
+    const handleToggleProductCollapsible = useCallback(() => {
+        setProductSettingCollapsibleOpen((open) => !open);
+        setGeneralCollapsibleOpen(false);
+        setLayoutSettingCollapsibleOpen(false);
+    }, []);
+    const handleToggleLayoutCollapsible = useCallback(() => {
+        setLayoutSettingCollapsibleOpen((open) => !open);
+        setProductSettingCollapsibleOpen(false);
+        setGeneralCollapsibleOpen(false);
+    }, []);
 
     //Toast error message component.
     const toastError = activeToastError ? (
@@ -1344,6 +1375,9 @@ const Configrations = (props = {}) => {
         productPageLayoutId = "sixItemGrid",
         collectionId = "",
         selectedProducts = [],
+        utmSource = "",
+        excludeOutOfStock = false,
+        excludeNotInStock = false,
     } = configData;
 
     const disabledInputFields = false;
@@ -1373,17 +1407,15 @@ const Configrations = (props = {}) => {
                 }}
                 title={settingId > 0 ? "Edit Catalog" : "Create a New Catalog"}
                 primaryAction={
-                    tabSelected === 2 && (
-                        <Button
-                            variant="primary"
-                            size="large"
-                            disabled={activeBannerError}
-                            onClick={(e) => handleClick(e)}
-                            loading={btnSpinner}
-                        >
-                            Save & Generate PDF
-                        </Button>
-                    )
+                    <Button
+                        variant="primary"
+                        size="large"
+                        disabled={activeBannerError}
+                        onClick={(e) => handleClick(e)}
+                        loading={btnSpinner}
+                    >
+                        Save & Generate PDF
+                    </Button>
                 }
             >
                 <Layout>
@@ -1402,360 +1434,175 @@ const Configrations = (props = {}) => {
                             {toastError}
                             {toastSuccess}
                             {bannerError}
-                            
-                            <Tabs
-                                tabs={tabs}
-                                selected={tabSelected}
-                                onSelect={handleTabChange}
-                                disabled={btnSpinner}
-                            >
-                                <Box>
-                                    {tabSelected === 0 && (
-                                        <>
-                                            <LegacyCard sectioned>
-                                                <Grid>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 3,
-                                                            lg: 3,
-                                                            xl: 3,
-                                                        }}
-                                                    >
-                                                        <label className="custom_lbl Polaris-Label__Text">
-                                                            Catalog Status
-                                                        </label>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 9,
-                                                            lg: 9,
-                                                            xl: 9,
-                                                        }}
-                                                    >
+                            <InlineGrid columns={['oneThird', 'twoThirds']} gap="400">
+                                <div style={{ height: "100vh", overflow: "scroll" }}>
+                                    <div>
+                                        <LegacyCard sectioned>
+                                            <LegacyStack vertical>
+                                                <Button
+                                                    onClick={handleTogglegeneralCollapsible}
+                                                    ariaExpanded={generalCollapsibleOpen}
+                                                    ariaControls="basic-collapsible"
+                                                >
+                                                    General Settings
+                                                </Button>
+                                                <Collapsible
+                                                    open={generalCollapsibleOpen}
+                                                    id="basic-collapsible"
+                                                    transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+                                                    expandOnPrint
+                                                >
+                                                    <div style={{
+                                                        marginTop: "10px"
+                                                    }}>
                                                         <FormLayout>
-                                                            <ButtonGroup variant="segmented">
-                                                                {optionsEnabledDisabled.map(
-                                                                    (
-                                                                        option,
-                                                                        optionIndex
-                                                                    ) => {
-                                                                        const {
-                                                                            label = "",
-                                                                            value = "",
-                                                                        } =
-                                                                            option;
-                                                                        // return (<Button key={`btn_optionkey_${optionIndex}`} pressed={enabled === value ? true : false} onClick={() => handleConfigData(value, 'enabled')}>{label}</Button>)
-                                                                        return (
-                                                                            <Button
-                                                                                key={`btn_optionkey_${optionIndex}`}
-                                                                                tone={
-                                                                                    enabled ===
-                                                                                        value
-                                                                                        ? "success"
-                                                                                        : ""
-                                                                                }
-                                                                                variant={
-                                                                                    enabled ===
-                                                                                        value
-                                                                                        ? "primary"
-                                                                                        : ""
-                                                                                }
-                                                                                onClick={(
-                                                                                    e
-                                                                                ) =>
-                                                                                    handleConfigData(
-                                                                                        value,
-                                                                                        "enabled"
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    label
-                                                                                }
-                                                                            </Button>
-                                                                        );
-                                                                    }
+                                                            <Select
+                                                                label="Select Font Family"
+                                                                name="fontFamily"
+                                                                options={optionsFontFamily.slice(
+                                                                    0,
+                                                                    Number(
+                                                                        font_limit
+                                                                    )
                                                                 )}
-                                                            </ButtonGroup>
-                                                        </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 12,
-                                                            lg: 12,
-                                                            xl: 12,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 6,
-                                                            lg: 6,
-                                                            xl: 6,
-                                                        }}
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Select Font Family"
-                                                                        name="fontFamily"
-                                                                        options={optionsFontFamily.slice(
-                                                                            0,
-                                                                            Number(
-                                                                                font_limit
-                                                                            )
-                                                                        )}
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "fontFamily"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            fontFamily
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Font Color",
-                                                                            defaultValue:
-                                                                                fontColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "fontColor",
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Background Color",
-                                                                            defaultValue:
-                                                                                backgroundColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "backgroundColor",
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 6,
-                                                            lg: 6,
-                                                            xl: 6,
-                                                        }}
-                                                    >
-                                                        <label className="custom_lbl Polaris-Label__Text">
-                                                            Preview
-                                                        </label>
-                                                        <div
-                                                            className="font_preview"
-                                                            style={{
-                                                                background:
-                                                                    backgroundColor,
-                                                                color: fontColor,
-                                                                fontFamily:
-                                                                    fontFamily,
-                                                            }}
-                                                        >
-                                                            <p>
-                                                                Lorem Ipsum is
-                                                                simply dummy
-                                                                text of the
-                                                                printing and
-                                                                typesetting
-                                                                industry.
-                                                            </p>
-                                                        </div>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 12,
-                                                            lg: 12,
-                                                            xl: 12,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
-                                                        <FormLayout>
-                                                            <label className="custom_lbl Polaris-Label__Text">
-                                                                Logo Image
-                                                            </label>
-                                                            <DropZone
-                                                                allowMultiple={
-                                                                    false
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "fontFamily"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    fontFamily
                                                                 }
                                                                 disabled={
                                                                     disabledInputFields
                                                                 }
-                                                                onDrop={
-                                                                    handleLogoDropZoneDrop
-                                                                }
-                                                                accept={
-                                                                    validImageTypes
-                                                                }
-                                                                errorOverlayText="File type must be valid"
-                                                                variableHeight
-                                                            >
-                                                                {
-                                                                    uploadedLogoFile
-                                                                }
-                                                                {fileUploadLogo}
-                                                            </DropZone>
+                                                            />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{
+                                                        marginTop: "10px"
+                                                    }}>
                                                         <FormLayout>
-                                                            <label className="custom_lbl Polaris-Label__Text">
-                                                                Front Page Image
-                                                            </label>
-                                                            <DropZone
-                                                                allowMultiple={
-                                                                    false
-                                                                }
-                                                                disabled={
-                                                                    isAddFrontBack ===
-                                                                    "false"
-                                                                }
-                                                                onDrop={
-                                                                    handleFrontImageDropZoneDrop
-                                                                }
-                                                                accept={
-                                                                    validImageTypes
-                                                                }
-                                                                errorOverlayText="File type must be valid"
-                                                                variableHeight
-                                                            >
-                                                                {
-                                                                    uploadedFrontImageFile
-                                                                }
-                                                                {
-                                                                    fileUploadFrontImage
-                                                                }
-                                                            </DropZone>
+                                                            <CustomColorInput
+                                                                settings={{
+                                                                    label: "Font Color",
+                                                                    defaultValue:
+                                                                        fontColor,
+                                                                    disabled:
+                                                                        disabledInputFields,
+                                                                    name: "fontColor",
+                                                                    onChange:
+                                                                        handleConfigData,
+                                                                }}
+                                                            />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{
+                                                        marginTop: "10px"
+                                                    }}>
                                                         <FormLayout>
-                                                            <label className="custom_lbl Polaris-Label__Text">
-                                                                Last Page Image
-                                                            </label>
-                                                            <DropZone
-                                                                allowMultiple={
-                                                                    false
-                                                                }
-                                                                disabled={
-                                                                    isAddFrontBack ===
-                                                                    "false"
-                                                                }
-                                                                onDrop={
-                                                                    handleBackImageDropZoneDrop
-                                                                }
-                                                                accept={
-                                                                    validImageTypes
-                                                                }
-                                                                errorOverlayText="File type must be valid"
-                                                                variableHeight
-                                                            >
-                                                                {
-                                                                    uploadedBackImageFile
-                                                                }
-                                                                {
-                                                                    fileUploadBackImage
-                                                                }
-                                                            </DropZone>
+                                                            <CustomColorInput
+                                                                settings={{
+                                                                    label: "Background Color",
+                                                                    defaultValue:
+                                                                        backgroundColor,
+                                                                    disabled:
+                                                                        disabledInputFields,
+                                                                    name: "backgroundColor",
+                                                                    onChange:
+                                                                        handleConfigData,
+                                                                }}
+                                                            />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <label className="custom_lbl Polaris-Label__Text">
+                                                            Logo Image
+                                                        </label>
+                                                        <DropZone
+                                                            allowMultiple={
+                                                                false
+                                                            }
+                                                            disabled={
+                                                                disabledInputFields
+                                                            }
+                                                            onDrop={
+                                                                handleLogoDropZoneDrop
+                                                            }
+                                                            accept={
+                                                                validImageTypes
+                                                            }
+                                                            errorOverlayText="File type must be valid"
+                                                            variableHeight
+                                                        >
+                                                            {
+                                                                uploadedLogoFile
+                                                            }
+                                                            {fileUploadLogo}
+                                                        </DropZone>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <label className="custom_lbl Polaris-Label__Text">
+                                                            Front Page Image
+                                                        </label>
+                                                        <DropZone
+                                                            allowMultiple={
+                                                                false
+                                                            }
+                                                            disabled={
+                                                                isAddFrontBack ===
+                                                                "false"
+                                                            }
+                                                            onDrop={
+                                                                handleFrontImageDropZoneDrop
+                                                            }
+                                                            accept={
+                                                                validImageTypes
+                                                            }
+                                                            errorOverlayText="File type must be valid"
+                                                            variableHeight
+                                                        >
+                                                            {
+                                                                uploadedFrontImageFile
+                                                            }
+                                                            {
+                                                                fileUploadFrontImage
+                                                            }
+                                                        </DropZone>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <label className="custom_lbl Polaris-Label__Text">
+                                                            Last Page Image
+                                                        </label>
+                                                        <DropZone
+                                                            allowMultiple={
+                                                                false
+                                                            }
+                                                            disabled={
+                                                                isAddFrontBack ===
+                                                                "false"
+                                                            }
+                                                            onDrop={
+                                                                handleBackImageDropZoneDrop
+                                                            }
+                                                            accept={
+                                                                validImageTypes
+                                                            }
+                                                            errorOverlayText="File type must be valid"
+                                                            variableHeight
+                                                        >
+                                                            {
+                                                                uploadedBackImageFile
+                                                            }
+                                                            {
+                                                                fileUploadBackImage
+                                                            }
+                                                        </DropZone>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <TextField
                                                                 name="headerText"
@@ -1778,16 +1625,8 @@ const Configrations = (props = {}) => {
                                                                 showCharacterCount
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
                                                                 label="Header Text Alignment"
@@ -1809,25 +1648,8 @@ const Configrations = (props = {}) => {
                                                                 }
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    ></Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <TextField
                                                                 name="footerText"
@@ -1841,7 +1663,6 @@ const Configrations = (props = {}) => {
                                                                         "footerText"
                                                                     )
                                                                 }
-                                                                multiline={3}
                                                                 maxLength={50}
                                                                 autoComplete="off"
                                                                 showCharacterCount
@@ -1851,217 +1672,111 @@ const Configrations = (props = {}) => {
                                                                 label="Footer Text"
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Footer Text Alignment"
-                                                                        name="footerAlignment"
-                                                                        options={
-                                                                            optionsGeneralAlignment
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "footerAlignment"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            footerAlignment
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Add Page No."
-                                                                        name="footerPageNoEnabled"
-                                                                        options={
-                                                                            optionsYesNo
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "footerPageNoEnabled"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            footerPageNoEnabled
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Display Date"
-                                                                        name="footerDateEnabled"
-                                                                        options={
-                                                                            optionsYesNo
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "footerDateEnabled"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            footerDateEnabled
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Date Format"
-                                                                        name="footerDateFormat"
-                                                                        options={
-                                                                            optionsDateFormat
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "footerDateFormat"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            footerDateFormat
-                                                                        }
-                                                                        disabled={
-                                                                            footerDateEnabled ==
-                                                                                1
-                                                                                ? false
-                                                                                : true
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 12,
-                                                            lg: 12,
-                                                            xl: 12,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
-                                                                label="Paper Orientation"
-                                                                name="pdfLayout"
+                                                                label="Footer Text Alignment"
+                                                                name="footerAlignment"
                                                                 options={
-                                                                    optionsPDFLayout
+                                                                    optionsGeneralAlignment
                                                                 }
-                                                                onChange={(e) =>
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
                                                                     handleConfigData(
                                                                         e,
-                                                                        "pdfLayout"
+                                                                        "footerAlignment"
                                                                     )
                                                                 }
                                                                 value={
-                                                                    pdfLayout
+                                                                    footerAlignment
                                                                 }
                                                                 disabled={
                                                                     disabledInputFields
                                                                 }
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Add Page No."
+                                                                name="footerPageNoEnabled"
+                                                                options={
+                                                                    optionsYesNo
+                                                                }
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "footerPageNoEnabled"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    footerPageNoEnabled
+                                                                }
+                                                                disabled={
+                                                                    disabledInputFields
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Display Date"
+                                                                name="footerDateEnabled"
+                                                                options={
+                                                                    optionsYesNo
+                                                                }
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "footerDateEnabled"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    footerDateEnabled
+                                                                }
+                                                                disabled={
+                                                                    disabledInputFields
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Date Format"
+                                                                name="footerDateFormat"
+                                                                options={
+                                                                    optionsDateFormat
+                                                                }
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "footerDateFormat"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    footerDateFormat
+                                                                }
+                                                                disabled={
+                                                                    footerDateEnabled ==
+                                                                        1
+                                                                        ? false
+                                                                        : true
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
                                                                 label="Paper Layout"
@@ -2083,36 +1798,29 @@ const Configrations = (props = {}) => {
                                                                 }
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    ></Grid.Cell>
-                                                </Grid>
-                                            </LegacyCard>
-                                            <LegacyCard
-                                                title="Product Settings"
-                                                sectioned
-                                            >
-                                                <p className="mb_10">
-                                                    Choose product details to
-                                                    display and customize them.
-                                                </p>
-                                                <Grid>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                </Collapsible>
+                                            </LegacyStack>
+                                        </LegacyCard>
+                                    </div>
+
+                                    <div style={{ marginTop: "10px" }}>
+                                        <LegacyCard sectioned>
+                                            <LegacyStack vertical>
+                                                <Button
+                                                    onClick={handleToggleProductCollapsible}
+                                                    ariaExpanded={productSettingCollapsibleOpen}
+                                                    ariaControls="basic-collapsible"
+                                                >
+                                                    Product Settings
+                                                </Button>
+                                                <Collapsible
+                                                    open={productSettingCollapsibleOpen}
+                                                    id="basic-collapsible"
+                                                    transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+                                                    expandOnPrint
+                                                >
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <ChoiceList
                                                                 title="Select Attributes"
@@ -2128,228 +1836,89 @@ const Configrations = (props = {}) => {
                                                                 allowMultiple
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Display Buy Now Button"
-                                                                        name="productButtonEnabled"
-                                                                        options={
-                                                                            optionsYesNo
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "productButtonEnabled"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            productButtonEnabled
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Product Attribute Alignment"
-                                                                        name="productAttributeAlignment"
-                                                                        options={
-                                                                            optionsProductAttributeAlignment
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "productAttributeAlignment"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            productAttributeAlignment
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <TextField
-                                                                        label="Product Description Character Limit"
-                                                                        name="productDescriptionCharLimit"
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "productDescriptionCharLimit"
-                                                                            )
-                                                                        }
-                                                                        type="number"
-                                                                        value={Math.ceil(
-                                                                            productDescriptionCharLimit ??
-                                                                            50
-                                                                        )}
-                                                                        disabled={
-                                                                            !convertStrToArr(
-                                                                                productAttributes
-                                                                            ).includes(
-                                                                                "description"
-                                                                            )
-                                                                        }
-                                                                        helpText="Product images will resize according to the description length."
-                                                                        max="100"
-                                                                        min="0"
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Product Background Color",
-                                                                            defaultValue:
-                                                                                productBackgroundColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "productBackgroundColor",
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Attribute Label Color",
-                                                                            defaultValue:
-                                                                                productAttributeLabelColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "productAttributeLabelColor",
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 12,
-                                                                    lg: 12,
-                                                                    xl: 12,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Attribute Value Color",
-                                                                            defaultValue:
-                                                                                productAttributeValueColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "productAttributeValueColor",
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 12,
-                                                            lg: 12,
-                                                            xl: 12,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Product Attribute Alignment"
+                                                                name="productAttributeAlignment"
+                                                                options={
+                                                                    optionsProductAttributeAlignment
+                                                                }
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "productAttributeAlignment"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    productAttributeAlignment
+                                                                }
+                                                                disabled={
+                                                                    disabledInputFields
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Display Buy Now Button"
+                                                                name="productButtonEnabled"
+                                                                options={
+                                                                    optionsYesNo
+                                                                }
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "productButtonEnabled"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    productButtonEnabled
+                                                                }
+                                                                disabled={
+                                                                    disabledInputFields
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <TextField
+                                                                label="Product Description Character Limit"
+                                                                name="productDescriptionCharLimit"
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "productDescriptionCharLimit"
+                                                                    )
+                                                                }
+                                                                type="number"
+                                                                value={Math.ceil(
+                                                                    productDescriptionCharLimit ??
+                                                                    50
+                                                                )}
+                                                                disabled={
+                                                                    !convertStrToArr(
+                                                                        productAttributes
+                                                                    ).includes(
+                                                                        "description"
+                                                                    )
+                                                                }
+                                                                helpText="Product images will resize according to the description length."
+                                                                max="100"
+                                                                min="0"
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
                                                                 label="Price Adjustment"
@@ -2378,16 +1947,8 @@ const Configrations = (props = {}) => {
                                                                 }
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <TextField
                                                                 label="Change (in %)"
@@ -2420,16 +1981,8 @@ const Configrations = (props = {}) => {
                                                                 helpText="Minus value converted to positive number."
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 4,
-                                                            lg: 4,
-                                                            xl: 4,
-                                                        }}
-                                                    >
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <TextField
                                                                 label="Tax (in %)"
@@ -2453,744 +2006,428 @@ const Configrations = (props = {}) => {
                                                                 helpText="Minus value converted to positive number."
                                                             />
                                                         </FormLayout>
-                                                    </Grid.Cell>
-                                                    <Grid.Cell
-                                                        columnSpan={{
-                                                            xs: 12,
-                                                            sm: 12,
-                                                            md: 12,
-                                                            lg: 12,
-                                                            xl: 12,
-                                                        }}
-                                                    >
-                                                        <Divider />
-                                                    </Grid.Cell>
-                                                </Grid>
-                                            </LegacyCard>
-                                        </>
-                                    )}
-                                    {tabSelected === 1 && (
-                                        <LegacyCard
-                                            title="Select Collection"
-                                            sectioned
-                                        >
-                                            <p className="mb_10">
-                                                Choose the collection page to
-                                                add the PDF Product catalog.
-                                            </p>
-                                            <Grid>
-                                                <Grid.Cell
-                                                    columnSpan={{
-                                                        xs: 12,
-                                                        sm: 12,
-                                                        md: 6,
-                                                        lg: 6,
-                                                        xl: 6,
-                                                    }}
-                                                >
-                                                    <FormLayout>
-                                                        <div className="collection_list_area">
-                                                            <Select
-                                                                label="Collections"
-                                                                name="collectionId"
-                                                                options={
-                                                                    collectionList
-                                                                }
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <CustomColorInput
+                                                                settings={{
+                                                                    label: "Product Background Color",
+                                                                    defaultValue:
+                                                                        productBackgroundColor,
+                                                                    disabled:
+                                                                        disabledInputFields,
+                                                                    name: "productBackgroundColor",
+                                                                    onChange:
+                                                                        handleConfigData,
+                                                                }}
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <CustomColorInput
+                                                                settings={{
+                                                                    label: "Attribute Label Color",
+                                                                    defaultValue:
+                                                                        productAttributeLabelColor,
+                                                                    disabled:
+                                                                        disabledInputFields,
+                                                                    name: "productAttributeLabelColor",
+                                                                    onChange:
+                                                                        handleConfigData,
+                                                                }}
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <CustomColorInput
+                                                                settings={{
+                                                                    label: "Attribute Value Color",
+                                                                    defaultValue:
+                                                                        productAttributeValueColor,
+                                                                    disabled:
+                                                                        disabledInputFields,
+                                                                    name: "productAttributeValueColor",
+                                                                    onChange:
+                                                                        handleConfigData,
+                                                                }}
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <TextField
+                                                                label="Add utm for source tracking"
+                                                                name="utmSource"
                                                                 onChange={(e) =>
                                                                     handleConfigData(
                                                                         e,
-                                                                        "collectionId"
+                                                                        "utmSource"
                                                                     )
                                                                 }
+                                                                placeholder="Eg: from catelog"
                                                                 value={
-                                                                    collectionId
-                                                                }
-                                                                disabled={
-                                                                    collectionLoader
+                                                                    utmSource ??
+                                                                    ""
                                                                 }
                                                             />
-                                                            {collectionLoader && (
-                                                                <Spinner
-                                                                    accessibilityLabel="Small spinner example"
-                                                                    size="small"
-                                                                />
-                                                            )}
-                                                            {/* <Button><Icon source={RefreshMinor} tone="base" /></Button> */}
-                                                        </div>
-                                                    </FormLayout>
-                                                </Grid.Cell>
-                                                <Grid.Cell
-                                                    columnSpan={{
-                                                        xs: 12,
-                                                        sm: 12,
-                                                        md: 12,
-                                                        lg: 12,
-                                                        xl: 12,
-                                                    }}
-                                                >
-                                                    <Divider />
-                                                </Grid.Cell>
-                                                <Grid.Cell
-                                                    columnSpan={{
-                                                        xs: 12,
-                                                        sm: 12,
-                                                        md: 12,
-                                                        lg: 12,
-                                                        xl: 12,
-                                                    }}
-                                                >
-                                                    <div className="mb_10">
-                                                        <Text
-                                                            variant="headingSm"
-                                                            as="h2"
-                                                        >
-                                                            Product List
-                                                        </Text>
+                                                        </FormLayout>
                                                     </div>
-                                                    <Suspense
-                                                        fallback={
-                                                            <Spinner
-                                                                accessibilityLabel="Small spinner example"
-                                                                size="large"
-                                                            />
-                                                        }
-                                                    >
-                                                        <ProductList
-                                                            catalogId={
-                                                                settingId
-                                                            }
-                                                            productLimit={
-                                                                catelog_product_limit
-                                                            }
-                                                            shopid={shopid}
-                                                            collectionId={
-                                                                collectionId
-                                                            }
-                                                            fetchedProduct={
-                                                                true
-                                                            }
-                                                            selectedResources={
-                                                                selectedProducts
-                                                            }
-                                                            parentStateUpdateByChild={
-                                                                updateStateByChild
-                                                            }
-                                                        />
-                                                    </Suspense>
-                                                </Grid.Cell>
-                                            </Grid>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <Checkbox
+                                                            label="Exclude product out of stock"
+                                                            checked={excludeOutOfStock}
+                                                            onChange={(e) =>
+                                                                handleConfigData(
+                                                                    e,
+                                                                    "excludeOutOfStock"
+                                                                )
+                                                            } />
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" , display : "flex" , alignItems : "center" , gap : "10px" }}>
+                                                        <div>
+                                                            <Checkbox
+                                                                label="Exclude products that are not available in the online store"
+                                                                checked={excludeNotInStock}
+                                                                onChange={(e) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "excludeNotInStock"
+                                                                    )
+                                                                } />
+                                                        </div>
+                                                        <div>
+                                                            <Tooltip  content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
+                                                                <Icon
+                                                                    source={QuestionCircleIcon}
+                                                                    tone="base"
+                                                                />
+                                                            </Tooltip>
+                                                        </div>
+                                                    </div>
+                                                </Collapsible>
+                                            </LegacyStack>
                                         </LegacyCard>
-                                    )}
-                                    {tabSelected === 2 && (
+                                    </div>
+
+                                    <div style={{ marginTop: "10px" }}>
+                                        <LegacyCard sectioned>
+                                            <LegacyStack vertical>
+                                                <Button
+                                                    onClick={handleToggleLayoutCollapsible}
+                                                    ariaExpanded={layoutSettingCollapsibleOpen}
+                                                    ariaControls="basic-collapsible"
+                                                >
+                                                    Layout Settings
+                                                </Button>
+                                                <Collapsible
+                                                    open={layoutSettingCollapsibleOpen}
+                                                    id="basic-collapsible"
+                                                    transition={{ duration: '500ms', timingFunction: 'ease-in-out' }}
+                                                    expandOnPrint
+                                                >
+                                                    <div>
+                                                        <LegacyCard
+                                                            title="PDF Catalog Layout"
+                                                            sectioned
+                                                        >
+                                                            <p className="mb_10">
+                                                                Choose the PDF
+                                                                layout to use.
+                                                                Scroll right for
+                                                                more options.
+                                                            </p>
+                                                            <div className="page_layout_container">
+                                                                <Scrollable
+                                                                    focusable
+                                                                >
+                                                                    <div className="page_layout_area">
+                                                                        <SixItemGrid
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FiveItemList
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FiveItemGrid
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    3 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FourItemGrid
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    4 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <ThreeItemGrid
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    5 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FourItemList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    6 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FourItemLeftList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    7 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <FourItemRightList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    8 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <ThreeItemGridReverse
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    9 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <ThreeItemList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    10 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <ThreeItemLeftList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    11 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <ThreeItemRightList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    12 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <TwoItemList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    13 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <TwoItemLeftList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    14 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <TwoItemRightList
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    15 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        <OneItemGrid
+                                                                            customClass={
+                                                                                Number(
+                                                                                    layout_limit
+                                                                                ) >=
+                                                                                    16 ||
+                                                                                    layout_limit ===
+                                                                                    "true"
+                                                                                    ? ""
+                                                                                    : "is-disabled"
+                                                                            }
+                                                                            onClick={
+                                                                                handleConfigData
+                                                                            }
+                                                                            productPageLayoutId={
+                                                                                productPageLayoutId
+                                                                            }
+                                                                        />
+                                                                        {/* <EightItemGrid customClass={(Number(layout_limit) >= 17 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
+                                                                        {/* <TenItemGrid customClass={(Number(layout_limit) >= 18 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
+                                                                        {/* <SixItemList customClass={(Number(layout_limit) >= 19 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
+                                                                    </div>
+                                                                </Scrollable>
+                                                            </div>
+                                                        </LegacyCard>
+                                                    </div>
+                                                </Collapsible>
+                                            </LegacyStack>
+                                        </LegacyCard>
+                                    </div>
+                                </div>
+                                <div style={{ height: "100vh", overflow: "scroll" }}>
+                                    <Box>
                                         <div className="pdf_preview_container">
                                             <Grid>
-                                                <Grid.Cell
-                                                    columnSpan={{
-                                                        xs: 12,
-                                                        sm: 12,
-                                                        md: 12,
-                                                        lg: 12,
-                                                        xl: 12,
-                                                    }}
-                                                >
-                                                    <LegacyCard
-                                                        title="PDF Catalog Layout"
-                                                        sectioned
-                                                    >
-                                                        <p className="mb_10">
-                                                            Choose the PDF
-                                                            layout to use.
-                                                            Scroll right for
-                                                            more options.
-                                                        </p>
-                                                        <div className="page_layout_container">
-                                                            <Scrollable
-                                                                focusable
-                                                            >
-                                                                <div className="page_layout_area">
-                                                                    <SixItemGrid
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FiveItemList
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FiveItemGrid
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                3 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FourItemGrid
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                4 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <ThreeItemGrid
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                5 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FourItemList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                6 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FourItemLeftList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                7 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <FourItemRightList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                8 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <ThreeItemGridReverse
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                9 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <ThreeItemList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                10 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <ThreeItemLeftList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                11 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <ThreeItemRightList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                12 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <TwoItemList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                13 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <TwoItemLeftList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                14 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <TwoItemRightList
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                15 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    <OneItemGrid
-                                                                        customClass={
-                                                                            Number(
-                                                                                layout_limit
-                                                                            ) >=
-                                                                                16 ||
-                                                                                layout_limit ===
-                                                                                "true"
-                                                                                ? ""
-                                                                                : "is-disabled"
-                                                                        }
-                                                                        onClick={
-                                                                            handleConfigData
-                                                                        }
-                                                                        productPageLayoutId={
-                                                                            productPageLayoutId
-                                                                        }
-                                                                    />
-                                                                    {/* <EightItemGrid customClass={(Number(layout_limit) >= 17 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
-                                                                    {/* <TenItemGrid customClass={(Number(layout_limit) >= 18 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
-                                                                    {/* <SixItemList customClass={(Number(layout_limit) >= 19 || layout_limit === "true") ? '' : 'is-disabled'} onClick={handleConfigData} productPageLayoutId={productPageLayoutId} /> */}
-                                                                </div>
-                                                            </Scrollable>
-                                                        </div>
-                                                    </LegacyCard>
-                                                </Grid.Cell>
-                                                <Grid.Cell
-                                                    columnSpan={{
-                                                        xs: 12,
-                                                        sm: 12,
-                                                        md: 12,
-                                                        lg: 12,
-                                                        xl: 12,
-                                                    }}
-                                                >
-                                                    <LegacyCard
-                                                        title="Font & Color Settings"
-                                                        sectioned
-                                                    >
-                                                        <Grid>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 2,
-                                                                    lg: 2,
-                                                                    xl: 2,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Select Font Family"
-                                                                        name="fontFamily"
-                                                                        options={optionsFontFamily.slice(
-                                                                            0,
-                                                                            Number(
-                                                                                font_limit
-                                                                            )
-                                                                        )}
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "fontFamily"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            fontFamily
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 1,
-                                                                    lg: 1,
-                                                                    xl: 1,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "Font",
-                                                                            defaultValue:
-                                                                                fontColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "fontColor",
-                                                                            isShowColorCode: false,
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 1,
-                                                                    lg: 1,
-                                                                    xl: 1,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "BG Color",
-                                                                            defaultValue:
-                                                                                backgroundColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "backgroundColor",
-                                                                            isShowColorCode: false,
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 2,
-                                                                    lg: 2,
-                                                                    xl: 2,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <Select
-                                                                        label="Prod. Attr. Alignment"
-                                                                        name="productAttributeAlignment"
-                                                                        options={
-                                                                            optionsProductAttributeAlignment
-                                                                        }
-                                                                        onChange={(
-                                                                            e
-                                                                        ) =>
-                                                                            handleConfigData(
-                                                                                e,
-                                                                                "productAttributeAlignment"
-                                                                            )
-                                                                        }
-                                                                        value={
-                                                                            productAttributeAlignment
-                                                                        }
-                                                                        disabled={
-                                                                            disabledInputFields
-                                                                        }
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 1,
-                                                                    lg: 1,
-                                                                    xl: 1,
-                                                                }}
-                                                            >
-                                                                <FormLayout>
-                                                                    <CustomColorInput
-                                                                        settings={{
-                                                                            label: "BG Color",
-                                                                            defaultValue:
-                                                                                productBackgroundColor,
-                                                                            disabled:
-                                                                                disabledInputFields,
-                                                                            name: "productBackgroundColor",
-                                                                            isShowColorCode: false,
-                                                                            onChange:
-                                                                                handleConfigData,
-                                                                        }}
-                                                                    />
-                                                                </FormLayout>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 3,
-                                                                    lg: 3,
-                                                                    xl: 3,
-                                                                }}
-                                                            >
-                                                                <div className="custom_form">
-                                                                    <FormLayout>
-                                                                        <CustomColorInput
-                                                                            settings={{
-                                                                                label: "Attr. Label",
-                                                                                defaultValue:
-                                                                                    productAttributeLabelColor,
-                                                                                // disabled:
-                                                                                //     productAttributeAlignment ===
-                                                                                //     "line_by_line"
-                                                                                //         ? false
-                                                                                //         : true,
-                                                                                name: "productAttributeLabelColor",
-                                                                                isShowColorCode: false,
-                                                                                onChange:
-                                                                                    handleConfigData,
-                                                                            }}
-                                                                        />
-                                                                    </FormLayout>
-                                                                    <FormLayout>
-                                                                        <CustomColorInput
-                                                                            settings={{
-                                                                                label: "Attr. Value",
-                                                                                defaultValue:
-                                                                                    productAttributeValueColor,
-                                                                                // disabled:
-                                                                                //     productAttributeAlignment ===
-                                                                                //     "line_by_line"
-                                                                                //         ? false
-                                                                                //         : true,
-                                                                                name: "productAttributeValueColor",
-                                                                                isShowColorCode: false,
-                                                                                onChange:
-                                                                                    handleConfigData,
-                                                                            }}
-                                                                        />
-                                                                    </FormLayout>
-                                                                </div>
-                                                            </Grid.Cell>
-                                                            <Grid.Cell
-                                                                columnSpan={{
-                                                                    xs: 12,
-                                                                    sm: 12,
-                                                                    md: 2,
-                                                                    lg: 2,
-                                                                    xl: 2,
-                                                                }}
-                                                            >
-                                                                <div className="custom_form">
-                                                                    <div>
-                                                                        <label className="custom_lbl Polaris-Label__Text">
-                                                                            Logo
-                                                                        </label>
-                                                                        <DropZone
-                                                                            allowMultiple={
-                                                                                false
-                                                                            }
-                                                                            disabled={
-                                                                                disabledInputFields
-                                                                            }
-                                                                            onDrop={
-                                                                                handleLogoDropZoneDrop
-                                                                            }
-                                                                            accept={
-                                                                                validImageTypes
-                                                                            }
-                                                                            errorOverlayText="File type must be valid"
-                                                                            variableHeight
-                                                                        >
-                                                                            {
-                                                                                uploadedLogoFile
-                                                                            }
-                                                                            {
-                                                                                fileUploadLogo
-                                                                            }
-                                                                        </DropZone>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="custom_lbl Polaris-Label__Text">
-                                                                            Front
-                                                                        </label>
-                                                                        <DropZone
-                                                                            allowMultiple={
-                                                                                false
-                                                                            }
-                                                                            disabled={
-                                                                                isAddFrontBack ===
-                                                                                "false"
-                                                                            }
-                                                                            onDrop={
-                                                                                handleFrontImageDropZoneDrop
-                                                                            }
-                                                                            accept={
-                                                                                validImageTypes
-                                                                            }
-                                                                            errorOverlayText="File type must be valid"
-                                                                            variableHeight
-                                                                        >
-                                                                            {
-                                                                                uploadedFrontImageFile
-                                                                            }
-                                                                            {
-                                                                                fileUploadFrontImage
-                                                                            }
-                                                                        </DropZone>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="custom_lbl Polaris-Label__Text">
-                                                                            Back
-                                                                        </label>
-                                                                        <DropZone
-                                                                            allowMultiple={
-                                                                                false
-                                                                            }
-                                                                            disabled={
-                                                                                isAddFrontBack ===
-                                                                                "false"
-                                                                            }
-                                                                            onDrop={
-                                                                                handleBackImageDropZoneDrop
-                                                                            }
-                                                                            accept={
-                                                                                validImageTypes
-                                                                            }
-                                                                            errorOverlayText="File type must be valid"
-                                                                            variableHeight
-                                                                        >
-                                                                            {
-                                                                                uploadedBackImageFile
-                                                                            }
-                                                                            {
-                                                                                fileUploadBackImage
-                                                                            }
-                                                                        </DropZone>
-                                                                    </div>
-                                                                </div>
-                                                            </Grid.Cell>
-                                                        </Grid>
-                                                    </LegacyCard>
-                                                </Grid.Cell>
                                                 <Grid.Cell
                                                     columnSpan={{
                                                         xs: 12,
@@ -3230,9 +2467,9 @@ const Configrations = (props = {}) => {
                                                 </Grid.Cell>
                                             </Grid>
                                         </div>
-                                    )}
-                                </Box>
-                            </Tabs>
+                                    </Box>
+                                </div>
+                            </InlineGrid>
                         </div>
                     </Layout.Section>
                 </Layout>

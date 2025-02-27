@@ -22,7 +22,7 @@ export default function Routing(props) {
             <Route exact path={`${URL_PREFIX}help-center`} element={<Support />} />
             <Route exact path={`${URL_PREFIX}add-product`} element={<ProductSelection props={props} />} ></Route>
             {/* <Route exact path={`${URL_PREFIX}edit-product/:pdfId`} element={<ProductSelection props={props} />} ></Route> */}
-            <Route exact path={`${URL_PREFIX}configrations`} element={<Configrations props={props} />} ></Route>
+            <Route exact path={`${URL_PREFIX}configrations`} element={<Configrations {...props} />} ></Route>
         </Routes>
     );
 }

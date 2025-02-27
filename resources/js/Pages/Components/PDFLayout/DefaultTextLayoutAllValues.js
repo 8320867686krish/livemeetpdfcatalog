@@ -32,7 +32,7 @@ const DefaultTextLayout = (data) => {
 
     // Get the price without currency
     price = price.replaceAll(",", "");
-    if(compareAtPrice == null){
+    if (compareAtPrice == null) {
         compareAtPrice = "";
     }
     compareAtPrice = compareAtPrice.replaceAll(",", "");
@@ -50,8 +50,8 @@ const DefaultTextLayout = (data) => {
         taxPrice = 0;
     let newCompareAtPrice = Number(originalCompareAtPrice),
         compareAtTaxPrice = 0;
-    console.log("newPrice",newPrice)
-    console.log("newCompareAtPrice",newCompareAtPrice)
+    console.log("newPrice", newPrice)
+    console.log("newCompareAtPrice", newCompareAtPrice)
     // Price Adjustment calculation
     if (priceAdjustment !== "") {
         const changePrice =
@@ -115,6 +115,56 @@ const DefaultTextLayout = (data) => {
                         style={{ textAlign: "center" }}
                     >
                         <div>{title}</div>
+                    </div>
+                )}
+                <div style={{ display : "flex" , gap : "15px"}}>
+                    {productAttributes.includes("name") && title !== "" && (
+                        <div
+                            className="custom-title"
+                            style={{ textAlign: "center" }}
+                        >
+                            <div>Cost price : 10,000</div>
+                        </div>
+                    )}
+                    {productAttributes.includes("name") && title !== "" && (
+                        <div
+                            className="custom-title"
+                            style={{ textAlign: "center" }}
+                        >
+                            <div>Product type : T-shirt</div>
+                        </div>
+                    )}
+                </div>
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>Param patel </div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>abc, xyz , lmn</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>10Gm</div>
+                    </div>
+                )}
+                {productAttributes.includes("name") && title !== "" && (
+                    <div
+                        className="custom-title"
+                        style={{ textAlign: "center" }}
+                    >
+                        <div>10Unit</div>
                     </div>
                 )}
                 {productAttributes.includes("sku") && sku !== "" && (
