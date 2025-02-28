@@ -22,6 +22,9 @@ Route::get('/collections/get', [ApiController::class, 'collectionsGet'])->name('
 Route::post('/product/get', [ApiController::class, 'collectionProductGet'])->name('collectionProductGet');
 Route::get('/pdfCollections/get', [ApiController::class, 'pdfCollections'])->name('pdfCollections');
 Route::post('/setting/edit', [ApiController::class, 'settingSave'])->name('settingEdit');
+Route::post('/configration/save', [ApiController::class, 'saveConfigration'])->name('save.configration');
+Route::post('/product/save', [ApiController::class, 'saveProduct'])->name('save.product');
+
 Route::get('/setting/{id}', [ApiController::class, 'settingGet'])->name('settingGet');
 Route::post('collections/status', [ApiController::class, 'pdfCollectionStatus'])->name('pdfCollectionStatus');
 Route::post('collections/remove', [ApiController::class, 'pdfCollectionRemove'])->name('pdfCollectionRemove');

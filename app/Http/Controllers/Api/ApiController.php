@@ -16,6 +16,247 @@ use Illuminate\Support\Str;
 class ApiController extends Controller
 {
     //
+
+    public function saveConfigration(Request $request)
+    {
+        $post = $request->input();
+
+        $shop = base64_decode($request->header('token'));
+        $userData = User::withCount('catelog')->where('name', $shop)->first();
+        $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
+        if ($post['id'] == 0) {
+            if ($checkPlan) {
+                if ($userData['catelog_count'] >= $checkPlan->catelog_limit) {
+                    return response()->json(['message' => 'Your Limit Has Been Reached', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+                }
+            }
+        }
+        $settingsData = Settings::find($post['id']);
+        $post['shop_id'] = $userData['id'];
+        if (@$post['logo'] && str_contains($post['logo'], 'data:image')) {
+            $png_url = "logo-" . time() . ".jpg";
+            $path = public_path() . "/uploads/logo/" . $png_url;
+            $shopFolder = public_path() . "/uploads/logo";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['logo'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['logo']);
+            $post['logo'] = $png_url;
+            if (@$settingsData['logo']) {
+                $image_path = public_path() . "/uploads/logo/" . $settingsData['logo'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+
+        if (@$post['frontImage'] && str_contains($post['frontImage'], 'data:image')) {
+            $png_url = "FrontImage-" . time() . ".jpg";
+            $path = public_path() . "/uploads/frontImage/" . $png_url;
+            $shopFolder = public_path() . "/uploads/frontImage";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['frontImage'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['frontImage']);
+
+            $post['frontImage'] = $png_url;
+            if (@$settingsData['frontImage']) {
+                $image_path = public_path() . "/uploads/frontImage/" . $settingsData['frontImage'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+
+        if (@$post['backImage'] && str_contains($post['backImage'], 'data:image')) {
+            $png_url = "LastImage-" . time() . ".jpg";
+            $path = public_path() . "/uploads/backImage/" . $png_url;
+            $shopFolder = public_path() . "/uploads/backImage";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['backImage'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['backImage']);
+
+            $post['backImage'] = $png_url;
+            if (@$settingsData['backImage']) {
+                $image_path = public_path() . "/uploads/backImage/" . $settingsData['backImage'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+        if (@$post['isUpload'] && $post['isUpload'] == 1) {
+
+            if (@$post['pdfUrl'] && str_contains($post['pdfUrl'], 'data:application/pdf')) {
+                $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $post['shop_id'];
+
+                if (!file_exists($shopFolder)) {
+                    mkdir($shopFolder, 0777, true);
+                }
+                // $collectionFolder = publicpath() . "/uploads/pdfFile/collections".$post['collectionName'];
+                $collectionFolder = $shopFolder . "/collections_" . $post['collectionName'];
+                if (!file_exists($collectionFolder)) {
+                    mkdir($collectionFolder, 0777, true);
+                }
+                $png_url = "PDF-" . $post['collectionName'] . time() . ".pdf";
+
+                $path = $collectionFolder . "/" . $png_url;
+                $img = $post['pdfUrl'];
+                $img = substr($img, strpos($img, ",") + 1);
+                $logo = base64_decode($img);
+                $success = file_put_contents($path, $logo);
+                unset($post['pdfUrl']);
+
+                $post['pdfUrl'] = $png_url;
+                if (@$settingsData['pdfUrl']) {
+                    $image_path = $collectionFolder . "/" . $settingsData['pdfUrl'];
+                    if (file_exists($image_path)) {
+                        @unlink($image_path);
+                    }
+                }
+            }
+        } else {
+            $post['pdfUrl'] = null;
+        }
+
+        $dataToUpdate = Arr::except($post, ['selectedProducts']);
+        if ($post['enabled'] == 1) {
+            Settings::where('shop_id', $post['shop_id'])->where('collectionId', $post['collectionId'])->update(['enabled' => 0]);
+        }
+        $saveData = Settings::updateOrCreate(['id' => $dataToUpdate['id']], $dataToUpdate);
+        //now get shop_id and collectionId wise get data
+        $collectionId = $post['collectionId'];
+        $checkProducts = CollectionProducts::where('shop_id', $post['shop_id'])->where('settings_id', $saveData->id);
+        if ($checkProducts) {
+            $checkProducts->delete();
+        }
+        if (@$post['selectedProducts']) {
+            foreach ($post['selectedProducts'] as $value) {
+                CollectionProducts::create([
+                    'settings_id' => $saveData->id,
+                    'product_id' => $value['id'],
+                    'shop_id' => $post['shop_id'],
+                    'title' => $value['title'],
+                    'image' => $value['image'],
+                    'desc' => $value['description'],
+                    'price' => $value['price'],
+                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
+                    'sku' => $value['sku'],
+                    'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
+                    'barcode' => @$value['barcode'] ? $value['barcode'] : null,
+                ]);
+            }
+        }
+        return response()->json(['message' => 'Catalog saved successfully.', 'setting_id' => $saveData->id, 'logo' => $saveData->logo, 'frontImage' => $saveData->frontImage, 'backImage' => $saveData->backImage, 'responseCode' => 1, 'errorCode' => 0]);
+    }
+    public function saveProduct(Request $request)
+    {
+        DB::beginTransaction(); // Start the transaction
+
+        try {
+            $post = $request->input();
+            $shop = base64_decode($request->header('token'));
+            $userData = User::withCount('catelog')->where('name', $shop)->first();
+            $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
+
+            if ($post['id'] == 0) {
+                if ($checkPlan) {
+                    if ($userData['catelog_count'] >= $checkPlan->catelog_limit) {
+                        return response()->json([
+                            'message' => 'Your Limit Has Been Reached',
+                            'responseCode' => 0,
+                            'errorCode' => 0,
+                            'data' => []
+                        ]);
+                    }
+                }
+            }
+
+            $post['shop_id'] = $userData['id'];
+
+            // Save settings
+            $saveData = Settings::updateOrCreate(['id' => $post['id']], $post);
+            $accessToken = $userData['password'];
+
+            if (!empty($post['selectedProducts'])) {
+                foreach ($post['selectedProducts'] as $value) {
+                    $saveProducts = CollectionProducts::updateOrCreate([
+                        'settings_id' => $saveData->id,
+                        'product_id'  => $value['product_id'],
+                    ], [
+                        "title"       => "", // Ensuring title is set to avoid SQL error
+                        'priority'    => $value['priority'],
+                        'product_id'  => $value['product_id'],
+                        'shop_id'     => $post['shop_id'],
+                        'settings_id' => $saveData->id
+                    ]);
+                }
+                $variantIds = array_map(function ($product) {
+                    return "\"{$product['product_id']}\""; // Use product_id directly without adding 'gid://shopify/ProductVariant/'
+                }, $post['selectedProducts']);
+                
+                $variantIdsString = implode(",", $variantIds);
+
+                // GraphQL query for bulk fetching
+                $query = <<<GQL
+    query {
+      nodes(ids: [$variantIdsString]) {
+        ... on ProductVariant {
+          id
+          price
+          compareAtPrice
+          product {
+            title
+          }
+          image {
+            url
+            altText
+          }
+        }
+      }
+    }
+    GQL;
+
+                // Send request to Shopify GraphQL API
+                $response = Http::withHeaders([
+                    'X-Shopify-Access-Token' => $accessToken,
+                    'Content-Type' => 'application/json',
+                ])->post("https://$shop/admin/api/2024-01/graphql.json", [
+                    'query' => $query
+                ]);
+            }
+
+            // Commit transaction if everything is successful
+            DB::commit();
+            $product = $response->json();
+            return response()->json([
+                'settings'        => $saveData->getAttributes(),
+                'selectedProducts' => @$product['data']['nodes'] ?? []
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback on error
+            return response()->json([
+                'message' => 'An error occurred while saving data.',
+                'error'   => $e->getMessage(),
+                'responseCode' => 0
+            ], 500);
+        }
+    }
     public function settingSave(Request $request)
     {
         $post = $request->input();
