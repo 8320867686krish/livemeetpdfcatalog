@@ -190,11 +190,25 @@ export const convertPaperSize = (paperType = 'a4', paperOrientation = 'portrait'
     }
 }
 
-//Default array option for Paper Layout
 export const optionsPriceAdjustment = [
     { label: 'None', value: '' },
     { label: 'Increment', value: '0' },
     { label: 'Decrement', value: '1' }
+];
+
+export const optionsForRedirectButton = [
+    { label: 'Redirect to product page', value: '0' },
+    { label: 'Redirect to online store', value: '1' },
+    { label: 'Redirect to cart page', value: '2' },
+    { label: 'Redirect to checkout page', value: '3' }
+];
+
+
+export const optionsForPrintQuality = [
+    { label: 'Redirect to product page', value: '0' },
+    { label: 'Redirect to online store', value: '1' },
+    { label: 'Redirect to cart page', value: '2' },
+    { label: 'Redirect to checkout page', value: '3' }
 ];
 
 //Default array option for product sorting.
@@ -241,8 +255,14 @@ export const getProductAttribute = (isDisabledBarCode = "false") => {
             { label: 'Product Name', value: 'name' },
             { label: 'Price', value: 'price' },
             { label: 'SKU', value: 'sku' },
-            { label: 'Bar Code', value: 'barcode', disabled: isDisabledBarCode === 'false' },
-            { label: 'Description', value: 'description' }
+            // { label: 'Bar Code', value: 'barcode', disabled: isDisabledBarCode === 'false' },
+            { label: 'Description', value: 'description' },
+            { label: 'Stock quantity', value: 'quantity' },
+            { label: 'Weight', value: 'weight' },
+            { label: 'Tag', value: 'tag' },
+            { label: 'Vendor', value: 'vendor' },
+            { label: 'Product type', value: 'type' },
+            { label: 'Cost per item', value: 'costPerItem' },
         ]
     )
 }

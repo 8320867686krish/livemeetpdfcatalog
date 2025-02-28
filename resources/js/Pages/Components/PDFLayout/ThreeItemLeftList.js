@@ -67,10 +67,10 @@ const ThreeItemLeftList = (props) => {
                                 paperLayout === "legal"
                                     ? legalPaperSize
                                     : paperLayout === "a5"
-                                    ? A5PaperSize
-                                    : paperLayout === "letter"
-                                    ? letterPaperSize
-                                    : pdfHeight + paperSizeMeasurement,
+                                        ? A5PaperSize
+                                        : paperLayout === "letter"
+                                            ? letterPaperSize
+                                            : pdfHeight + paperSizeMeasurement,
                         }}
                     >
                         <div
@@ -126,7 +126,7 @@ const ThreeItemLeftList = (props) => {
                                                         color: productAttributeLabelColor,
                                                     }}
                                                 >
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -198,7 +198,7 @@ const ThreeItemLeftList = (props) => {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -230,7 +230,7 @@ const ThreeItemLeftList = (props) => {
                                     [
                                         ...Array(
                                             displayPerPageProduct -
-                                                productItem.length
+                                            productItem.length
                                         ),
                                     ].map((x, i) => {
                                         return (
@@ -249,7 +249,7 @@ const ThreeItemLeftList = (props) => {
                                                             // color: productAttributeLabelColor,
                                                         }}
                                                     >
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -288,7 +288,7 @@ const ThreeItemLeftList = (props) => {
                                                                 <ProductImageLayout />
                                                             </div>
                                                         </div>
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -302,21 +302,21 @@ const ThreeItemLeftList = (props) => {
                             {(footerText != "" ||
                                 footerPageNoEnabled == "1" ||
                                 footerDateEnabled == "1") && (
-                                <Footer
-                                    {...{
-                                        footerText,
-                                        footerAlignment,
-                                        fontFamily,
-                                        fontColor,
-                                        backgroundColor,
-                                        footerPageNoEnabled,
-                                        footerDateEnabled,
-                                        footerDateFormat,
-                                        pageSize: _pageSize,
-                                        paperLayout: paperLayout,
-                                    }}
-                                />
-                            )}
+                                    <Footer
+                                        {...{
+                                            footerText,
+                                            footerAlignment,
+                                            fontFamily,
+                                            fontColor,
+                                            backgroundColor,
+                                            footerPageNoEnabled,
+                                            footerDateEnabled,
+                                            footerDateFormat,
+                                            pageSize: _pageSize,
+                                            paperLayout: paperLayout,
+                                        }}
+                                    />
+                                )}
                         </div>
                     </div>
                 );

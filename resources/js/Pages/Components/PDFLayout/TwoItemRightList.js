@@ -131,7 +131,7 @@ const TwoItemRightList = (props) => {
                                                         color: productAttributeLabelColor,
                                                     }}
                                                 >
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -203,7 +203,7 @@ const TwoItemRightList = (props) => {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -254,7 +254,7 @@ const TwoItemRightList = (props) => {
                                                             // color: productAttributeLabelColor,
                                                         }}
                                                     >
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -293,7 +293,7 @@ const TwoItemRightList = (props) => {
                                                                 <ProductImageLayout />
                                                             </div>
                                                         </div>
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />

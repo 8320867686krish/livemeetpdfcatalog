@@ -669,7 +669,7 @@ const Dashboard = (props = {}) => {
         // const myDiv = document.getElementById('pdfLayout');
         const pageArray = [];
         const totalPages = document.querySelectorAll('div[id*="page_id_"]');
-
+        console.log("total page dashboard ",totalPages)
         //Front image is added...
         if (frontImage !== "") {
             const frontPageElement = document.getElementById("front_page");

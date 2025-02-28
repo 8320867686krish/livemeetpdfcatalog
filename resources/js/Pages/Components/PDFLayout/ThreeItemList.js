@@ -65,10 +65,10 @@ const ThreeItemList = (props) => {
                                 paperLayout === "legal"
                                     ? legalPaperSize
                                     : paperLayout === "a5"
-                                    ? A5PaperSize
-                                    : paperLayout === "letter"
-                                    ? letterPaperSize
-                                    : pdfHeight + paperSizeMeasurement,
+                                        ? A5PaperSize
+                                        : paperLayout === "letter"
+                                            ? letterPaperSize
+                                            : pdfHeight + paperSizeMeasurement,
                         }}
                     >
                         <div
@@ -142,7 +142,7 @@ const ThreeItemList = (props) => {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="column column-2">
+                                                <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                     <ProductContentLayout
                                                         {...{
                                                             valueColor:
@@ -172,7 +172,7 @@ const ThreeItemList = (props) => {
                                     [
                                         ...Array(
                                             displayPerPageProduct -
-                                                productItem.length
+                                            productItem.length
                                         ),
                                     ].map((x, i) => {
                                         return (
@@ -202,7 +202,7 @@ const ThreeItemList = (props) => {
                                                             <ProductImageLayout />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             isBlank={true}
                                                         />
@@ -215,21 +215,21 @@ const ThreeItemList = (props) => {
                             {(footerText != "" ||
                                 footerPageNoEnabled == "1" ||
                                 footerDateEnabled == "1") && (
-                                <Footer
-                                    {...{
-                                        footerText,
-                                        footerAlignment,
-                                        fontFamily,
-                                        fontColor,
-                                        backgroundColor,
-                                        footerPageNoEnabled,
-                                        footerDateEnabled,
-                                        footerDateFormat,
-                                        pageSize: _pageSize,
-                                        paperLayout: paperLayout,
-                                    }}
-                                />
-                            )}
+                                    <Footer
+                                        {...{
+                                            footerText,
+                                            footerAlignment,
+                                            fontFamily,
+                                            fontColor,
+                                            backgroundColor,
+                                            footerPageNoEnabled,
+                                            footerDateEnabled,
+                                            footerDateFormat,
+                                            pageSize: _pageSize,
+                                            paperLayout: paperLayout,
+                                        }}
+                                    />
+                                )}
                         </div>
                     </div>
                 );
