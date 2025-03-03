@@ -67,10 +67,10 @@ const FourItemLeftList = (props) => {
                                 paperLayout === "legal"
                                     ? legalPaperSize
                                     : paperLayout === "a5"
-                                    ? A5PaperSize
-                                    : paperLayout === "letter"
-                                    ? letterPaperSize
-                                    : pdfHeight + paperSizeMeasurement,
+                                        ? A5PaperSize
+                                        : paperLayout === "letter"
+                                            ? letterPaperSize
+                                            : pdfHeight + paperSizeMeasurement,
                         }}
                     >
                         <div
@@ -145,7 +145,7 @@ const FourItemLeftList = (props) => {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -179,7 +179,7 @@ const FourItemLeftList = (props) => {
                                                         color: productAttributeLabelColor,
                                                     }}
                                                 >
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -230,7 +230,7 @@ const FourItemLeftList = (props) => {
                                     [
                                         ...Array(
                                             displayPerPageProduct -
-                                                productItem.length
+                                            productItem.length
                                         ),
                                     ].map((x, i) => {
                                         return (
@@ -259,7 +259,7 @@ const FourItemLeftList = (props) => {
                                                                 <ProductImageLayout />
                                                             </div>
                                                         </div>
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -270,10 +270,10 @@ const FourItemLeftList = (props) => {
                                                         className="column-wrapper"
                                                         style={{
                                                             margin: "10px",
-                                                           
+
                                                         }}
                                                     >
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -300,21 +300,21 @@ const FourItemLeftList = (props) => {
                             {(footerText != "" ||
                                 footerPageNoEnabled == "1" ||
                                 footerDateEnabled == "1") && (
-                                <Footer
-                                    {...{
-                                        footerText,
-                                        footerAlignment,
-                                        fontFamily,
-                                        fontColor,
-                                        backgroundColor,
-                                        footerPageNoEnabled,
-                                        footerDateEnabled,
-                                        footerDateFormat,
-                                        pageSize: _pageSize,
-                                        paperLayout: paperLayout,
-                                    }}
-                                />
-                            )}
+                                    <Footer
+                                        {...{
+                                            footerText,
+                                            footerAlignment,
+                                            fontFamily,
+                                            fontColor,
+                                            backgroundColor,
+                                            footerPageNoEnabled,
+                                            footerDateEnabled,
+                                            footerDateFormat,
+                                            pageSize: _pageSize,
+                                            paperLayout: paperLayout,
+                                        }}
+                                    />
+                                )}
                         </div>
                     </div>
                 );

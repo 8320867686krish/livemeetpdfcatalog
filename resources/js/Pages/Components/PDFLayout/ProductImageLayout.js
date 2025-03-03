@@ -35,7 +35,7 @@ const ProductImageLayout = (data = {}) => {
                             transform: "translate(0px, 0px) scale(1)",
                         }}
                     ></div>
-                    {productAttributes.includes("barcode") &&
+                    {/* {productAttributes.includes("barcode") &&
                         barcode !== null &&
                         barcode !== "" && (
                             <Suspense
@@ -50,7 +50,7 @@ const ProductImageLayout = (data = {}) => {
                                     <BarCodeLayout barCode={barcode} />
                                 </div>
                             </Suspense>
-                        )}
+                        )} */}
                 </div>
             ) : (
                 <div

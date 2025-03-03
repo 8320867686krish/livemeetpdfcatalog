@@ -131,7 +131,7 @@ const FourItemRightList = (props) => {
                                                         color: productAttributeLabelColor,
                                                     }}
                                                 >
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -203,7 +203,7 @@ const FourItemRightList = (props) => {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2">
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -251,7 +251,7 @@ const FourItemRightList = (props) => {
                                                             margin: "10px",
                                                         }}
                                                     >
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -290,7 +290,7 @@ const FourItemRightList = (props) => {
                                                                 <ProductImageLayout />
                                                             </div>
                                                         </div>
-                                                        <div className="column column-2">
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />

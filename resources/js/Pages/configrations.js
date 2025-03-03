@@ -86,6 +86,8 @@ import {
     getCurrentPDFPageSize,
     fetchMethod,
     autoPDFSize,
+    optionsForRedirectButton,
+    optionsForPrintQuality,
 } from "./helper";
 import axios from "axios";
 const tabs = [
@@ -158,6 +160,8 @@ const initConfigData = {
     utmSource: "",
     excludeOutOfStock: false,
     excludeNotInStock: false,
+    redirectValue: "0",
+    printQuality: "0"
 };
 
 //Function component start.
@@ -182,9 +186,9 @@ const Configrations = (props = {}) => {
     const [successMessage, setSuccessMessage] = useState();
     const [activeBannerError, setActiveBannerError] = useState(false);
     const [errorBannerMessage, setErrorBannerMessage] = useState();
-    const [generalCollapsibleOpen, setGeneralCollapsibleOpen] = useState(true);
-    const [productSettingCollapsibleOpen, setProductSettingCollapsibleOpen] = useState(true);
-    const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(true);
+    const [generalCollapsibleOpen, setGeneralCollapsibleOpen] = useState(false);
+    const [productSettingCollapsibleOpen, setProductSettingCollapsibleOpen] = useState(false);
+    const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(false);
 
     const handleTogglegeneralCollapsible = useCallback(() => {
         setGeneralCollapsibleOpen((open) => !open);
@@ -294,7 +298,7 @@ const Configrations = (props = {}) => {
     //Handle save button event.
     const handleClick = async (e) => {
         e.preventDefault();
-        setLoader(true);
+        // setLoader(true);
         setBtnSpinner(true);
         const locationState = location?.state ?? {};
         const { totalCatelog = 0 } = locationState;
@@ -442,7 +446,7 @@ const Configrations = (props = {}) => {
         const settingId = queryParams.get("id") ?? 0;
 
         const getCatalogData = async () => {
-            setLoader(true);
+            setBtnSpinner(true);
             const responseData = await fetchMethod(
                 getMethodType,
                 `setting/${settingId}`,
@@ -470,7 +474,7 @@ const Configrations = (props = {}) => {
                 };
                 setConfigData(newData);
             }
-            setLoader(false);
+            setBtnSpinner(false);
         };
         if (settingId > 0) {
             getCatalogData();
@@ -700,7 +704,7 @@ const Configrations = (props = {}) => {
         // const myDiv = document.getElementById('pdfLayout');
         const pageArray = [];
         const totalPages = document.querySelectorAll('div[id*="page_id_"]');
-
+        console.log("total pages are ", totalPages)
         //Front image is added...
         if (frontImage !== "") {
             const frontPageElement = document.getElementById("front_page");
@@ -891,6 +895,7 @@ const Configrations = (props = {}) => {
                         totalAdditionalStringChunks,
                         isLastRequest
                     ) => {
+                        console.log("send data is chunks is called ");
                         let isLastRequestVariable = false;
                         let lastSendedData = ""
                         setLoader(true);
@@ -954,6 +959,9 @@ const Configrations = (props = {}) => {
                         pageArray,
                         additionalString
                     ) => {
+                        console.log("process page sequentially called...")
+                        console.log("process page sequentially pageArray", pageArray)
+                        console.log("process page sequentially additionalString", additionalString)
                         let totalChunks = 0;
                         let currentPageCount = 1;
                         let additionalStringChunks = [];
@@ -1378,6 +1386,8 @@ const Configrations = (props = {}) => {
         utmSource = "",
         excludeOutOfStock = false,
         excludeNotInStock = false,
+        redirectValue = "0",
+        printQuality = "0",
     } = configData;
 
     const disabledInputFields = false;
@@ -1421,7 +1431,7 @@ const Configrations = (props = {}) => {
                 <Layout>
                     <Layout.Section>
                         <div className="tab_area">
-                            <div className="mb_15">
+                            {/* <div className="mb_15">
                                 <Banner title="Product updates">
                                     <p>
                                         <strong>Note:</strong> Product updates
@@ -1430,7 +1440,7 @@ const Configrations = (props = {}) => {
                                         to update them with the latest details.
                                     </p>
                                 </Banner>
-                            </div>
+                            </div> */}
                             {toastError}
                             {toastSuccess}
                             {bannerError}
@@ -1794,7 +1804,27 @@ const Configrations = (props = {}) => {
                                                                     paperLayout
                                                                 }
                                                                 disabled={
-                                                                    disabledInputFields
+                                                                    true
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
+                                                                label="Print quality"
+                                                                name="printQuality"
+                                                                options={
+                                                                    optionsForPrintQuality
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "printQuality"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    printQuality
                                                                 }
                                                             />
                                                         </FormLayout>
@@ -1887,6 +1917,38 @@ const Configrations = (props = {}) => {
                                                             />
                                                         </FormLayout>
                                                     </div>
+                                                    {
+                                                        productButtonEnabled == '1' && <div style={{ marginTop: "10px" }}>
+                                                            <FormLayout>
+                                                                <Select
+                                                                    label="Redirect on buy now click"
+                                                                    name="redirectValue"
+                                                                    options={
+                                                                        optionsForRedirectButton
+                                                                    }
+                                                                    onChange={(
+                                                                        e
+                                                                    ) => {
+                                                                        console.log(
+                                                                            "redirectValue",
+                                                                            e
+                                                                        );
+                                                                        handleConfigData(
+                                                                            e,
+                                                                            "redirectValue"
+                                                                        );
+                                                                    }}
+                                                                    value={
+                                                                        redirectValue ??
+                                                                        ""
+                                                                    }
+                                                                    disabled={
+                                                                        disabledInputFields
+                                                                    }
+                                                                />
+                                                            </FormLayout>
+                                                        </div>
+                                                    }
                                                     <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <TextField
@@ -2085,7 +2147,7 @@ const Configrations = (props = {}) => {
                                                                 )
                                                             } />
                                                     </div>
-                                                    <div style={{ marginTop: "10px" , display : "flex" , alignItems : "center" , gap : "10px" }}>
+                                                    <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
                                                         <div>
                                                             <Checkbox
                                                                 label="Exclude products that are not available in the online store"
@@ -2098,7 +2160,7 @@ const Configrations = (props = {}) => {
                                                                 } />
                                                         </div>
                                                         <div>
-                                                            <Tooltip  content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
+                                                            <Tooltip content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
                                                                 <Icon
                                                                     source={QuestionCircleIcon}
                                                                     tone="base"
@@ -2450,12 +2512,17 @@ const Configrations = (props = {}) => {
                                                         </p>
                                                         <Suspense
                                                             fallback={
-                                                                <Spinner
-                                                                    accessibilityLabel="Small spinner example"
-                                                                    size="large"
-                                                                />
+                                                                <></>
+                                                                // <Spinner
+                                                                //     accessibilityLabel="Small spinner example"
+                                                                //     size="large"
+                                                                // />
                                                             }
                                                         >
+                                                            {btnSpinner && <Spinner
+                                                                accessibilityLabel="Small spinner example"
+                                                                size="large"
+                                                            /> }
                                                             <PDFPreview
                                                                 configData={
                                                                     configData

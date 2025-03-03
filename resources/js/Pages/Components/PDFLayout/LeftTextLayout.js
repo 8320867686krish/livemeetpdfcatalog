@@ -30,7 +30,7 @@ const LeftTextLayout = (data) => {
 
     // Get the price without currency
     price = price.replaceAll(",", "");
-    if(compareAtPrice == null){
+    if (compareAtPrice == null) {
         compareAtPrice = "";
     }
     compareAtPrice = compareAtPrice.replaceAll(",", "");
@@ -101,18 +101,48 @@ const LeftTextLayout = (data) => {
             >
                 <div className="custom-title" style={{ flex: "1 1 auto" }}>
                     {productAttributes.includes("name") && title !== "" && (
-                        <span style={{ letterSpacing: "0.1px" }}>{title}</span>
+                        <span style={{ letterSpacing: "1px" }}>{title}</span>
                     )}
                     {productAttributes.includes("sku") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            {sku}
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            SKU : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("quantity") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Stock quantity : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("weight") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Weight : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("tag") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Tag : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("vendor") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Vendor : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("type") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Product type : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("costPerItem") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Cost per item : {sku}
                         </div>
                     )}
                     {productAttributes.includes("description") &&
                         description !== "" && (
                             <div
                                 className="custom-sku"
-                                style={{ opacity: "0.7" }}
+                                style={{ opacity: "0.7", letterSpacing: "1px" }}
                             >
                                 {_description}
                             </div>
@@ -130,11 +160,11 @@ const LeftTextLayout = (data) => {
                 >
                     {productAttributes.includes("price") &&
                         compareAtPrice > price && (
-                            <div>
+                            <div style={{ letterSpacing: "1px" }}>
                                 <span
                                     className="custom-compare-at-price"
                                     style={{
-                                        textDecoration: "line-through",
+                                        textDecoration: "line-through"
                                     }}
                                 >
                                     {newCompareAtPrice}
@@ -142,7 +172,7 @@ const LeftTextLayout = (data) => {
                             </div>
                         )}
                     {productAttributes.includes("price") && newPrice !== "" && (
-                        <div>
+                        <div style={{ letterSpacing: "1px" }}>
                             <span className="custom-price">{newPrice}</span>
                         </div>
                     )}
@@ -161,6 +191,7 @@ const LeftTextLayout = (data) => {
                                     marginTop: "10px",
                                     textDecoration: "none",
                                     lineHeight: "normal",
+                                    letterSpacing: "1px"
                                 }}
                                 target="_blank"
                             >
