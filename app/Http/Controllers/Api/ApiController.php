@@ -414,19 +414,22 @@ class ApiController extends Controller
     public function settingGet(Request $request, $id)
     {
         $data = Settings::with('products')->where('id', $id)->first();
+
+        $exclude_not_avaliable = $data['exclude_not_avaliable'] ?? 0; // Default to 0 if not set
+        $exclude_out_of_stock = $data['exclude_out_of_stock'] ?? 0;
         $shop = base64_decode($request->header('token'));
         $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
         $priceFormat = null; // Initialize price format
         if ($user['id'] != $data['shop_id']) {
             return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denied', 'data' => []]);
         }
-        
+
         if (empty($data)) {
             return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
         }
-        
+
         $isOldUser = collect($data->products)->contains('priority', 0);
-        
+
         if ($isOldUser) {
             $products = $data->products->map(fn($product) => [
                 'id' => $product->product_id,
@@ -439,25 +442,25 @@ class ApiController extends Controller
                 'barcode' => $product->barcode,
                 'compareAtPrice' => $product->compareAtPrice ?? '',
             ]);
-        
+
             return response()->json([
-                'responseCode' => 1, 
-                'errorCode' => 0, 
-                'message' => 'no', 
+                'responseCode' => 1,
+                'errorCode' => 0,
+                'message' => 'no',
                 'data' => array_merge($data->toArray(), ['selectedProducts' => $products])
             ]);
         }
-        
+
         // ✅ New User: Fetch from Shopify API
         $variantIds = collect($data->products)->pluck('priority', 'product_id')->toArray();
         $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
         $results = [];
         $priceFormat = null;
-        
+
         foreach ($chunkedVariantIds as $index => $ids) {
             $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
             $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
-        
+
             $query = <<<GQL
             query {
                 nodes(ids: [$variantIdsString]) {
@@ -467,11 +470,13 @@ class ApiController extends Controller
                         displayName
                         compareAtPrice
                         sku
+                        inventoryQuantity
                         barcode
                         image { url }
                         product {
                             description
                             onlineStorePreviewUrl
+                            status
                             media(first: 1) {
                                 edges { node { ... on MediaImage { image { url } } } }
                             }
@@ -481,27 +486,35 @@ class ApiController extends Controller
                 $shopQuery
             }
             GQL;
-        
+
             // ✅ Send request to Shopify GraphQL API
             $response = Http::withHeaders([
                 'X-Shopify-Access-Token' => $user['password'],
                 'Content-Type' => 'application/json',
             ])->post("https://{$user['name']}/admin/api/2024-01/graphql.json", ['query' => $query]);
-        
+
             if (!$response->successful()) {
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
-        
+
             $nodes = $response->json('data.nodes', []);
-        
+
             // ✅ Fetch shop's currency format only once
             if ($index === 0) {
                 $shop = $response->json('data.shop', []);
                 $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
             }
-        
+
             // ✅ Transform Shopify API Response
-            $filteredNodes = collect($nodes)->filter()->map(function ($node) use ($variantIds, $priceFormat) {
+            $filteredNodes = collect($nodes)
+            
+            ->when($exclude_not_avaliable == 1, function ($collection) use ($exclude_out_of_stock) {
+                return $collection->filter(function ($node) use ($exclude_out_of_stock) {
+                    return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' // Ensure product is active
+                        && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
+                });
+            })
+            ->map(function ($node) use ($variantIds, $priceFormat) {
                 return [
                     'id' => $node['id'],
                     'priority' => $variantIds[$node['id']] ?? null,
@@ -515,18 +528,17 @@ class ApiController extends Controller
                     'description' => $node['product']['description'] ?? '',
                     'storeurl' => $node['product']['onlineStorePreviewUrl'] ?? '',
                 ];
-            })->values();
-        
-            $results = array_merge($results, $filteredNodes->toArray());
+            })
+            ->values(); // Reset array keys
+        $results = array_merge($results, $filteredNodes->toArray());
         }
-        
+
         return response()->json([
-            'responseCode' => 1, 
-            'errorCode' => 0, 
-            'message' => 'no', 
+            'responseCode' => 1,
+            'errorCode' => 0,
+            'message' => 'no',
             'data' => array_merge($data->toArray(), ['selectedProducts' => $results])
         ]);
-        
     }
     public function collectionsGet(Request $request)
     {
