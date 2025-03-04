@@ -16,6 +16,254 @@ use Illuminate\Support\Str;
 class ApiController extends Controller
 {
     //
+
+    public function saveConfigration(Request $request)
+    {
+        $post = $request->input();
+
+        $shop = base64_decode($request->header('token'));
+        $userData = User::withCount('catelog')->where('name', $shop)->first();
+        $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
+        if ($post['id'] == 0) {
+            if ($checkPlan) {
+                if ($userData['catelog_count'] >= $checkPlan->catelog_limit) {
+                    return response()->json(['message' => 'Your Limit Has Been Reached', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+                }
+            }
+        }
+        $settingsData = Settings::find($post['id']);
+        $post['shop_id'] = $userData['id'];
+        if (@$post['logo'] && str_contains($post['logo'], 'data:image')) {
+            $png_url = "logo-" . time() . ".jpg";
+            $path = public_path() . "/uploads/logo/" . $png_url;
+            $shopFolder = public_path() . "/uploads/logo";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['logo'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['logo']);
+            $post['logo'] = $png_url;
+            if (@$settingsData['logo']) {
+                $image_path = public_path() . "/uploads/logo/" . $settingsData['logo'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+
+        if (@$post['frontImage'] && str_contains($post['frontImage'], 'data:image')) {
+            $png_url = "FrontImage-" . time() . ".jpg";
+            $path = public_path() . "/uploads/frontImage/" . $png_url;
+            $shopFolder = public_path() . "/uploads/frontImage";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['frontImage'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['frontImage']);
+
+            $post['frontImage'] = $png_url;
+            if (@$settingsData['frontImage']) {
+                $image_path = public_path() . "/uploads/frontImage/" . $settingsData['frontImage'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+
+        if (@$post['backImage'] && str_contains($post['backImage'], 'data:image')) {
+            $png_url = "LastImage-" . time() . ".jpg";
+            $path = public_path() . "/uploads/backImage/" . $png_url;
+            $shopFolder = public_path() . "/uploads/backImage";
+
+            if (!file_exists($shopFolder)) {
+                mkdir($shopFolder, 0777, true);
+            }
+            $img = $post['backImage'];
+            $img = substr($img, strpos($img, ",") + 1);
+            $logo = base64_decode($img);
+            $success = file_put_contents($path, $logo);
+            unset($post['backImage']);
+
+            $post['backImage'] = $png_url;
+            if (@$settingsData['backImage']) {
+                $image_path = public_path() . "/uploads/backImage/" . $settingsData['backImage'];
+                if (file_exists($image_path)) {
+                    @unlink($image_path);
+                }
+            }
+        }
+        if (@$post['isUpload'] && $post['isUpload'] == 1) {
+
+            if (@$post['pdfUrl'] && str_contains($post['pdfUrl'], 'data:application/pdf')) {
+                $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $post['shop_id'];
+
+                if (!file_exists($shopFolder)) {
+                    mkdir($shopFolder, 0777, true);
+                }
+                // $collectionFolder = publicpath() . "/uploads/pdfFile/collections".$post['collectionName'];
+                $collectionFolder = $shopFolder . "/collections_" . $post['collectionName'];
+                if (!file_exists($collectionFolder)) {
+                    mkdir($collectionFolder, 0777, true);
+                }
+                $png_url = "PDF-" . $post['collectionName'] . time() . ".pdf";
+
+                $path = $collectionFolder . "/" . $png_url;
+                $img = $post['pdfUrl'];
+                $img = substr($img, strpos($img, ",") + 1);
+                $logo = base64_decode($img);
+                $success = file_put_contents($path, $logo);
+                unset($post['pdfUrl']);
+
+                $post['pdfUrl'] = $png_url;
+                if (@$settingsData['pdfUrl']) {
+                    $image_path = $collectionFolder . "/" . $settingsData['pdfUrl'];
+                    if (file_exists($image_path)) {
+                        @unlink($image_path);
+                    }
+                }
+            }
+        } else {
+            $post['pdfUrl'] = null;
+        }
+
+        $dataToUpdate = Arr::except($post, ['selectedProducts']);
+        if ($post['enabled'] == 1) {
+            Settings::where('shop_id', $post['shop_id'])->where('collectionId', $post['collectionId'])->update(['enabled' => 0]);
+        }
+        $saveData = Settings::updateOrCreate(['id' => $dataToUpdate['id']], $dataToUpdate);
+        //now get shop_id and collectionId wise get data
+        $collectionId = $post['collectionId'];
+        $checkProducts = CollectionProducts::where('shop_id', $post['shop_id'])->where('settings_id', $saveData->id);
+        if ($checkProducts) {
+            $checkProducts->delete();
+        }
+        if (@$post['selectedProducts']) {
+            foreach ($post['selectedProducts'] as $value) {
+                CollectionProducts::create([
+                    'settings_id' => $saveData->id,
+                    'product_id' => $value['id'],
+                    'shop_id' => $post['shop_id'],
+                    'title' => $value['title'],
+                    'image' => $value['image'],
+                    'desc' => $value['description'],
+                    'price' => $value['price'],
+                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
+                    'sku' => $value['sku'],
+                    'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
+                    'barcode' => @$value['barcode'] ? $value['barcode'] : null,
+                ]);
+            }
+        }
+        return response()->json(['message' => 'Catalog saved successfully.', 'setting_id' => $saveData->id, 'logo' => $saveData->logo, 'frontImage' => $saveData->frontImage, 'backImage' => $saveData->backImage, 'responseCode' => 1, 'errorCode' => 0]);
+    }
+    public function saveProduct(Request $request)
+    {
+        DB::beginTransaction(); // Start the transaction
+
+        try {
+            $post = $request->input();
+            $saveData = Settings::updateOrCreate(['id' => $post['id']], $post);
+
+            if (!empty($post['selectedProducts'])) {
+                CollectionProducts::where('settings_id', $saveData->id)->delete();
+                foreach ($post['selectedProducts'] as $value) {
+                    $saveProducts = CollectionProducts::updateOrCreate([
+                        'settings_id' => $saveData->id,
+                        'product_id'  => $value['product_id'],
+                    ], [
+                        "title"       => "", // Ensuring title is set to avoid SQL error
+                        'priority'    => $value['priority'],
+                        'product_id'  => $value['product_id'],
+                        'shop_id'     => $post['shop_id'],
+                        'settings_id' => $saveData->id
+                    ]);
+                }
+            }
+            // Commit transaction if everything is successful
+            DB::commit();
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => []], 200);
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback on error
+            return response()->json([
+                'message' => 'An error occurred while saving data.',
+                'error'   => $e->getMessage(),
+                'responseCode' => 0
+            ], 500);
+        }
+    }
+    public function productEdit(Request $request)
+    {
+        $post = $request->input();
+        $checkValidSettings = Settings::where([
+            ['id', '=', $post['setting_id']],
+            ['shop_id', '=', $post['shop_id']]
+        ])->pluck('id')->toArray();
+
+        if (!@$checkValidSettings) {
+            return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+        }
+
+
+        $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
+            ->pluck('priority', 'product_id') // Retrieve product_id and priority
+            ->toArray();
+
+
+        // $variantIds = array_map(fn($product) => "\"{$product['product_id']}\"", $post['selectedProducts']);
+        $accessToken = $post['password'];
+
+        $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
+        $results = [];
+        foreach ($chunkedVariantIds as $ids) {
+            $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
+            // GraphQL query for bulk fetching
+            $query = <<<GQL
+            query {
+                nodes(ids: [$variantIdsString]) {
+                    ... on ProductVariant {
+                        id
+                        price,
+                        displayName
+                        compareAtPrice
+                    }
+                }
+            }
+            GQL;
+
+            // Send request to Shopify GraphQL API
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $accessToken,
+                'Content-Type' => 'application/json',
+            ])->post("https://{$post['shop']}/admin/api/2024-01/graphql.json", [
+                'query' => $query
+            ]);
+            if ($response->successful()) {
+                $nodes = $response->json('data.nodes', []);
+                $filteredNodes = collect($nodes)
+                    ->filter() // Remove null values
+                    ->map(function ($node) use ($variantIds) {
+
+                        $productId = $node['id'];
+                        $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
+                        return $node;
+                    })
+                    ->values(); // Reset array keys
+                $results = array_merge($results, $filteredNodes->toArray());
+            } else {
+                throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
+            }
+        }
+        $dataArray['selectedProducts'] = @$results ?? [];
+        return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
+    }
     public function settingSave(Request $request)
     {
         $post = $request->input();
@@ -166,37 +414,135 @@ class ApiController extends Controller
     public function settingGet(Request $request, $id)
     {
         $data = Settings::with('products')->where('id', $id)->first();
+
+        $exclude_not_avaliable = $data['exclude_not_avaliable'] ?? 0; // Default to 0 if not set
+        $exclude_out_of_stock = $data['exclude_out_of_stock'] ?? 0;
+        $utm_source     = $data['utm_source'];
         $shop = base64_decode($request->header('token'));
-        $shop_id = User::where('name', $shop)->pluck('id')->first();
-        if ($shop_id == $data['shop_id']) {
-            if ($data) {
-                $products = $data->products->map(function ($product) {
-                    // Include the desired fields from the "products" relationship
-                    return [
-                        'id' => $product->product_id,
-                        'title' => $product->title,
-                        'image' => $product->image,
-                        'description' => $product->desc ?? '', // Set a blank value if null
-                        'sku' => $product->sku ?? '', // Set a blank value if null
-                        'price' => $product->price,
-                        'storeurl' => $product->store_url,
-                        'barcode' => $product->barcode,
-                        'compareAtPrice' => $product->compareAtPrice ?? "",
-                        // Add more fields as needed
-                    ];
-                });
-
-                $dataArray = $data->toArray();
-
-                unset($dataArray['products']);
-                $dataArray['selectedProducts'] = $products;
-                return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
-            } else {
-                return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
-            }
-        } else {
-            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denide', 'data' => []]);
+        $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
+        $priceFormat = null; // Initialize price format
+        if ($user['id'] != $data['shop_id']) {
+            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denied', 'data' => []]);
         }
+
+        if (empty($data)) {
+            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
+        }
+
+        $isOldUser = collect($data->products)->contains('priority', 0);
+
+        if ($isOldUser) {
+            $products = $data->products->map(fn($product) => [
+                'id' => $product->product_id,
+                'title' => $product->title,
+                'image' => $product->image,
+                'description' => $product->desc ?? '',
+                'sku' => $product->sku ?? '',
+                'price' => $product->price,
+                'storeurl' => $product->store_url,
+                'barcode' => $product->barcode,
+                'compareAtPrice' => $product->compareAtPrice ?? '',
+            ]);
+
+            return response()->json([
+                'responseCode' => 1,
+                'errorCode' => 0,
+                'message' => 'no',
+                'data' => array_merge($data->toArray(), ['selectedProducts' => $products])
+            ]);
+        }
+
+        // ✅ New User: Fetch from Shopify API
+        $variantIds = collect($data->products)->pluck('priority', 'product_id')->toArray();
+        $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
+        $results = [];
+        $priceFormat = null;
+
+        foreach ($chunkedVariantIds as $index => $ids) {
+            $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
+            $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
+
+            $query = <<<GQL
+            query {
+                nodes(ids: [$variantIdsString]) {
+                    ... on ProductVariant {
+                        id
+                        price
+                        displayName
+                        compareAtPrice
+                        sku
+                        inventoryQuantity
+                        barcode
+                        image { url }
+                        product {
+                            description
+                            onlineStorePreviewUrl
+                            status
+                            media(first: 1) {
+                                edges { node { ... on MediaImage { image { url } } } }
+                            }
+                        }
+                    }
+                }
+                $shopQuery
+            }
+            GQL;
+
+            // ✅ Send request to Shopify GraphQL API
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $user['password'],
+                'Content-Type' => 'application/json',
+            ])->post("https://{$user['name']}/admin/api/2024-01/graphql.json", ['query' => $query]);
+
+            if (!$response->successful()) {
+                throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
+            }
+
+            $nodes = $response->json('data.nodes', []);
+
+            // ✅ Fetch shop's currency format only once
+            if ($index === 0) {
+                $shop = $response->json('data.shop', []);
+                $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
+            }
+
+            // ✅ Transform Shopify API Response
+            $filteredNodes = collect($nodes)
+
+                ->when($exclude_not_avaliable == 1, function ($collection) use ($exclude_out_of_stock) {
+                    return $collection->filter(function ($node) use ($exclude_out_of_stock) {
+                        return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' // Ensure product is active
+                            && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
+                    });
+                })
+                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source) {
+                    return [
+                        'id' => $node['id'],
+                        'priority' => $variantIds[$node['id']] ?? null,
+                        'title' => $node['displayName'],
+                        'price' => $this->formatMoney($node['price'], $priceFormat),
+                        'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
+                        'orignalPrice' => $node['price'],
+                        'sku' => $node['sku'] ?? '',
+                        'barcode' => $node['barcode'] ?? '',
+                        'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
+                        'description' => $node['product']['description'] ?? '',
+                        'storeurl' => isset($node['product']['onlineStorePreviewUrl'])
+                            ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source) ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source]) : '')
+                            : '',
+
+                    ];
+                })
+                ->values(); // Reset array keys
+            $results = array_merge($results, $filteredNodes->toArray());
+        }
+
+        return response()->json([
+            'responseCode' => 1,
+            'errorCode' => 0,
+            'message' => 'no',
+            'data' => array_merge($data->toArray(), ['selectedProducts' => $results])
+        ]);
     }
     public function collectionsGet(Request $request)
     {

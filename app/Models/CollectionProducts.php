@@ -19,6 +19,11 @@ class CollectionProducts extends Model
         'sku',
         'store_url',
         'barcode',
-        'compareAtPrice'
+        'compareAtPrice',
+        'priority'
     ];
+    public function setTitleAttribute($value)
+    {
+        $this->attributes['title'] = $value ?: null;
+    }
 }
