@@ -417,6 +417,7 @@ class ApiController extends Controller
 
         $exclude_not_avaliable = $data['exclude_not_avaliable'] ?? 0; // Default to 0 if not set
         $exclude_out_of_stock = $data['exclude_out_of_stock'] ?? 0;
+        $utm_source     = $data['utm_source'];
         $shop = base64_decode($request->header('token'));
         $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
         $priceFormat = null; // Initialize price format
@@ -507,30 +508,33 @@ class ApiController extends Controller
 
             // ✅ Transform Shopify API Response
             $filteredNodes = collect($nodes)
-            
-            ->when($exclude_not_avaliable == 1, function ($collection) use ($exclude_out_of_stock) {
-                return $collection->filter(function ($node) use ($exclude_out_of_stock) {
-                    return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' // Ensure product is active
-                        && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
-                });
-            })
-            ->map(function ($node) use ($variantIds, $priceFormat) {
-                return [
-                    'id' => $node['id'],
-                    'priority' => $variantIds[$node['id']] ?? null,
-                    'title' => $node['displayName'],
-                    'price' => $this->formatMoney($node['price'], $priceFormat),
-                    'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
-                    'orignalPrice' => $node['price'],
-                    'sku' => $node['sku'] ?? '',
-                    'barcode' => $node['barcode'] ?? '',
-                    'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
-                    'description' => $node['product']['description'] ?? '',
-                    'storeurl' => $node['product']['onlineStorePreviewUrl'] ?? '',
-                ];
-            })
-            ->values(); // Reset array keys
-        $results = array_merge($results, $filteredNodes->toArray());
+
+                ->when($exclude_not_avaliable == 1, function ($collection) use ($exclude_out_of_stock) {
+                    return $collection->filter(function ($node) use ($exclude_out_of_stock) {
+                        return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' // Ensure product is active
+                            && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
+                    });
+                })
+                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source) {
+                    return [
+                        'id' => $node['id'],
+                        'priority' => $variantIds[$node['id']] ?? null,
+                        'title' => $node['displayName'],
+                        'price' => $this->formatMoney($node['price'], $priceFormat),
+                        'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
+                        'orignalPrice' => $node['price'],
+                        'sku' => $node['sku'] ?? '',
+                        'barcode' => $node['barcode'] ?? '',
+                        'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
+                        'description' => $node['product']['description'] ?? '',
+                        'storeurl' => isset($node['product']['onlineStorePreviewUrl'])
+                            ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source) ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source]) : '')
+                            : '',
+
+                    ];
+                })
+                ->values(); // Reset array keys
+            $results = array_merge($results, $filteredNodes->toArray());
         }
 
         return response()->json([
