@@ -206,7 +206,7 @@ export const optionsForRedirectButton = [
 
 export const optionsForPrintQuality = [
     { label: 'Standard', value: '0' },
-    { label: 'Web', value: '1' },
+    // { label: 'Web', value: '1' },
     { label: 'High', value: '2' },
 ];
 
