@@ -6,7 +6,7 @@ import html2canvas from "html2canvas";
 import Parser from "html-react-parser";
 import html2pdf from "html2pdf.js";
 import { encode, decode } from "uint8-to-base64";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, scale } from "pdf-lib";
 import {
     Page,
     Tabs,
@@ -788,20 +788,20 @@ const Configrations = (props = {}) => {
                     // format: [210, 297],
                     // compress: true,
                     // putTotalPages: true,
-                    precision: 16,
+                    precision: 0,
                 },
                 // pagebreak: { mode: 'auto', after: '.breakPage' },
-                html2canvas: {  
+                html2canvas: {
                     imageTimeout: 0,
-                    allowTaint: true,
+                    allowTaint: false,
                     useCORS: true,
                     scrollX: -window.scrollY,
                     scrollY: -window.scrollY,
                     windowWidth: document.documentElement.offsetWidth,
                     windowHeight: document.documentElement.offsetHeight,
-                    scale: 4,
-                    dpi: 300,
-                    letterRendering: true,
+                    scale:  printQuality == 0 ? 1 : 2 , 
+                    dpi: printQuality == 0 ? 100 : 300,
+                    letterRendering: false,
                     logging: true,
                     onclone: (document) => {
                         const imgs = document.querySelectorAll("img");
@@ -809,16 +809,17 @@ const Configrations = (props = {}) => {
                             if (!img.complete) {
                                 img.onload = () => { };
                             }
+                            img.style.imageRendering = 'crisp-edges';
                         });
                     },
-                    removeContainer: true,
-
                 },
+                image : {type: 'jpeg', quality: 0.98},
                 margin: 0,
                 // autoResize: true,
                 // applyImageFit: true,
                 enableLinks: true,
                 autoPagination: true,
+            
             };
             try {
                 const mergedPdf = await PDFDocument.create();
