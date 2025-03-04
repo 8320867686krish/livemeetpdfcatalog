@@ -12,7 +12,9 @@ const LeftTextLayout = (data) => {
         productTaxPercentage = "",
         fontColor = "",
         backgroundColor = "",
+        productPageLayoutId = ""
     } = data;
+    console.log("data from left layout ", data);
 
     let {
         title = "",
@@ -22,7 +24,6 @@ const LeftTextLayout = (data) => {
         compareAtPrice = "",
         storeurl = "",
     } = productData;
-
     const _description =
         description !== null
             ? displayStringBaseOnLimit(description, descriptionCharLimit)
@@ -99,9 +100,18 @@ const LeftTextLayout = (data) => {
                     padding: "10px",
                 }}
             >
-                <div className="custom-title" style={{ flex: "1 1 auto" }}>
+                <div className="custom-title" style={{
+                    flex: "1 1 auto", ...(productPageLayoutId === "fiveItemList" && { lineHeight: "1.3em", fontSize: "1.2em" }),
+                    ...((productPageLayoutId === "fourItemList" || (productPageLayoutId === "fourItemLeftList") || (productPageLayoutId === "fourItemRightList")) && { lineHeight: "1.5em", fontSize: "1.2em" }),
+                    ...((productPageLayoutId === "threeItemList" || (productPageLayoutId === "threeItemLeftList") || (productPageLayoutId === "threeItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }),
+                    ...((productPageLayoutId === "twoItemList" || (productPageLayoutId === "twoItemLeftList") || (productPageLayoutId === "twoItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }) ,
+                    ...((productPageLayoutId === "oneItemGrid") && { lineHeight: "1.9em", fontSize: "1.4em" })
+                }}>
                     {productAttributes.includes("name") && title !== "" && (
-                        <span style={{ letterSpacing: "1px" }}>{title}</span>
+                        <span style={{
+                            letterSpacing: "1px",
+
+                        }}>{title}</span>
                     )}
                     {productAttributes.includes("sku") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>

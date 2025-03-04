@@ -42,6 +42,7 @@ const TwoItemList = (props) => {
     const pageArray = objectTo2DArray(selectedProducts, displayPerPageProduct);
     let pageSize = 1;
     const defaultPDFHeight = pdfHeight;
+    const backgroundPosition = "center center"
     return (
         <>
             {pageArray.map((productItem, pageIndex) => {
@@ -139,6 +140,7 @@ const TwoItemList = (props) => {
                                                                     image,
                                                                 productAttributes,
                                                                 barcode,
+                                                                backgroundPosition
                                                             }}
                                                         />
                                                     </div>
