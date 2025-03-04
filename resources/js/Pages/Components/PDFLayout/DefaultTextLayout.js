@@ -14,8 +14,9 @@ const DefaultTextLayout = (data) => {
         fontColor = "",
         backgroundColor = "",
         paperLayout = "",
+        productPageLayoutId = ""
     } = data;
-
+    console.log("productPageLayoutId ", productPageLayoutId);
     let {
         title = "",
         sku = "",
@@ -32,7 +33,7 @@ const DefaultTextLayout = (data) => {
 
     // Get the price without currency
     price = price.replaceAll(",", "");
-    if(compareAtPrice == null){
+    if (compareAtPrice == null) {
         compareAtPrice = "";
     }
     compareAtPrice = compareAtPrice.replaceAll(",", "");
@@ -50,8 +51,8 @@ const DefaultTextLayout = (data) => {
         taxPrice = 0;
     let newCompareAtPrice = Number(originalCompareAtPrice),
         compareAtTaxPrice = 0;
-    console.log("newPrice",newPrice)
-    console.log("newCompareAtPrice",newCompareAtPrice)
+    console.log("newPrice", newPrice)
+    console.log("newCompareAtPrice", newCompareAtPrice)
     // Price Adjustment calculation
     if (priceAdjustment !== "") {
         const changePrice =
@@ -91,7 +92,7 @@ const DefaultTextLayout = (data) => {
         newCompareAtPrice.toFixed(2)
     );
 
-    const fontSize = "0.7em";
+    // const fontSize = "1em";
     const { letterSpacingBuyNow, letterSpacingTitle, buyNowButtonPadding } =
         commonLevel(paperLayout);
 
@@ -100,102 +101,134 @@ const DefaultTextLayout = (data) => {
             <div
                 className="custom-description"
                 style={{
+                    // display: "flex",
+                    // fontSize: fontSize,
+                    // flexDirection: "column",
+                    // alignItems: "center",
+                    // width: "100%",
+                    padding: "10px",
+                    // letterSpacing: letterSpacingTitle,
+                }}
+            >
+                <div style={{
                     display: "flex",
-                    fontSize: fontSize,
+                    // fontSize: "1em",
                     flexDirection: "column",
                     alignItems: "center",
                     width: "100%",
-                    padding: "10px",
                     letterSpacing: letterSpacingTitle,
-                }}
-            >
-                {productAttributes.includes("name") && title !== "" && (
-                    <div
-                        className="custom-title"
-                        style={{ textAlign: "center" }}
-                    >
-                        <div>{title}</div>
-                    </div>
-                )}
-                {productAttributes.includes("sku") && sku !== "" && (
-                    <div className="custom-sku" style={{ opacity: "0.7" }}>
-                        {sku}
-                    </div>
-                )}
-                {productAttributes.includes("description") &&
-                    description !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            {_description}
+                    // lineHeight : "1.7em"
+                    ...(productPageLayoutId === "sixItemGrid" && { lineHeight: "1.7em", fontSize: "1em" }),
+                    ...(productPageLayoutId === "fiveItemList" && { lineHeight: "1.4em", fontSize: "1em" }),
+                    ...((productPageLayoutId === "fourItemGrid" || productPageLayoutId === "fourItemList" || productPageLayoutId === "fourItemLeftList" || productPageLayoutId === "fourItemRightList") && { lineHeight: "1.5em", fontSize: "1em" }),
+                    ...((productPageLayoutId === "threeItemGrid" || productPageLayoutId === "threeItemGridReverse" || productPageLayoutId === "threeItemList" || productPageLayoutId === "threeItemLeftList" || productPageLayoutId === "threeItemRightList") && { lineHeight: "1.5em", fontSize: "1.1em" }),
+                    ...((productPageLayoutId === "twoItemList" || productPageLayoutId === "twoItemRightList" || productPageLayoutId === "twoItemLeftList") && { lineHeight: "1.4em", fontSize: "1.1em" }),
+                    ...((productPageLayoutId === "oneItemGrid") && { lineHeight: "1.4em", fontSize: "1.3em" }),
+                }}>
+                    {productAttributes.includes("name") && title !== "" && (
+                        <div
+                            className="custom-title"
+                            style={{ textAlign: "center" }}
+                        >
+                            <div>{title}</div>
                         </div>
                     )}
-                {/* {productAttributes.includes("compareAtPrice") &&
-                    newCompareAtPrice !== "" && (
-                        <div>
-                            <span
-                                className="custom-compare-at-price"
-                                style={{
-                                    opacity: "0.7",
-                                    textDecoration: "line-through",
-                                }}
-                            >
-                                {newCompareAtPrice}
-                            </span>
+                    {productAttributes.includes("sku") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            SKU : {sku}
                         </div>
-                    )} */}
-                {productAttributes.includes("price") &&
-                    productTaxPercentage > 0 && (
+                    )}
+                    {productAttributes.includes("quantity") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Quantity : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("weight") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Weight : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("tag") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Tag : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("vendor") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Vendor : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("type") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Product type : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("costPerItem") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Cost per item : {sku}
+                        </div>
+                    )}
+                    {productAttributes.includes("description") &&
+                        description !== "" && (
+                            <div className="custom-sku" style={{ opacity: "0.7" }}>
+                                {_description}
+                            </div>
+                        )}
+                    {productAttributes.includes("price") &&
+                        productTaxPercentage > 0 && (
+                            <div>
+                                <span
+                                    className="custom-price"
+                                    style={{ opacity: "0.7" }}
+                                >
+                                    Tax {taxPrice}
+                                </span>
+                            </div>
+                        )}
+                    {productAttributes.includes("price") && newPrice !== "" && (
                         <div>
                             <span
                                 className="custom-price"
-                                style={{ opacity: "0.7" }}
+                                style={{
+                                    opacity: "0.7",
+                                    display: "flex",
+                                    gap: "10px",
+                                }}
                             >
-                                Tax {taxPrice}
+                                {compareAtPrice > price && (
+                                    <span
+                                        style={{ textDecoration: "line-through" }}
+                                    >
+                                        {newCompareAtPrice}
+                                    </span>
+                                )}
+                                <span>{newPrice}</span>
                             </span>
                         </div>
                     )}
-                {productAttributes.includes("price") && newPrice !== "" && (
-                    <div>
-                        <span
-                            className="custom-price"
-                            style={{
-                                opacity: "0.7",
-                                display: "flex",
-                                gap: "10px",
-                            }}
-                        >
-                            {compareAtPrice > price && (
-                                <span
-                                    style={{ textDecoration: "line-through" }}
-                                >
-                                    {newCompareAtPrice}
-                                </span>
-                            )}
-                            <span>{newPrice}</span>
-                        </span>
-                    </div>
-                )}
-                {productButtonEnabled == "1" && (
-                    <div style={{ opacity: "0.7" }}>
-                        <a
-                            href={storeurl}
-                            style={{
-                                backgroundColor: fontColor,
-                                color: backgroundColor,
-                                textAlign: "center",
-                                padding: buyNowButtonPadding,
-                                width: "100%",
-                                display: "block",
-                                borderRadius: "10px",
-                                marginTop: "10px",
-                                textDecoration: "none",
-                                letterSpacing: letterSpacingBuyNow,
-                            }}
-                            target="_blank"
-                        >
-                            Buy Now
-                        </a>
-                    </div>
-                )}
+                    {productButtonEnabled == "1" && (
+                        <div style={{ opacity: "0.7" }}>
+                            <a
+                                href={storeurl}
+                                style={{
+                                    backgroundColor: fontColor,
+                                    color: backgroundColor,
+                                    textAlign: "center",
+                                    padding: buyNowButtonPadding,
+                                    width: "100%",
+                                    display: "block",
+                                    borderRadius: "10px",
+                                    marginTop: "10px",
+                                    textDecoration: "none",
+                                    letterSpacing: letterSpacingBuyNow,
+                                }}
+                                target="_blank"
+                            >
+                                Buy Now
+                            </a>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

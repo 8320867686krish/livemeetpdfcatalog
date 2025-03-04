@@ -159,7 +159,7 @@ const initConfigData = {
     selectedProducts: [],
     utmSource: "",
     excludeOutOfStock: false,
-    excludeNotInStock: false,
+    excludeNotInStore: false,
     redirectValue: "0",
     printQuality: "0"
 };
@@ -788,10 +788,10 @@ const Configrations = (props = {}) => {
                     // format: [210, 297],
                     // compress: true,
                     // putTotalPages: true,
-                    precision: 0,
+                    precision: 16,
                 },
                 // pagebreak: { mode: 'auto', after: '.breakPage' },
-                html2canvas: {
+                html2canvas: {  
                     imageTimeout: 0,
                     allowTaint: true,
                     useCORS: true,
@@ -799,9 +799,9 @@ const Configrations = (props = {}) => {
                     scrollY: -window.scrollY,
                     windowWidth: document.documentElement.offsetWidth,
                     windowHeight: document.documentElement.offsetHeight,
-                    scale: 1,
-                    dpi: 96,
-                    letterRendering: 1,
+                    scale: 4,
+                    dpi: 300,
+                    letterRendering: true,
                     logging: true,
                     onclone: (document) => {
                         const imgs = document.querySelectorAll("img");
@@ -811,6 +811,8 @@ const Configrations = (props = {}) => {
                             }
                         });
                     },
+                    removeContainer: true,
+
                 },
                 margin: 0,
                 // autoResize: true,
@@ -1385,7 +1387,7 @@ const Configrations = (props = {}) => {
         selectedProducts = [],
         utmSource = "",
         excludeOutOfStock = false,
-        excludeNotInStock = false,
+        excludeNotInStore = false,
         redirectValue = "0",
         printQuality = "0",
     } = configData;
@@ -1761,6 +1763,26 @@ const Configrations = (props = {}) => {
                                                     <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
+                                                                label="Print quality"
+                                                                name="printQuality"
+                                                                options={
+                                                                    optionsForPrintQuality
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "printQuality"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    printQuality
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+                                                    <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
                                                                 label="Date Format"
                                                                 name="footerDateFormat"
                                                                 options={
@@ -1809,26 +1831,7 @@ const Configrations = (props = {}) => {
                                                             />
                                                         </FormLayout>
                                                     </div>
-                                                    <div style={{ marginTop: "10px" }}>
-                                                        <FormLayout>
-                                                            <Select
-                                                                label="Print quality"
-                                                                name="printQuality"
-                                                                options={
-                                                                    optionsForPrintQuality
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleConfigData(
-                                                                        e,
-                                                                        "printQuality"
-                                                                    )
-                                                                }
-                                                                value={
-                                                                    printQuality
-                                                                }
-                                                            />
-                                                        </FormLayout>
-                                                    </div>
+
                                                 </Collapsible>
                                             </LegacyStack>
                                         </LegacyCard>
@@ -2151,11 +2154,11 @@ const Configrations = (props = {}) => {
                                                         <div>
                                                             <Checkbox
                                                                 label="Exclude products that are not available in the online store"
-                                                                checked={excludeNotInStock}
+                                                                checked={excludeNotInStore}
                                                                 onChange={(e) =>
                                                                     handleConfigData(
                                                                         e,
-                                                                        "excludeNotInStock"
+                                                                        "excludeNotInStore"
                                                                     )
                                                                 } />
                                                         </div>
@@ -2522,7 +2525,7 @@ const Configrations = (props = {}) => {
                                                             {btnSpinner && <Spinner
                                                                 accessibilityLabel="Small spinner example"
                                                                 size="large"
-                                                            /> }
+                                                            />}
                                                             <PDFPreview
                                                                 configData={
                                                                     configData

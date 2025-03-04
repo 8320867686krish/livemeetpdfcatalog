@@ -291,8 +291,12 @@ const Home = (props = {}) => {
                                 <Button
                                     variant="primary"
                                     onClick={() =>
+                                        // navigate(
+                                        //     `${URL_PREFIX}dashboard?id=${id}`,
+                                        //     { state: { planExpired } }
+                                        // )
                                         navigate(
-                                            `${URL_PREFIX}dashboard?id=${id}`,
+                                            `${URL_PREFIX}configrations?id=${id}`,
                                             { state: { planExpired } }
                                         )
                                     }

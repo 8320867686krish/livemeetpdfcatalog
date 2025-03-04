@@ -205,10 +205,9 @@ export const optionsForRedirectButton = [
 
 
 export const optionsForPrintQuality = [
-    { label: 'Redirect to product page', value: '0' },
-    { label: 'Redirect to online store', value: '1' },
-    { label: 'Redirect to cart page', value: '2' },
-    { label: 'Redirect to checkout page', value: '3' }
+    { label: 'Standard', value: '0' },
+    { label: 'Web', value: '1' },
+    { label: 'High', value: '2' },
 ];
 
 //Default array option for product sorting.
@@ -222,9 +221,9 @@ export const optionProductAttributes = [
 
 //Default array option for Product Attribute Alignment.
 export const optionsProductAttributeAlignment = [
+    { label: 'Line By Line', value: 'line_by_line' },
     { label: 'Center', value: 'center' },
     { label: 'Left', value: 'left' },
-    { label: 'Line By Line', value: 'line_by_line' }
 ];
 
 //Validate image types.

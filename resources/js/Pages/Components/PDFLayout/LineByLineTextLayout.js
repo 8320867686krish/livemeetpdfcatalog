@@ -13,7 +13,9 @@ const LineByLineTextLayout = (data) => {
         productTaxPercentage = "",
         fontColor = "",
         backgroundColor = "",
+        productPageLayoutId = ""
     } = data;
+    console.log("productPageLayoutId ", productPageLayoutId);
     let {
         title = "",
         sku = "",
@@ -136,124 +138,23 @@ const LineByLineTextLayout = (data) => {
                     width: "100%",
                     padding: "10px",
                     letterSpacing: "1.5px",
+
                 }}
             >
-                {productAttributes.includes("name") && title !== "" && (
-                    <div>
-                        <span>{title}</span>
-                    </div>
-                )}
-                {productAttributes.includes("sku") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>SKU : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
+                <div style={{
+                    ...((productPageLayoutId === "fourItemList" || (productPageLayoutId === "fourItemLeftList") || (productPageLayoutId === "fourItemRightList")) && { lineHeight: "1.6em", fontSize: "1em" }),
+                    ...((productPageLayoutId === "threeItemList" || (productPageLayoutId === "threeItemLeftList") || (productPageLayoutId === "threeItemRightList")) && { lineHeight: "1.6em", fontSize: "1.2em" }),
+                    ...((productPageLayoutId === "twoItemList" || (productPageLayoutId === "twoItemLeftList") || (productPageLayoutId === "twoItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }),
+                    ...((productPageLayoutId === "oneItemGrid") && { lineHeight: "1.9em", fontSize: "1.4em" })
+                }}>
+                    {productAttributes.includes("name") && title !== "" && (
+                        <div style={{}}>
+                            <span>{title}</span>
                         </div>
-                    </div>
-                )}
-                {productAttributes.includes("quantity") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("weight") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Weight : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("tag") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Tag : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("vendor") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Vendor : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("type") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Product type : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("costPerItem") && sku !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Cost per item : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {sku}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("description") &&
-                    description !== "" && (
+                    )}
+                    {productAttributes.includes("sku") && sku !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>
-                                Description :{" "}
-                            </div>
+                            <div style={{ flex: "1 0 auto" }}>SKU : </div>
                             <div
                                 style={{
                                     flex: "1 1 auto",
@@ -262,48 +163,13 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {_description}
-                            </div>
-                        </div>
-                    )
-                }
-                {productAttributes.includes("price") &&
-                    productTaxPercentage > 0 && (
-                        <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>Tax : </div>
-                            <div
-                                style={{
-                                    flex: "1 1 auto",
-                                    justifyContent: "flex-end",
-                                    display: "flex",
-                                    color: valueColor,
-                                }}
-                            >
-                                {taxPrice}
+                                {sku}
                             </div>
                         </div>
                     )}
-                {productAttributes.includes("price") && newPrice !== "" && (
-                    <div style={{ display: "flex", opacity: "0.7" }}>
-                        <div style={{ flex: "1 0 auto" }}>Price : </div>
-                        <div
-                            style={{
-                                flex: "1 1 auto",
-                                justifyContent: "flex-end",
-                                display: "flex",
-                                color: valueColor,
-                            }}
-                        >
-                            {newPrice}
-                        </div>
-                    </div>
-                )}
-                {productAttributes.includes("price") &&
-                    newCompareAtPrice && compareAtPrice > price && (
+                    {productAttributes.includes("quantity") && sku !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>
-                                Compare At Price :{" "}
-                            </div>
+                            <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
                             <div
                                 style={{
                                     flex: "1 1 auto",
@@ -312,36 +178,180 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                <span
-                                    style={{ textDecoration: "line-through" }}
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("weight") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Weight : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("tag") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Tag : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("vendor") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Vendor : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("type") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Product type : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("costPerItem") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Cost per item : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {sku}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("description") &&
+                        description !== "" && (
+                            <div style={{ display: "flex", opacity: "0.7" }}>
+                                <div style={{ flex: "1 0 auto" }}>
+                                    Description :{" "}
+                                </div>
+                                <div
+                                    style={{
+                                        flex: "1 1 auto",
+                                        justifyContent: "flex-end",
+                                        display: "flex",
+                                        color: valueColor,
+                                    }}
                                 >
-                                    {newCompareAtPrice}
-                                </span>
+                                    {_description}
+                                </div>
+                            </div>
+                        )
+                    }
+                    {productAttributes.includes("price") &&
+                        productTaxPercentage > 0 && (
+                            <div style={{ display: "flex", opacity: "0.7" }}>
+                                <div style={{ flex: "1 0 auto" }}>Tax : </div>
+                                <div
+                                    style={{
+                                        flex: "1 1 auto",
+                                        justifyContent: "flex-end",
+                                        display: "flex",
+                                        color: valueColor,
+                                    }}
+                                >
+                                    {taxPrice}
+                                </div>
+                            </div>
+                        )}
+                    {productAttributes.includes("price") && newPrice !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Price : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {newPrice}
                             </div>
                         </div>
                     )}
-                {productButtonEnabled == "1" && (
-                    <div style={{ opacity: "0.7" }}>
-                        <a
-                            href={storeurl}
-                            style={{
-                                backgroundColor: fontColor,
-                                color: backgroundColor,
-                                textAlign: "center",
-                                padding: "5px 15px 10px 15px",
-                                width: "100%",
-                                display: "block",
-                                borderRadius: "10px",
-                                marginTop: "10px",
-                                textDecoration: "none",
-                                letterSpacing: "2px",
-                            }}
-                            target="_blank"
-                        >
-                            Buy Now
-                        </a>
-                    </div>
-                )}
+                    {productAttributes.includes("price") &&
+                        newCompareAtPrice && compareAtPrice > price && (
+                            <div style={{ display: "flex", opacity: "0.7" }}>
+                                <div style={{ flex: "1 0 auto" }}>
+                                    Compare At Price :{" "}
+                                </div>
+                                <div
+                                    style={{
+                                        flex: "1 1 auto",
+                                        justifyContent: "flex-end",
+                                        display: "flex",
+                                        color: valueColor,
+                                    }}
+                                >
+                                    <span
+                                        style={{ textDecoration: "line-through" }}
+                                    >
+                                        {newCompareAtPrice}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    {productButtonEnabled == "1" && (
+                        <div style={{ opacity: "0.7" }}>
+                            <a
+                                href={storeurl}
+                                style={{
+                                    backgroundColor: fontColor,
+                                    color: backgroundColor,
+                                    textAlign: "center",
+                                    padding: "5px 15px 10px 15px",
+                                    width: "100%",
+                                    display: "block",
+                                    borderRadius: "10px",
+                                    marginTop: "10px",
+                                    textDecoration: "none",
+                                    letterSpacing: "2px",
+                                }}
+                                target="_blank"
+                            >
+                                Buy Now
+                            </a>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

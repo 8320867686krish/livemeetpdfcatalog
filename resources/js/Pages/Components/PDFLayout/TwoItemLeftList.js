@@ -47,6 +47,7 @@ const TwoItemLeftList = (props) => {
     const pageArray = objectTo2DArray(selectedProducts, displayPerPageProduct);
     let pageSize = 1;
     const defaultPDFHeight = pdfHeight;
+    const backgroundPosition = "center center"
     let i = 1;
     return (
         <>
@@ -72,10 +73,10 @@ const TwoItemLeftList = (props) => {
                                 paperLayout === "legal"
                                     ? legalPaperSize
                                     : paperLayout === "a5"
-                                    ? A5PaperSize
-                                    : paperLayout === "letter"
-                                    ? letterPaperSize
-                                    : pdfHeight + paperSizeMeasurement,
+                                        ? A5PaperSize
+                                        : paperLayout === "letter"
+                                            ? letterPaperSize
+                                            : pdfHeight + paperSizeMeasurement,
                         }}
                     >
                         <div
@@ -146,11 +147,12 @@ const TwoItemLeftList = (props) => {
                                                                         image,
                                                                     productAttributes,
                                                                     barcode,
+                                                                    backgroundPosition
                                                                 }}
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -184,7 +186,7 @@ const TwoItemLeftList = (props) => {
                                                         color: productAttributeLabelColor,
                                                     }}
                                                 >
-                                                    <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
+                                                    <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                         <ProductContentLayout
                                                             {...{
                                                                 valueColor:
@@ -222,6 +224,7 @@ const TwoItemLeftList = (props) => {
                                                                         image,
                                                                     productAttributes,
                                                                     barcode,
+                                                                    backgroundPosition
                                                                 }}
                                                             />
                                                         </div>
@@ -235,7 +238,7 @@ const TwoItemLeftList = (props) => {
                                     [
                                         ...Array(
                                             displayPerPageProduct -
-                                                productItem.length
+                                            productItem.length
                                         ),
                                     ].map((x, i) => {
                                         return (
@@ -254,7 +257,7 @@ const TwoItemLeftList = (props) => {
                                                             // color: productAttributeLabelColor,
                                                         }}
                                                     >
-                                                        <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}> 
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <div
                                                                 style={{
                                                                     display:
@@ -283,7 +286,7 @@ const TwoItemLeftList = (props) => {
                                                             color: productAttributeLabelColor,
                                                         }}
                                                     >
-                                                        <div className="column column-2" style={{ display : "flex" , justifyContent : "center"}}>
+                                                        <div className="column column-2" style={{ display: "flex", justifyContent: "center" }}>
                                                             <ProductContentLayout
                                                                 isBlank={true}
                                                             />
@@ -310,21 +313,21 @@ const TwoItemLeftList = (props) => {
                             {(footerText != "" ||
                                 footerPageNoEnabled == "1" ||
                                 footerDateEnabled == "1") && (
-                                <Footer
-                                    {...{
-                                        footerText,
-                                        footerAlignment,
-                                        fontFamily,
-                                        fontColor,
-                                        backgroundColor,
-                                        footerPageNoEnabled,
-                                        footerDateEnabled,
-                                        footerDateFormat,
-                                        pageSize: _pageSize,
-                                        paperLayout: paperLayout,
-                                    }}
-                                />
-                            )}
+                                    <Footer
+                                        {...{
+                                            footerText,
+                                            footerAlignment,
+                                            fontFamily,
+                                            fontColor,
+                                            backgroundColor,
+                                            footerPageNoEnabled,
+                                            footerDateEnabled,
+                                            footerDateFormat,
+                                            pageSize: _pageSize,
+                                            paperLayout: paperLayout,
+                                        }}
+                                    />
+                                )}
                         </div>
                     </div>
                 );
