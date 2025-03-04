@@ -171,9 +171,9 @@ class ApiController extends Controller
         try {
             $post = $request->input();
             $saveData = Settings::updateOrCreate(['id' => $post['id']], $post);
-           
+
             if (!empty($post['selectedProducts'])) {
-                CollectionProducts::where('settings_id',$saveData->id)->delete();
+                CollectionProducts::where('settings_id', $saveData->id)->delete();
                 foreach ($post['selectedProducts'] as $value) {
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
@@ -186,13 +186,10 @@ class ApiController extends Controller
                         'settings_id' => $saveData->id
                     ]);
                 }
-              
-                
             }
             // Commit transaction if everything is successful
             DB::commit();
             return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => []], 200);
-
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback on error
             return response()->json([
@@ -202,24 +199,25 @@ class ApiController extends Controller
             ], 500);
         }
     }
-    public function productEdit(Request $request){
+    public function productEdit(Request $request)
+    {
         $post = $request->input();
         $checkValidSettings = Settings::where([
             ['id', '=', $post['setting_id']],
             ['shop_id', '=', $post['shop_id']]
         ])->pluck('id')->toArray();
-        
-       if(!@$checkValidSettings){
+
+        if (!@$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
-        
-        
-        $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
-        ->pluck('priority','product_id') // Retrieve product_id and priority
-        ->toArray();
 
-     
-       // $variantIds = array_map(fn($product) => "\"{$product['product_id']}\"", $post['selectedProducts']);
+
+        $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
+            ->pluck('priority', 'product_id') // Retrieve product_id and priority
+            ->toArray();
+
+
+        // $variantIds = array_map(fn($product) => "\"{$product['product_id']}\"", $post['selectedProducts']);
         $accessToken = $post['password'];
 
         $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
@@ -239,7 +237,7 @@ class ApiController extends Controller
                 }
             }
             GQL;
-        
+
             // Send request to Shopify GraphQL API
             $response = Http::withHeaders([
                 'X-Shopify-Access-Token' => $accessToken,
@@ -250,25 +248,21 @@ class ApiController extends Controller
             if ($response->successful()) {
                 $nodes = $response->json('data.nodes', []);
                 $filteredNodes = collect($nodes)
-            ->filter() // Remove null values
-            ->map(function ($node) use ($variantIds) {
-               
-                $productId = $node['id'];
-                $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
-                return $node;
-            })
-            ->values(); // Reset array keys
+                    ->filter() // Remove null values
+                    ->map(function ($node) use ($variantIds) {
+
+                        $productId = $node['id'];
+                        $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
+                        return $node;
+                    })
+                    ->values(); // Reset array keys
                 $results = array_merge($results, $filteredNodes->toArray());
-                  
-            
             } else {
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
-            
         }
         $dataArray['selectedProducts'] = @$results ?? [];
         return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
-
     }
     public function settingSave(Request $request)
     {
@@ -421,36 +415,118 @@ class ApiController extends Controller
     {
         $data = Settings::with('products')->where('id', $id)->first();
         $shop = base64_decode($request->header('token'));
-        $shop_id = User::where('name', $shop)->pluck('id')->first();
-        if ($shop_id == $data['shop_id']) {
-            if ($data) {
-                $products = $data->products->map(function ($product) {
-                    // Include the desired fields from the "products" relationship
-                    return [
-                        'id' => $product->product_id,
-                        'title' => $product->title,
-                        'image' => $product->image,
-                        'description' => $product->desc ?? '', // Set a blank value if null
-                        'sku' => $product->sku ?? '', // Set a blank value if null
-                        'price' => $product->price,
-                        'storeurl' => $product->store_url,
-                        'barcode' => $product->barcode,
-                        'compareAtPrice' => $product->compareAtPrice ?? "",
-                        // Add more fields as needed
-                    ];
-                });
-
-                $dataArray = $data->toArray();
-
-                unset($dataArray['products']);
-                $dataArray['selectedProducts'] = $products;
-                return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
-            } else {
-                return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
-            }
-        } else {
-            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denide', 'data' => []]);
+        $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
+        $priceFormat = null; // Initialize price format
+        if ($user['id'] != $data['shop_id']) {
+            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Permission Denied', 'data' => []]);
         }
+        
+        if (empty($data)) {
+            return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'no', 'data' => []]);
+        }
+        
+        $isOldUser = collect($data->products)->contains('priority', 0);
+        
+        if ($isOldUser) {
+            $products = $data->products->map(fn($product) => [
+                'id' => $product->product_id,
+                'title' => $product->title,
+                'image' => $product->image,
+                'description' => $product->desc ?? '',
+                'sku' => $product->sku ?? '',
+                'price' => $product->price,
+                'storeurl' => $product->store_url,
+                'barcode' => $product->barcode,
+                'compareAtPrice' => $product->compareAtPrice ?? '',
+            ]);
+        
+            return response()->json([
+                'responseCode' => 1, 
+                'errorCode' => 0, 
+                'message' => 'no', 
+                'data' => array_merge($data->toArray(), ['selectedProducts' => $products])
+            ]);
+        }
+        
+        // ✅ New User: Fetch from Shopify API
+        $variantIds = collect($data->products)->pluck('priority', 'product_id')->toArray();
+        $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
+        $results = [];
+        $priceFormat = null;
+        
+        foreach ($chunkedVariantIds as $index => $ids) {
+            $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
+            $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
+        
+            $query = <<<GQL
+            query {
+                nodes(ids: [$variantIdsString]) {
+                    ... on ProductVariant {
+                        id
+                        price
+                        displayName
+                        compareAtPrice
+                        sku
+                        barcode
+                        image { url }
+                        product {
+                            description
+                            onlineStorePreviewUrl
+                            media(first: 1) {
+                                edges { node { ... on MediaImage { image { url } } } }
+                            }
+                        }
+                    }
+                }
+                $shopQuery
+            }
+            GQL;
+        
+            // ✅ Send request to Shopify GraphQL API
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $user['password'],
+                'Content-Type' => 'application/json',
+            ])->post("https://{$user['name']}/admin/api/2024-01/graphql.json", ['query' => $query]);
+        
+            if (!$response->successful()) {
+                throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
+            }
+        
+            $nodes = $response->json('data.nodes', []);
+        
+            // ✅ Fetch shop's currency format only once
+            if ($index === 0) {
+                $shop = $response->json('data.shop', []);
+                $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
+            }
+        
+            // ✅ Transform Shopify API Response
+            $filteredNodes = collect($nodes)->filter()->map(function ($node) use ($variantIds, $priceFormat) {
+                return [
+                    'id' => $node['id'],
+                    'priority' => $variantIds[$node['id']] ?? null,
+                    'title' => $node['displayName'],
+                    'price' => $this->formatMoney($node['price'], $priceFormat),
+                    'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
+                    'orignalPrice' => $node['price'],
+                    'sku' => $node['sku'] ?? '',
+                    'barcode' => $node['barcode'] ?? '',
+                    'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
+                    'description' => $node['product']['description'] ?? '',
+                    'storeurl' => $node['product']['onlineStorePreviewUrl'] ?? '',
+                ];
+            })->values();
+        
+            $results = array_merge($results, $filteredNodes->toArray());
+        }
+        
+        return response()->json([
+            'responseCode' => 1, 
+            'errorCode' => 0, 
+            'message' => 'no', 
+            'data' => array_merge($data->toArray(), ['selectedProducts' => $results])
+        ]);
+        
     }
     public function collectionsGet(Request $request)
     {
