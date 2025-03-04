@@ -23,7 +23,8 @@ Route::post('/product/get', [ApiController::class, 'collectionProductGet'])->nam
 Route::get('/pdfCollections/get', [ApiController::class, 'pdfCollections'])->name('pdfCollections');
 Route::post('/setting/edit', [ApiController::class, 'settingSave'])->name('settingEdit');
 Route::post('/configration/save', [ApiController::class, 'saveConfigration'])->name('save.configration');
-Route::post('/product/save', [ApiController::class, 'saveProduct'])->name('save.product');
+Route::post('/product/save', [ApiController::class, 'saveProduct'])->name('save.product')->middleware('authenticate.token');
+Route::post('/product/edit', [ApiController::class, 'productEdit'])->name('product.edit')->middleware('authenticate.token');
 
 Route::get('/setting/{id}', [ApiController::class, 'settingGet'])->name('settingGet');
 Route::post('collections/status', [ApiController::class, 'pdfCollectionStatus'])->name('pdfCollectionStatus');

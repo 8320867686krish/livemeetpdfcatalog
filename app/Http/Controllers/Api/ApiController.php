@@ -170,30 +170,10 @@ class ApiController extends Controller
 
         try {
             $post = $request->input();
-            $shop = base64_decode($request->header('token'));
-            $userData = User::withCount('catelog')->where('name', $shop)->first();
-            $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
-
-            if ($post['id'] == 0) {
-                if ($checkPlan) {
-                    if ($userData['catelog_count'] >= $checkPlan->catelog_limit) {
-                        return response()->json([
-                            'message' => 'Your Limit Has Been Reached',
-                            'responseCode' => 0,
-                            'errorCode' => 0,
-                            'data' => []
-                        ]);
-                    }
-                }
-            }
-
-            $post['shop_id'] = $userData['id'];
-
-            // Save settings
             $saveData = Settings::updateOrCreate(['id' => $post['id']], $post);
-            $accessToken = $userData['password'];
-
+           
             if (!empty($post['selectedProducts'])) {
+                CollectionProducts::where('settings_id',$saveData->id)->delete();
                 foreach ($post['selectedProducts'] as $value) {
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
@@ -206,48 +186,13 @@ class ApiController extends Controller
                         'settings_id' => $saveData->id
                     ]);
                 }
-                $variantIds = array_map(function ($product) {
-                    return "\"{$product['product_id']}\""; // Use product_id directly without adding 'gid://shopify/ProductVariant/'
-                }, $post['selectedProducts']);
+              
                 
-                $variantIdsString = implode(",", $variantIds);
-
-                // GraphQL query for bulk fetching
-                $query = <<<GQL
-    query {
-      nodes(ids: [$variantIdsString]) {
-        ... on ProductVariant {
-          id
-          price
-          compareAtPrice
-          product {
-            title
-          }
-          image {
-            url
-            altText
-          }
-        }
-      }
-    }
-    GQL;
-
-                // Send request to Shopify GraphQL API
-                $response = Http::withHeaders([
-                    'X-Shopify-Access-Token' => $accessToken,
-                    'Content-Type' => 'application/json',
-                ])->post("https://$shop/admin/api/2024-01/graphql.json", [
-                    'query' => $query
-                ]);
             }
-
             // Commit transaction if everything is successful
             DB::commit();
-            $product = $response->json();
-            return response()->json([
-                'settings'        => $saveData->getAttributes(),
-                'selectedProducts' => @$product['data']['nodes'] ?? []
-            ]);
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => []], 200);
+
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback on error
             return response()->json([
@@ -256,6 +201,74 @@ class ApiController extends Controller
                 'responseCode' => 0
             ], 500);
         }
+    }
+    public function productEdit(Request $request){
+        $post = $request->input();
+        $checkValidSettings = Settings::where([
+            ['id', '=', $post['setting_id']],
+            ['shop_id', '=', $post['shop_id']]
+        ])->pluck('id')->toArray();
+        
+       if(!@$checkValidSettings){
+            return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+        }
+        
+        
+        $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
+        ->pluck('priority','product_id') // Retrieve product_id and priority
+        ->toArray();
+
+     
+       // $variantIds = array_map(fn($product) => "\"{$product['product_id']}\"", $post['selectedProducts']);
+        $accessToken = $post['password'];
+
+        $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
+        $results = [];
+        foreach ($chunkedVariantIds as $ids) {
+            $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
+            // GraphQL query for bulk fetching
+            $query = <<<GQL
+            query {
+                nodes(ids: [$variantIdsString]) {
+                    ... on ProductVariant {
+                        id
+                        price,
+                        displayName
+                        compareAtPrice
+                    }
+                }
+            }
+            GQL;
+        
+            // Send request to Shopify GraphQL API
+            $response = Http::withHeaders([
+                'X-Shopify-Access-Token' => $accessToken,
+                'Content-Type' => 'application/json',
+            ])->post("https://{$post['shop']}/admin/api/2024-01/graphql.json", [
+                'query' => $query
+            ]);
+            if ($response->successful()) {
+                $nodes = $response->json('data.nodes', []);
+                $filteredNodes = collect($nodes)
+            ->filter() // Remove null values
+            ->map(function ($node) use ($variantIds) {
+               
+                $productId = $node['id'];
+                $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
+                return $node;
+            })
+            ->values(); // Reset array keys
+                $results = array_merge($results, $filteredNodes->toArray());
+                  
+            
+            } else {
+                throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
+            }
+            
+        }
+        $dataArray['selectedProducts'] = @$results ?? [];
+        return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
+
     }
     public function settingSave(Request $request)
     {
