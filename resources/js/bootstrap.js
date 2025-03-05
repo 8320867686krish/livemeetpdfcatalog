@@ -36,7 +36,7 @@ window.getMethodType = 'GET';
 window.putMethodType = 'PUT';
 window.deleteMethodType = 'DELETE';
 // window.shopifyApiKey = '096a269d4de043bf37c691a4540451f8';
-window.shopifyApiKey = 'e303b553ce803b8110423472a72abab8';
+window.shopifyApiKey = '67c6b06a5ed3454e8ce7ef18faed64ee';
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
