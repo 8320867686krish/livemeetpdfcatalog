@@ -189,7 +189,7 @@ class ApiController extends Controller
             }
             // Commit transaction if everything is successful
             DB::commit();
-            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => []], 200);
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => [],'setting_id'=>$saveData->id], 200);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback on error
             return response()->json([
