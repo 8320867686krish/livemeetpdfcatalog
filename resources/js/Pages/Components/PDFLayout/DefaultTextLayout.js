@@ -24,6 +24,7 @@ const DefaultTextLayout = (data) => {
         price = "",
         compareAtPrice = "",
         storeurl = "",
+        
     } = productData;
 
     const _description =
