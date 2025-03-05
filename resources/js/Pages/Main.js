@@ -24,13 +24,11 @@ export default function Main(props = {}) {
     const toastError = activeToastError ? (
         <Toast content={errorMessage} error duration={3000} onDismiss={() => setActiveToastError(false)} />
     ) : null;
-
     const config = {
         apiKey: shopifyApiKey,
         shopOrigin: new URLSearchParams(document.location.search).get("shop"),
         host: new URLSearchParams(document.location.search).get("host"), // Add the 'host' property
         forceRedirect: true,
-
     };
     const router = useMemo(
         () => ({

@@ -3,10 +3,10 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 
-const DraggableTable = ({ productData, setProductData }) => {
+const DraggableTable = ({ productData, setProductData , sortOption , setSortOption }) => {
     console.log("productData from the draggable table ", productData)
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortOption, setSortOption] = useState("default");
+    // const [sortOption, setSortOption] = useState("default");
     const [items, setItems] = useState(() => {
         return [...productData].map((item, index) => ({
             ...item,

@@ -15,9 +15,10 @@ const ProductSelection = ({ props }) => {
     const { shopid = "", activePlan = {} } = props;
     console.log("props from product seelction ", props);
     console.log("shopid from product seelction ", shopid);
+    console.log("host from product seelction ",);
     const config = {
         apiKey: window.shopifyApiKey,
-        host: new URLSearchParams(location.search).get("host"),
+        host: new URLSearchParams(location.search).get("host") ? new URLSearchParams(location.search).get("host") : localStorage.getItem('host'),
         forceRedirect: true
     };
     const { pdfId } = useParams();
@@ -25,6 +26,7 @@ const ProductSelection = ({ props }) => {
 
     const [catelogName, setCatelogName] = useState("");
     const [productData, setProductData] = useState([]);
+    const [sortOption, setSortOption] = useState("default");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
     const [selectedCollections, setSelectedCollections] = useState([]); // Store selected collections`
     const [fetchProductLoader, setFetchProductLoader] = useState(false);
@@ -173,102 +175,107 @@ const ProductSelection = ({ props }) => {
     const handleAddProductClick = () => {
         console.log("Opening product picker...");
 
-        const productPicker = ResourcePicker.create(app, {
-            resourceType: ResourcePicker.ResourceType.Product,
-            options: {
-                initialSelectionIds: getSelectedProductIds(),
-                showVariants: true,
-            },
-        });
+        try {
+            const productPicker = ResourcePicker.create(app, {
+                resourceType: ResourcePicker.ResourceType.Product,
+                options: {
+                    initialSelectionIds: getSelectedProductIds(),
+                    showVariants: true,
+                },
+            });
 
-        productPicker.subscribe(ResourcePicker.Action.SELECT, (selection) => {
-            console.log("Selection from picker:", selection);
+            productPicker.subscribe(ResourcePicker.Action.SELECT, (selection) => {
+                console.log("Selection from picker:", selection);
 
-            // Get last priority for sorting
-            const lastPriority = productData.length > 0
-                ? Math.max(...productData.map(item => item.priority))
-                : 0;
+                // Get last priority for sorting
+                const lastPriority = productData.length > 0
+                    ? Math.max(...productData.map(item => item.priority))
+                    : 0;
 
-            // Get maps of existing product/variant IDs
-            const { productMap, variantMap } = buildExistingIdMaps(productData);
+                // Get maps of existing product/variant IDs
+                const { productMap, variantMap } = buildExistingIdMaps(productData);
 
-            // Process new selections
-            let selectedProducts = [];
-            let newCount = 0;
+                // Process new selections
+                let selectedProducts = [];
+                let newCount = 0;
 
-            selection.selection.forEach(product => {
-                const productNormalizedId = normalizeId(product.id);
-                console.log(`Processing product: ${product.title}, ID: ${product.id}, Normalized: ${productNormalizedId}`);
+                selection.selection.forEach(product => {
+                    const productNormalizedId = normalizeId(product.id);
+                    console.log(`Processing product: ${product.title}, ID: ${product.id}, Normalized: ${productNormalizedId}`);
 
-                if (product.variants && product.variants.length > 0) {
-                    // Process variants
-                    product.variants.forEach(variant => {
-                        const variantNormalizedId = normalizeId(variant.id);
-                        console.log(`  - Variant: ${variant.title}, ID: ${variant.id}, Normalized: ${variantNormalizedId}`);
+                    if (product.variants && product.variants.length > 0) {
+                        // Process variants
+                        product.variants.forEach(variant => {
+                            const variantNormalizedId = normalizeId(variant.id);
+                            console.log(`  - Variant: ${variant.title}, ID: ${variant.id}, Normalized: ${variantNormalizedId}`);
 
-                        // Check if this variant is already in our data
-                        if (!variantMap[variantNormalizedId]) {
-                            console.log(`    Adding new variant: ${variantNormalizedId}`);
+                            // Check if this variant is already in our data
+                            if (!variantMap[variantNormalizedId]) {
+                                console.log(`    Adding new variant: ${variantNormalizedId}`);
+                                newCount++;
+
+                                selectedProducts.push({
+                                    id: variant.id,
+                                    productId: product.id,
+                                    variantId: variant.id,
+                                    normalizedProductId: productNormalizedId,
+                                    normalizedVariantId: variantNormalizedId,
+                                    name: `${product.title} - ${variant.title}`,
+                                    priority: lastPriority + newCount,
+                                    price: variant.price || "N/A",
+                                    compareAtPrice: variant.compareAtPrice || "N/A",
+                                    currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
+                                });
+
+                                // Mark as existing to prevent duplicates within this selection
+                                variantMap[variantNormalizedId] = true;
+                            } else {
+                                console.log(`    Skipping existing variant: ${variantNormalizedId}`);
+                            }
+                        });
+                    } else {
+                        // Process product without variants
+                        if (!productMap[productNormalizedId]) {
+                            console.log(`  Adding new product: ${productNormalizedId}`);
                             newCount++;
 
                             selectedProducts.push({
-                                id: variant.id,
+                                id: product.id,
                                 productId: product.id,
-                                variantId: variant.id,
                                 normalizedProductId: productNormalizedId,
-                                normalizedVariantId: variantNormalizedId,
-                                name: `${product.title} - ${variant.title}`,
+                                name: product.title,
                                 priority: lastPriority + newCount,
-                                price: variant.price || "N/A",
-                                compareAtPrice: variant.compareAtPrice || "N/A",
+                                price: product.variants?.[0]?.price || "N/A",
+                                compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
                                 currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
                             });
 
-                            // Mark as existing to prevent duplicates within this selection
-                            variantMap[variantNormalizedId] = true;
+                            // Mark as existing
+                            productMap[productNormalizedId] = true;
                         } else {
-                            console.log(`    Skipping existing variant: ${variantNormalizedId}`);
+                            console.log(`  Skipping existing product: ${productNormalizedId}`);
                         }
-                    });
-                } else {
-                    // Process product without variants
-                    if (!productMap[productNormalizedId]) {
-                        console.log(`  Adding new product: ${productNormalizedId}`);
-                        newCount++;
-
-                        selectedProducts.push({
-                            id: product.id,
-                            productId: product.id,
-                            normalizedProductId: productNormalizedId,
-                            name: product.title,
-                            priority: lastPriority + newCount,
-                            price: product.variants?.[0]?.price || "N/A",
-                            compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
-                            currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
-                        });
-
-                        // Mark as existing
-                        productMap[productNormalizedId] = true;
-                    } else {
-                        console.log(`  Skipping existing product: ${productNormalizedId}`);
                     }
+                });
+
+                if (selectedProducts.length > 0) {
+                    console.log(`Adding ${selectedProducts.length} new products/variants`);
+                    setProductData(prevData => [...prevData, ...selectedProducts]);
+
+                    // Optional: Check for duplicates after adding
+                    // setTimeout(() => checkForDuplicates(productData), 500);
+                } else {
+                    console.log("No new products or variants selected.");
                 }
+
+                productPicker.dispatch(ResourcePicker.Action.CLOSE);
             });
 
-            if (selectedProducts.length > 0) {
-                console.log(`Adding ${selectedProducts.length} new products/variants`);
-                setProductData(prevData => [...prevData, ...selectedProducts]);
-
-                // Optional: Check for duplicates after adding
-                // setTimeout(() => checkForDuplicates(productData), 500);
-            } else {
-                console.log("No new products or variants selected.");
-            }
-
-            productPicker.dispatch(ResourcePicker.Action.CLOSE);
-        });
-
-        productPicker.dispatch(ResourcePicker.Action.OPEN);
+            productPicker.dispatch(ResourcePicker.Action.OPEN);
+        }
+        catch (e) {
+            console.log("error while opening add product ", e)
+        }
     };
 
     const getSelectedCollectionIds = () => {
@@ -464,6 +471,44 @@ const ProductSelection = ({ props }) => {
         [selectedCollections]
     );
 
+    const handleSaveAndContinue = async () => {
+        try {
+            // Prepare the data for the API call
+            const requestData = {
+                id: pdfId ?? 0, // Assuming pdfId is the ID you want to send
+                catalog_name: catelogName,
+                sort_by: sortOption, // You can change this based on your requirements
+                collectionName: selectedCollections.map(col => col).join(","),
+                selectedProducts: productData.map((product, index) => ({
+                    product_id: product.id,
+                    priority: product.priority
+                }))
+            };
+            console.log("productData from productSelection  ", productData);
+            console.log("requestData ", requestData);
+            // Make the API call
+            const response = await fetchMethod(
+                postMethodType,
+                `product/save`,
+                shopid,
+                requestData
+            );
+            console.log("response from product/save ",response);
+            // Handle the response
+            if (response?.status === "success") {
+                showToast("Data saved successfully!");
+                // You can add any additional logic here, such as redirecting the user
+            } else {
+                showToast("Failed to save data.");
+            }
+        } catch (error) {
+            console.error("Error saving data:", error);
+            showToast("An error occurred while saving data.");
+        }
+    };
+
+
+
     const selectedTagsMarkup =
         selectedCollections.length > 0 ? (
             <LegacyStack spacing="extraTight" alignment="center">
@@ -522,7 +567,7 @@ const ProductSelection = ({ props }) => {
                         </Button>
                     </div>
                     {productData.length != 0 ? <div>
-                        <Button variant="primary">
+                        <Button variant="primary" onClick={handleSaveAndContinue}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     Save & continue
@@ -605,7 +650,7 @@ const ProductSelection = ({ props }) => {
                                     </div>
                                 ) : (
                                     <>
-                                        <DraggableTable productData={productData} setProductData={setProductData} />
+                                        <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
                                     </>
                                 )
                         }
