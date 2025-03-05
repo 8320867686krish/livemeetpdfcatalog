@@ -428,7 +428,7 @@ const ProductSelection = ({ props }) => {
                     const responseData = await fetchMethod(postMethodType, "product/edit", shopid, { "setting_id": pdfId });
                     console.log("productEdit responseData ", responseData);
 
-                    if (responseData?.message === "success") {
+                    if (responseData?.errorCode == 0) {
                         return responseData.data; // Modify as per your data structure
                     } else {
                         console.error("Failed to fetch product edit:", responseData);
