@@ -299,7 +299,7 @@ const Home = (props = {}) => {
                                         //     { state: { planExpired } }
                                         // )
                                         navigate(
-                                            `${URL_PREFIX}configrations?id=${id}`,
+                                            `${URL_PREFIX}add-product?id=${id}`,
                                             { state: { planExpired } }
                                         )
                                     }
