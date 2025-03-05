@@ -262,7 +262,7 @@ class ApiController extends Controller
             }
         }
         $dataArray['selectedProducts'] = @$results ?? [];
-        return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'no', 'data' => $dataArray], 200);
+        return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Data Found', 'data' => $dataArray], 200);
     }
     public function settingSave(Request $request)
     {
@@ -454,7 +454,7 @@ class ApiController extends Controller
             return response()->json([
                 'responseCode' => 1,
                 'errorCode' => 0,
-                'message' => 'no',
+                'message' => 'Data Found',
                 'data' => array_merge($data->toArray(), ['selectedProducts' => $products])
             ]);
         }
