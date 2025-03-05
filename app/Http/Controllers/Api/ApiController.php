@@ -483,6 +483,12 @@ class ApiController extends Controller
                         weightUnit
                         inventoryQuantity
                         barcode
+                        inventoryItem{
+                                unitCost{
+                                amount
+                                currencyCode
+                                }
+                        }
                         image { url }
                         product {
                             description
@@ -534,6 +540,7 @@ class ApiController extends Controller
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
+                        'cost_per_item' => $node['inventoryItem']['unitCost'] ?? [],
                         'weight' => $node['weight'],
                         'weight_unit ' => $node['weightUnit'],
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
