@@ -478,6 +478,9 @@ class ApiController extends Controller
                         displayName
                         compareAtPrice
                         sku
+                         
+                        weight
+                        weightUnit
                         inventoryQuantity
                         barcode
                         image { url }
@@ -485,6 +488,10 @@ class ApiController extends Controller
                             description
                             onlineStorePreviewUrl
                             status
+                            vendor
+                            tags
+                            tracksInventory
+                            productType
                             media(first: 1) {
                                 edges { node { ... on MediaImage { image { url } } } }
                             }
@@ -500,8 +507,8 @@ class ApiController extends Controller
                 'X-Shopify-Access-Token' => $user['password'],
                 'Content-Type' => 'application/json',
             ])->post("https://{$user['name']}/admin/api/2024-01/graphql.json", ['query' => $query]);
-
             if (!$response->successful()) {
+               
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
 
@@ -523,9 +530,13 @@ class ApiController extends Controller
                     });
                 })
                 ->map(function ($node) use ($variantIds, $priceFormat, $utm_source) {
+                    
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
+                        'weight' => $node['weight'],
+                        'weight_unit ' => $node['weightUnit'],
+                        'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
                         'title' => $node['displayName'],
                         'price' => $this->formatMoney($node['price'], $priceFormat),
                         'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
@@ -534,6 +545,9 @@ class ApiController extends Controller
                         'barcode' => $node['barcode'] ?? '',
                         'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
                         'description' => $node['product']['description'] ?? '',
+                        'vendor' => $node['product']['vendor'] ?? '',
+                        'tags'=>$node['product']['tags'] ? implode(',',$node['product']['tags']): '',
+                        'product_type' => $node['product']['productType'] ?? '',
                         'storeurl' => isset($node['product']['onlineStorePreviewUrl'])
                             ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source) ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source]) : '')
                             : '',
