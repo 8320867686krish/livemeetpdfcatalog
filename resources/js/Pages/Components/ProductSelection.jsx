@@ -9,21 +9,23 @@ import {
     ChevronLeftIcon,
     ChevronRightIcon
 } from '@shopify/polaris-icons';
-import { useParams } from "react-router-dom";
+import { Route, useNavigate, useParams } from "react-router-dom";
 
 const ProductSelection = ({ props }) => {
     const { shopid = "", activePlan = {} } = props;
     console.log("props from product seelction ", props);
     console.log("shopid from product seelction ", shopid);
     console.log("host from product seelction ",);
+    const host = new URLSearchParams(location.search).get("host") ? new URLSearchParams(location.search).get("host") : localStorage.getItem('host')
     const config = {
         apiKey: window.shopifyApiKey,
-        host: new URLSearchParams(location.search).get("host") ? new URLSearchParams(location.search).get("host") : localStorage.getItem('host'),
+        host: host,
         forceRedirect: true
     };
-    const { pdfId } = useParams();
+    const queryParams = new URLSearchParams(location.search);
+    const pdfId = queryParams.get("id");
     console.log("edit pdf id is ", pdfId);
-
+    const navigate = useNavigate()
     const [catelogName, setCatelogName] = useState("");
     const [productData, setProductData] = useState([]);
     const [sortOption, setSortOption] = useState("default");
@@ -37,10 +39,9 @@ const ProductSelection = ({ props }) => {
     const [inputValue, setInputValue] = useState("");
     const [allCollections, setAllCollections] = useState([]); // Store all collections
     const [filteredOptions, setFilteredOptions] = useState([]); // Filtered
-    const convertedCollectionOptions = collectionOptions.map(({ label, value }) => ({
-        value,
-        label
-    }));
+    const [productEdit, setProductEdit] = useState([]); // Filtered
+    const [buttonLoader, setButtonLoader] = useState(false);
+
 
 
     const handleCollectionSelect = (selected) => {
@@ -400,7 +401,6 @@ const ProductSelection = ({ props }) => {
     // Fetch collections when component mounts
     useEffect(() => {
         const fetchCollections = async () => {
-            setLoadingCollections(true);
             try {
                 const responseData = await fetchMethod(getMethodType, "collections/get", shopid);
                 console.log("collection responseData ", responseData);
@@ -411,22 +411,54 @@ const ProductSelection = ({ props }) => {
                         value: col.value,
                     }));
 
-                    const allOptions = [{ label: "Please select collection", value: "" }, ...options];
-
-                    setAllCollections(allOptions);
-                    setFilteredOptions(allOptions); // Set initial options
+                    return [{ label: "Please select collection", value: "" }, ...options];
                 } else {
                     console.error("Failed to fetch collections:", responseData);
+                    return [];
                 }
             } catch (error) {
                 console.error("Error fetching collections:", error);
+                return [];
+            }
+        };
+
+        const fetchProductEdit = async () => {
+            if (pdfId && pdfId != null) {
+                try {
+                    const responseData = await fetchMethod(postMethodType, "product/edit", shopid, { "setting_id": pdfId });
+                    console.log("productEdit responseData ", responseData);
+
+                    if (responseData?.message === "success") {
+                        return responseData.data; // Modify as per your data structure
+                    } else {
+                        console.error("Failed to fetch product edit:", responseData);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("Error fetching product edit:", error);
+                    return null;
+                }
+            }
+        };
+
+        const fetchData = async () => {
+            setLoadingCollections(true);
+            try {
+                const [collections, productEditData] = await Promise.all([fetchCollections(), fetchProductEdit()]);
+
+                setAllCollections(collections);
+                setFilteredOptions(collections);
+                setProductEdit(productEditData); // Assuming `setProductEdit` is your state setter
+            } catch (error) {
+                console.error("Error in fetching data:", error);
             } finally {
                 setLoadingCollections(false);
             }
         };
 
-        fetchCollections();
+        fetchData();
     }, [shopid]);
+
 
     useEffect(() => {
         const getEditData = async () => {
@@ -473,9 +505,10 @@ const ProductSelection = ({ props }) => {
 
     const handleSaveAndContinue = async () => {
         try {
+            setButtonLoader(true);
             // Prepare the data for the API call
             const requestData = {
-                id: pdfId ?? 0, // Assuming pdfId is the ID you want to send
+                id: pdfId == null ? 0 : pdfId, // Assuming pdfId is the ID you want to send
                 catalog_name: catelogName,
                 sort_by: sortOption, // You can change this based on your requirements
                 collectionName: selectedCollections.map(col => col).join(","),
@@ -493,10 +526,13 @@ const ProductSelection = ({ props }) => {
                 shopid,
                 requestData
             );
-            console.log("response from product/save ",response);
+            console.log("response from product/save ", response);
             // Handle the response
-            if (response?.status === "success") {
+            if (response?.errorCode == 0) {
                 showToast("Data saved successfully!");
+                setTimeout(() => {
+                    navigate(`${URL_PREFIX}configrations?id=${response?.setting_id}`)
+                }, 2000);
                 // You can add any additional logic here, such as redirecting the user
             } else {
                 showToast("Failed to save data.");
@@ -505,9 +541,10 @@ const ProductSelection = ({ props }) => {
             console.error("Error saving data:", error);
             showToast("An error occurred while saving data.");
         }
+        finally {
+            setButtonLoader(false);
+        }
     };
-
-
 
     const selectedTagsMarkup =
         selectedCollections.length > 0 ? (
@@ -552,7 +589,7 @@ const ProductSelection = ({ props }) => {
                     marginBottom: "10px"
                 }}>
                     <div>
-                        <Button >
+                        <Button loading={buttonLoader}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     <Icon
@@ -567,7 +604,7 @@ const ProductSelection = ({ props }) => {
                         </Button>
                     </div>
                     {productData.length != 0 ? <div>
-                        <Button variant="primary" onClick={handleSaveAndContinue}>
+                        <Button variant="primary" onClick={handleSaveAndContinue} loading={buttonLoader}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     Save & continue
