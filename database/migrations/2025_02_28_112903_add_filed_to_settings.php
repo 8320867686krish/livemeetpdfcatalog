@@ -17,7 +17,7 @@ return new class extends Migration
             //
             $table->string('utm_source')->nullable();
             $table->string('catalog_name')->nullable();
-            $table->string('c',20)->nullable();
+            $table->string('sort_by',20)->nullable();
             $table->tinyInteger('exclude_out_of_stock')->default(0);
             $table->tinyInteger('exclude_not_avaliable')->default(0);
             $table->string('redirect_button',2)->nullable();

@@ -48,6 +48,9 @@ return new class extends Migration
             $table->boolean('isPdf')->default(0);
             $table->string('pdfUrl')->nullable();
             $table->string('collectionName');
+            $table->string('flipId',20)->nullable();
+            $table->longText('flipHtml')->nullable();
+            $table->tinyInteger('isLarge')->default(0);
             $table->foreign('shop_id')->references('id')->on('users')->onDelete('cascade'); // Assuming 'shops' is the related table.
             $table->timestamps();
         });
