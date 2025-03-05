@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::table('collection_products', function (Blueprint $table) {
             //
-            $table->double('priority');
+            $table->double('priority')->nullable(0);
         });
     }
 

@@ -189,7 +189,7 @@ class ApiController extends Controller
             }
             // Commit transaction if everything is successful
             DB::commit();
-            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => [],'setting_id'=>$saveData->id], 200);
+            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Save Successfully!', 'data' => [], 'setting_id' => $saveData->id], 200);
         } catch (\Exception $e) {
             DB::rollBack(); // Rollback on error
             return response()->json([
@@ -388,25 +388,32 @@ class ApiController extends Controller
         $saveData = Settings::updateOrCreate(['id' => $dataToUpdate['id']], $dataToUpdate);
         //now get shop_id and collectionId wise get data
         $collectionId = $post['collectionId'];
-        $checkProducts = CollectionProducts::where('shop_id', $post['shop_id'])->where('settings_id', $saveData->id);
-        if ($checkProducts) {
-            $checkProducts->delete();
-        }
+
         if (@$post['selectedProducts']) {
+            $isOldUser = collect($post['selectedProducts'])->contains('priority', 0);
+
             foreach ($post['selectedProducts'] as $value) {
-                CollectionProducts::create([
-                    'settings_id' => $saveData->id,
-                    'product_id' => $value['id'],
-                    'shop_id' => $post['shop_id'],
-                    'title' => $value['title'],
-                    'image' => $value['image'],
-                    'desc' => $value['description'],
-                    'price' => $value['price'],
-                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
-                    'sku' => $value['sku'],
-                    'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
-                    'barcode' => @$value['barcode'] ? $value['barcode'] : null,
-                ]);
+                if ($isOldUser == 1) {
+                    $checkProducts = CollectionProducts::where('shop_id', $post['shop_id'])->where('settings_id', $saveData->id);
+                    if ($checkProducts) {
+                        $checkProducts->delete();
+                    }
+                }
+                if ($value['priority'] == 0 || !@$value['priority']) {
+                    CollectionProducts::create([
+                        'settings_id' => $saveData->id,
+                        'product_id' => $value['id'],
+                        'shop_id' => $post['shop_id'],
+                        'title' => $value['title'],
+                        'image' => $value['image'],
+                        'desc' => $value['description'],
+                        'price' => $value['price'],
+                        'compareAtPrice' => $value['compareAtPrice'] ?? "",
+                        'sku' => $value['sku'],
+                        'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
+                        'barcode' => @$value['barcode'] ? $value['barcode'] : null,
+                    ]);
+                }
             }
         }
         return response()->json(['message' => 'Catalog saved successfully.', 'setting_id' => $saveData->id, 'logo' => $saveData->logo, 'frontImage' => $saveData->frontImage, 'backImage' => $saveData->backImage, 'responseCode' => 1, 'errorCode' => 0]);
@@ -536,6 +543,7 @@ class ApiController extends Controller
                 ->values(); // Reset array keys
             $results = array_merge($results, $filteredNodes->toArray());
         }
+        unset($data['products']);
 
         return response()->json([
             'responseCode' => 1,
