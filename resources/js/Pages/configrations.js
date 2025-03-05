@@ -799,7 +799,7 @@ const Configrations = (props = {}) => {
                     scrollY: -window.scrollY,
                     windowWidth: document.documentElement.offsetWidth,
                     windowHeight: document.documentElement.offsetHeight,
-                    scale:  printQuality == 0 ? 1 : 2 , 
+                    scale: printQuality == 0 ? 1 : 2,
                     dpi: printQuality == 0 ? 100 : 300,
                     letterRendering: false,
                     logging: true,
@@ -813,13 +813,13 @@ const Configrations = (props = {}) => {
                         });
                     },
                 },
-                image : {type: 'jpeg', quality: 0.98},
+                image: { type: 'jpeg', quality: 0.98 },
                 margin: 0,
                 // autoResize: true,
                 // applyImageFit: true,
                 enableLinks: true,
                 autoPagination: true,
-            
+
             };
             try {
                 const mergedPdf = await PDFDocument.create();

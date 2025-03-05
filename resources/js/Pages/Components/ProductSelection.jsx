@@ -35,7 +35,6 @@ const ProductSelection = ({ props }) => {
     const [toastMessage, setToastMessage] = useState(null);
     const [collectionOptions, setCollectionOptions] = useState([]);
     const [loadingCollections, setLoadingCollections] = useState(true); // Loader state
-    const [selectedCollection, setSelectedCollection] = useState(""); // Selected collection
     const [inputValue, setInputValue] = useState("");
     const [allCollections, setAllCollections] = useState([]); // Store all collections
     const [filteredOptions, setFilteredOptions] = useState([]); // Filtered
@@ -393,10 +392,6 @@ const ProductSelection = ({ props }) => {
         collectionPicker.dispatch(ResourcePicker.Action.OPEN);
     };
 
-    const updateSelection = (selected) => {
-        setSelectedCollection(selected);
-        handleInputChange("")
-    };
 
     // Fetch collections when component mounts
     useEffect(() => {
@@ -429,7 +424,20 @@ const ProductSelection = ({ props }) => {
                     console.log("productEdit responseData ", responseData);
 
                     if (responseData?.errorCode == 0) {
-                        return responseData.data; // Modify as per your data structure
+                        setCatelogName(responseData?.data?.settings?.catalog_name);
+                        setSortOption(responseData?.data?.settings?.sort_by);
+                        console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
+                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(','));
+                        const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
+                            id: product.id,
+                            priority: product.priority,
+                            price: product.price,
+                            name: product.displayName,
+                            compareAtPrice: product.compareAtPrice,
+
+                        })) || [];
+                        setProductData(formattedProducts);
+                        return responseData.data;
                     } else {
                         console.error("Failed to fetch product edit:", responseData);
                         return null;
@@ -475,9 +483,6 @@ const ProductSelection = ({ props }) => {
     }, [pdfId])
 
 
-    const handleSelectChange = (value) => {
-        setSelectedCollection(value);
-    };
 
     const handleInputChange = useCallback(
         (newValue) => {
@@ -589,7 +594,9 @@ const ProductSelection = ({ props }) => {
                     marginBottom: "10px"
                 }}>
                     <div>
-                        <Button loading={buttonLoader}>
+                        <Button loading={buttonLoader} onClick={() => {
+                            navigate(`${URL_PREFIX}`)
+                        }}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     <Icon
