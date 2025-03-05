@@ -205,12 +205,11 @@ class ApiController extends Controller
         $checkValidSettings = Settings::where([
             ['id', '=', $post['setting_id']],
             ['shop_id', '=', $post['shop_id']]
-        ])->pluck('id')->toArray();
+        ])->select('id','catalog_name','sort_by','collectionName')->first();
 
         if (!@$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
-
 
         $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
             ->pluck('priority', 'product_id') // Retrieve product_id and priority
@@ -261,6 +260,7 @@ class ApiController extends Controller
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
         }
+        $dataArray['settings'] =   $checkValidSettings;
         $dataArray['selectedProducts'] = @$results ?? [];
         return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Data Found', 'data' => $dataArray], 200);
     }
