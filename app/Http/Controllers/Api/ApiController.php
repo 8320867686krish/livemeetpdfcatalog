@@ -486,7 +486,6 @@ class ApiController extends Controller
                         inventoryItem{
                                 unitCost{
                                 amount
-                                currencyCode
                                 }
                         }
                         image { url }
@@ -540,7 +539,8 @@ class ApiController extends Controller
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
-                        'cost_per_item' => $node['inventoryItem']['unitCost'] ?? [],
+                        'cost_per_item' =>  $this->formatMoney($node['inventoryItem']['unitCost']['amount'] ?? 0, $priceFormat),
+                        'orignal_cost_per_item' => $node['inventoryItem']['unitCost']['amount'] ?? 0,
                         'weight' => $node['weight'],
                         'weight_unit ' => $node['weightUnit'],
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
