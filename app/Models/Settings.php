@@ -46,7 +46,7 @@ class Settings extends Model
         'isLarge',
         'utmSource',
         'excludeOutOfStock',
-        'exclude_not_avaliable',
+        'excludeNotInStore',
         'redirectValue',
         'printQuality',
         'catalog_name',
