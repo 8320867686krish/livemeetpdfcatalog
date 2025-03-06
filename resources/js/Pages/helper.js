@@ -483,3 +483,15 @@ export const autoPDFSize = () => {
         a5_tenItemGrid: { main: 11.08, sub: 0.05, isFrontImg: 0.5, extraFrontImg: 0.14 },
     }
 }
+
+
+export const weightUnitMapper = {
+    KILOGRAMS: "Kg",
+    GRAMS: "g",
+    POUNDS: "lb",
+    OUNCES: "oz",
+};
+
+export const getAbbreviatedWeightUnit = (unit) => {
+    return weightUnitMapper[unit] || unit; // Return the abbreviation or the original unit if not found
+};
