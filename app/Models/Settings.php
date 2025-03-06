@@ -44,10 +44,11 @@ class Settings extends Model
         'flipHtml',
         'flipId',
         'isLarge',
-        'utm_source',
-        'exclude_out_of_stock',
+        'utmSource',
+        'excludeOutOfStock',
         'exclude_not_avaliable',
-        'redirect_button',
+        'redirectValue',
+        'printQuality',
         'catalog_name',
         'sort_by'
     ];

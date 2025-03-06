@@ -422,9 +422,9 @@ class ApiController extends Controller
     {
         $data = Settings::with('products')->where('id', $id)->first();
 
-        $exclude_not_avaliable = $data['exclude_not_avaliable'] ?? 0; // Default to 0 if not set
-        $exclude_out_of_stock = $data['exclude_out_of_stock'] ?? 0;
-        $utm_source     = $data['utm_source'];
+        $exclude_not_avaliable = $data['excludeNotInStore'] ?? 0; // Default to 0 if not set
+        $exclude_out_of_stock = $data['excludeOutOfStock'] ?? 0;
+        $utm_source     = $data['utmSource'];
         $shop = base64_decode($request->header('token'));
         $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
         $priceFormat = null; // Initialize price format

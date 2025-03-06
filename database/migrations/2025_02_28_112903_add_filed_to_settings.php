@@ -15,12 +15,14 @@ return new class extends Migration
     {
         Schema::table('settings', function (Blueprint $table) {
             //
-            $table->string('utm_source')->nullable();
+            $table->string('utmSource')->nullable();
+            $table->string('printQuality')->nullable();
             $table->string('catalog_name')->nullable();
             $table->string('sort_by',20)->nullable();
-            $table->tinyInteger('exclude_out_of_stock')->default(0);
-            $table->tinyInteger('exclude_not_avaliable')->default(0);
-            $table->string('redirect_button',2)->nullable();
+            $table->tinyInteger('excludeOutOfStock')->default(0);
+            $table->tinyInteger('excludeNotInStore')->default(0);
+            $table->string('redirectValue',2)->default(0);
+            $table->string('printQuality',2)->default(0);
         });
     }
 
