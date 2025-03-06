@@ -42,9 +42,6 @@ const Home = (props = {}) => {
     const location = useLocation();
     console.log("location :", location);
 
-    console.log("host from the home page ", new URLSearchParams(document.location.search).get("host"))
-    localStorage.setItem("host", new URLSearchParams(document.location.search).get("host"))
-
     // const { selectedResources, setSelectedResources } = useIndexResourceState();
 
     const navigate = useNavigate();
