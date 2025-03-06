@@ -25,6 +25,7 @@
         "@shopify/react-router": "^3.0.7",
         "browser-image-compression": "^2.0.2",
         "date-fns": "^2.30.0",
+        "framer-motion": "^12.4.10",
         "html-react-parser": "^5.2.1",
         "html2pdf.js": "^0.10.2",
         "jspdf-html2canvas": "^1.5.1",

@@ -113,12 +113,12 @@ const PDFPreview = (props) => {
         <>
             <div id="pdfLayout" className="pdf_layout_area" style={{}}>
                 <Suspense
-                    fallback={
-                        <Spinner
-                            accessibilityLabel="Small spinner example"
-                            size="large"
-                        />
-                    }
+                    // fallback={
+                    //     <Spinner
+                    //         accessibilityLabel="Small spinner example"
+                    //         size="large"
+                    //     />
+                    // }
                 >
                     {frontImage !== "" && (
                         <FrontImage
