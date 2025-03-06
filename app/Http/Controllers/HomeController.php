@@ -34,6 +34,7 @@ class HomeController extends Controller
     {
         $post = $request->input();
         $shop = $request->input('shop');
+        $shop = $request->input('host');
         $plan = DB::table('plans')->where('name', 'Free')->first();
         $shopDetail = User::where('name', $shop)->first();
         $shop_exist = $shopDetail;
@@ -59,7 +60,7 @@ class HomeController extends Controller
        $shopDetail['theam_id'] =  $theam_id;
        $shopDetail->save();
         $this->getStoreOwnerEmail($shop, $shopDetail['password']);
-        return view('welcome', compact('shop','shop_exist'));
+        return view('welcome', compact('shop','shop_exist','host'));
     }
     public function mendatoryWebhook($shopDetail)
     {
@@ -117,8 +118,10 @@ class HomeController extends Controller
     public function common(Request $request)
     {
         $shop = $request->input('shop');
+        $host = $request->input('host');
+
         $shop_exist = User::where('name', $shop)->first();
-        return view('welcome', compact('shop','shop_exist'));
+        return view('welcome', compact('shop','shop_exist','host'));
     }
     protected function getStoreOwnerEmail($shop, $passowrd)
     {

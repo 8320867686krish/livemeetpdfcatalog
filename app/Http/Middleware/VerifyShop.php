@@ -14,9 +14,10 @@ class VerifyShop
 
         if ($request->input('embedded') == 1) {
             $shop = $request->input('shop');
+            $host = $request->input('host');
             $shop_exist = User::where('name', $shop)->first();
 
-            return response()->view('welcome', ['shop' => $shop, 'shop_exist' => $shop_exist], 200);
+            return response()->view('welcome', ['shop' => $shop, 'shop_exist' => $shop_exist,'host'=>$host], 200);
         } else {
             $shop = $request->input('shop');
             if (@$shop) {
