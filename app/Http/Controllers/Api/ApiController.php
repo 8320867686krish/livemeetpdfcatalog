@@ -221,8 +221,12 @@ class ApiController extends Controller
 
         $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
         $results = [];
-        foreach ($chunkedVariantIds as $ids) {
+        $priceFormat = null;
+
+        foreach ($chunkedVariantIds as $index=>$ids) {
             $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
+            $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
+
             // GraphQL query for bulk fetching
             $query = <<<GQL
             query {
@@ -234,6 +238,7 @@ class ApiController extends Controller
                         compareAtPrice
                     }
                 }
+                $shopQuery
             }
             GQL;
 
@@ -246,9 +251,17 @@ class ApiController extends Controller
             ]);
             if ($response->successful()) {
                 $nodes = $response->json('data.nodes', []);
+                if ($index === 0) {
+                    $shop = $response->json('data.shop', []);
+                    $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
+                }
                 $filteredNodes = collect($nodes)
                     ->filter() // Remove null values
-                    ->map(function ($node) use ($variantIds) {
+                    ->map(function ($node) use ($variantIds,$priceFormat) {
+                        $node['orignalPrice'] = $node['price'];
+
+                       $node['price'] = $this->formatMoney($node['price'], $priceFormat);
+                        $node['compareAtPrice'] = $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat);
 
                         $productId = $node['id'];
                         $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
