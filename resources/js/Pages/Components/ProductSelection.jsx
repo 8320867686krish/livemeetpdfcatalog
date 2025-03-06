@@ -16,7 +16,7 @@ const ProductSelection = ({ props }) => {
     console.log("props from product seelction ", props);
     console.log("shopid from product seelction ", shopid);
     console.log("host from product seelction ",);
-    const host = new URLSearchParams(location.search).get("host") ? new URLSearchParams(location.search).get("host") : localStorage.getItem('host')
+    const host = localStorage.getItem('host')
     const config = {
         apiKey: window.shopifyApiKey,
         host: host,
@@ -535,9 +535,9 @@ const ProductSelection = ({ props }) => {
             // Handle the response
             if (response?.errorCode == 0) {
                 showToast("Data saved successfully!");
-                setTimeout(() => {
+                // setTimeout(() => {
                     navigate(`${URL_PREFIX}configrations?id=${response?.setting_id}`)
-                }, 2000);
+                // }, 2000);
                 // You can add any additional logic here, such as redirecting the user
             } else {
                 showToast("Failed to save data.");

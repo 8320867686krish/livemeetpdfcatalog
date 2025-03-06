@@ -1,5 +1,5 @@
 import React from "react";
-import { displayStringBaseOnLimit } from "../../helper";
+import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
 import { commonLevel } from "./commanLevel";
 
 const DefaultTextLayout = (data) => {
@@ -24,14 +24,23 @@ const DefaultTextLayout = (data) => {
         price = "",
         compareAtPrice = "",
         storeurl = "",
-        
+        stock_quantity = "",
+        tags = "",
+        weight = "",
+        weight_unit = "",
+        vendor = "",
+        product_type = "",
     } = productData;
-
+    console.log("product data from default text layout ",productData)
     const _description =
         description !== null
             ? displayStringBaseOnLimit(description, descriptionCharLimit)
             : "";
 
+    const _tags = tags !== null ? displayStringBaseOnLimit(tags, 40) : "";
+    console.log("weight_unit", weight_unit)
+    console.log("getAbbreviatedWeightUnit(weight_unit)", getAbbreviatedWeightUnit(weight_unit))
+    const _weight = weight + getAbbreviatedWeightUnit(weight_unit)
     // Get the price without currency
     price = price.replaceAll(",", "");
     if (compareAtPrice == null) {
@@ -141,27 +150,27 @@ const DefaultTextLayout = (data) => {
                     )}
                     {productAttributes.includes("quantity") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Quantity : {sku}
+                            Quantity : {stock_quantity === false ? "Not tracked" : stock_quantity + " Units"}
                         </div>
                     )}
                     {productAttributes.includes("weight") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Weight : {sku}
+                            Weight : {_weight}
                         </div>
                     )}
                     {productAttributes.includes("tag") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Tag : {sku}
+                            Tag : {_tags}
                         </div>
                     )}
                     {productAttributes.includes("vendor") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Vendor : {sku}
+                            Vendor : {vendor}
                         </div>
                     )}
                     {productAttributes.includes("type") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Product type : {sku}
+                            Product type : {product_type}
                         </div>
                     )}
                     {productAttributes.includes("costPerItem") && sku !== "" && (
