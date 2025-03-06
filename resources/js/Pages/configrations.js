@@ -90,6 +90,7 @@ import {
     optionsForPrintQuality,
 } from "./helper";
 import axios from "axios";
+import LoaderOverlay from "./Components/LoaderOverlay";
 const tabs = [
     {
         id: "general-settings",
@@ -2514,15 +2515,7 @@ const Configrations = (props = {}) => {
                                                             real-time before
                                                             generating a PDF.
                                                         </p>
-                                                        <Suspense
-                                                            fallback={
-                                                                <></>
-                                                                // <Spinner
-                                                                //     accessibilityLabel="Small spinner example"
-                                                                //     size="large"
-                                                                // />
-                                                            }
-                                                        >
+                                                        <div>
                                                             {btnSpinner && <Spinner
                                                                 accessibilityLabel="Small spinner example"
                                                                 size="large"
@@ -2533,7 +2526,7 @@ const Configrations = (props = {}) => {
                                                                 }
                                                                 {...props}
                                                             />
-                                                        </Suspense>
+                                                        </div>
                                                     </LegacyCard>
                                                 </Grid.Cell>
                                             </Grid>
@@ -2545,6 +2538,7 @@ const Configrations = (props = {}) => {
                     </Layout.Section>
                 </Layout>
             </Page>
+            {/* <LoaderOverlay isLoading={true} /> */}
         </div>
     );
 };

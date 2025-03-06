@@ -1,5 +1,5 @@
 import React from "react";
-import { displayStringBaseOnLimit } from "../../helper";
+import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
 
 const LeftTextLayout = (data) => {
     const {
@@ -23,11 +23,20 @@ const LeftTextLayout = (data) => {
         price = "",
         compareAtPrice = "",
         storeurl = "",
+        stock_quantity = "",
+        tags = "",
+        weight = "",
+        weight_unit = "",
+        vendor = "",
+        product_type = "",
+        cost_per_item = "",
     } = productData;
     const _description =
         description !== null
             ? displayStringBaseOnLimit(description, descriptionCharLimit)
             : "";
+    const _tags = tags !== null ? displayStringBaseOnLimit(tags, 50) : "";
+    const _weight = weight + getAbbreviatedWeightUnit(weight_unit)
 
     // Get the price without currency
     price = price.replaceAll(",", "");
@@ -104,7 +113,7 @@ const LeftTextLayout = (data) => {
                     flex: "1 1 auto", ...(productPageLayoutId === "fiveItemList" && { lineHeight: "1.3em", fontSize: "1.2em" }),
                     ...((productPageLayoutId === "fourItemList" || (productPageLayoutId === "fourItemLeftList") || (productPageLayoutId === "fourItemRightList")) && { lineHeight: "1.5em", fontSize: "1.2em" }),
                     ...((productPageLayoutId === "threeItemList" || (productPageLayoutId === "threeItemLeftList") || (productPageLayoutId === "threeItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }),
-                    ...((productPageLayoutId === "twoItemList" || (productPageLayoutId === "twoItemLeftList") || (productPageLayoutId === "twoItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }) ,
+                    ...((productPageLayoutId === "twoItemList" || (productPageLayoutId === "twoItemLeftList") || (productPageLayoutId === "twoItemRightList")) && { lineHeight: "1.9em", fontSize: "1.4em" }),
                     ...((productPageLayoutId === "oneItemGrid") && { lineHeight: "1.9em", fontSize: "1.4em" })
                 }}>
                     {productAttributes.includes("name") && title !== "" && (
@@ -118,34 +127,34 @@ const LeftTextLayout = (data) => {
                             SKU : {sku}
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Stock quantity : {sku}
-                        </div>
-                    )}
-                    {productAttributes.includes("weight") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Weight : {sku}
-                        </div>
-                    )}
-                    {productAttributes.includes("tag") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Tag : {sku}
-                        </div>
-                    )}
                     {productAttributes.includes("vendor") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Vendor : {sku}
+                            Vendor : {vendor}
                         </div>
                     )}
                     {productAttributes.includes("type") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Product type : {sku}
+                            Product type : {product_type}
+                        </div>
+                    )}
+                    {productAttributes.includes("quantity") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Stock quantity :  {stock_quantity === false ? "Not tracked" : stock_quantity + " Units"}
+                        </div>
+                    )}
+                    {productAttributes.includes("weight") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Weight : {_weight}
+                        </div>
+                    )}
+                    {productAttributes.includes("tag") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
+                            Tag : {_tags}
                         </div>
                     )}
                     {productAttributes.includes("costPerItem") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Cost per item : {sku}
+                            Cost per item : {Array.isArray(cost_per_item) ? "" : cost_per_item.amount + cost_per_item.currencyCode}
                         </div>
                     )}
                     {productAttributes.includes("description") &&

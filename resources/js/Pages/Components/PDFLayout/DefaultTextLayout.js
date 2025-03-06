@@ -30,8 +30,9 @@ const DefaultTextLayout = (data) => {
         weight_unit = "",
         vendor = "",
         product_type = "",
+        cost_per_item = "",
     } = productData;
-    console.log("product data from default text layout ",productData)
+    console.log("product data from default text layout ", productData)
     const _description =
         description !== null
             ? displayStringBaseOnLimit(description, descriptionCharLimit)
@@ -148,6 +149,16 @@ const DefaultTextLayout = (data) => {
                             SKU : {sku}
                         </div>
                     )}
+                    {productAttributes.includes("vendor") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Vendor : {vendor}
+                        </div>
+                    )}
+                    {productAttributes.includes("type") && sku !== "" && (
+                        <div className="custom-sku" style={{ opacity: "0.7" }}>
+                            Product type : {product_type}
+                        </div>
+                    )}
                     {productAttributes.includes("quantity") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Quantity : {stock_quantity === false ? "Not tracked" : stock_quantity + " Units"}
@@ -163,19 +174,9 @@ const DefaultTextLayout = (data) => {
                             Tag : {_tags}
                         </div>
                     )}
-                    {productAttributes.includes("vendor") && sku !== "" && (
+                    {productAttributes.includes("costPerItem") && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Vendor : {vendor}
-                        </div>
-                    )}
-                    {productAttributes.includes("type") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Product type : {product_type}
-                        </div>
-                    )}
-                    {productAttributes.includes("costPerItem") && sku !== "" && (
-                        <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Cost per item : {sku}
+                            Cost per item : {Array.isArray(cost_per_item) ? "" : cost_per_item.amount + cost_per_item.currencyCode}
                         </div>
                     )}
                     {productAttributes.includes("description") &&
