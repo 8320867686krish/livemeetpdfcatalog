@@ -205,8 +205,8 @@ class ApiController extends Controller
         $checkValidSettings = Settings::where([
             ['id', '=', $post['setting_id']],
             ['shop_id', '=', $post['shop_id']]
-        ])->select('id','catalog_name','sort_by','collectionName')->first();
-
+        ])->select('id', 'catalog_name', 'sort_by', 'collectionName','excludeNotInStore','excludeOutOfStock')->first();
+      
         if (!@$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
@@ -223,7 +223,7 @@ class ApiController extends Controller
         $results = [];
         $priceFormat = null;
 
-        foreach ($chunkedVariantIds as $index=>$ids) {
+        foreach ($chunkedVariantIds as $index => $ids) {
             $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
             $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
 
@@ -257,10 +257,10 @@ class ApiController extends Controller
                 }
                 $filteredNodes = collect($nodes)
                     ->filter() // Remove null values
-                    ->map(function ($node) use ($variantIds,$priceFormat) {
+                    ->map(function ($node) use ($variantIds, $priceFormat) {
                         $node['orignalPrice'] = $node['price'];
 
-                       $node['price'] = $this->formatMoney($node['price'], $priceFormat);
+                        $node['price'] = $this->formatMoney($node['price'], $priceFormat);
                         $node['compareAtPrice'] = $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat);
 
                         $productId = $node['id'];
@@ -437,6 +437,7 @@ class ApiController extends Controller
 
         $exclude_not_avaliable = $data['excludeNotInStore'] ?? 0; // Default to 0 if not set
         $exclude_out_of_stock = $data['excludeOutOfStock'] ?? 0;
+        $redirectValue = $data['redirectValue'];
         $utm_source     = $data['utmSource'];
         $shop = base64_decode($request->header('token'));
         $user = User::where('name', $shop)->select('id', 'password', 'name')->first();
@@ -526,7 +527,7 @@ class ApiController extends Controller
                 'Content-Type' => 'application/json',
             ])->post("https://{$user['name']}/admin/api/2024-01/graphql.json", ['query' => $query]);
             if (!$response->successful()) {
-               
+
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
 
@@ -547,8 +548,8 @@ class ApiController extends Controller
                             && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
                     });
                 })
-                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source) {
-                    
+                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user) {
+
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
@@ -566,11 +567,20 @@ class ApiController extends Controller
                         'image' => $node['image']['url'] ?? ($node['product']['media']['edges'][0]['node']['image']['url'] ?? null),
                         'description' => $node['product']['description'] ?? '',
                         'vendor' => $node['product']['vendor'] ?? '',
-                        'tags'=>$node['product']['tags'] ? implode(',',$node['product']['tags']): '',
+                        'tags' => $node['product']['tags'] ? implode(',', $node['product']['tags']) : '',
                         'product_type' => $node['product']['productType'] ?? '',
-                        'storeurl' => isset($node['product']['onlineStorePreviewUrl'])
-                            ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source) ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source]) : '')
-                            : '',
+                        'status' => $node['product']['status'] ?? '',
+                        'storeurl' => ($redirectValue == 0 && isset($node['product']['onlineStorePreviewUrl']))
+                            ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source)
+                                ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source])
+                                : '')
+                            : ($redirectValue == 1
+                                ? 'https://' . $user['name']
+                                : ($redirectValue == 2
+                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']).'&quantity=1&&'
+                                    : 'https://' . $user['name'] . '/cart/' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . ':1?&')
+                            ),
+
 
                     ];
                 })
