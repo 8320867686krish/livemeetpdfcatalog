@@ -1,4 +1,4 @@
-import { Button, Card, Page, Text, TextField, LegacyCard, EmptyState, ButtonGroup, Spinner, Toast, Select, Icon, Autocomplete, Tag, LegacyStack } from "@shopify/polaris";
+import { Button, Card, Page, Text, TextField, LegacyCard, EmptyState, ButtonGroup, Spinner, Toast, Select, Icon, Autocomplete, Tag, LegacyStack, Checkbox, Tooltip, SkeletonBodyText } from "@shopify/polaris";
 import React, { useState, useEffect, useCallback } from "react";
 import DraggableTable from "./draggable";
 import createApp from '@shopify/app-bridge';
@@ -7,7 +7,8 @@ import ProductFilterModal from "./ProductFilterModal";
 import { fetchMethod } from "../helper";
 import {
     ChevronLeftIcon,
-    ChevronRightIcon
+    ChevronRightIcon,
+    QuestionCircleIcon
 } from '@shopify/polaris-icons';
 import { Route, useNavigate, useParams } from "react-router-dom";
 
@@ -40,7 +41,9 @@ const ProductSelection = ({ props }) => {
     const [filteredOptions, setFilteredOptions] = useState([]); // Filtered
     const [productEdit, setProductEdit] = useState([]); // Filtered
     const [buttonLoader, setButtonLoader] = useState(false);
-
+    const [excludeOutOfStock, setExcludeOutOfStock] = useState(false);
+    const [excludeNotInStore, setExcludeNotInStore] = useState(false);
+    const [showDataTableLoader, setShowDataTableLoader] = useState(false);
 
 
     const handleCollectionSelect = (selected) => {
@@ -420,12 +423,15 @@ const ProductSelection = ({ props }) => {
         const fetchProductEdit = async () => {
             if (pdfId && pdfId != null) {
                 try {
+                    setShowDataTableLoader(true);
                     const responseData = await fetchMethod(postMethodType, "product/edit", shopid, { "setting_id": pdfId });
                     console.log("productEdit responseData ", responseData);
 
                     if (responseData?.errorCode == 0) {
                         setCatelogName(responseData?.data?.settings?.catalog_name);
                         setSortOption(responseData?.data?.settings?.sort_by);
+                        setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
+                        setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
                         console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
                         setSelectedCollections(responseData?.data?.settings?.collectionName?.split(','));
                         const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
@@ -445,6 +451,9 @@ const ProductSelection = ({ props }) => {
                 } catch (error) {
                     console.error("Error fetching product edit:", error);
                     return null;
+                }
+                finally {
+                    setShowDataTableLoader(false);
                 }
             }
         };
@@ -482,8 +491,6 @@ const ProductSelection = ({ props }) => {
 
     }, [pdfId])
 
-
-
     const handleInputChange = useCallback(
         (newValue) => {
             setInputValue(newValue);
@@ -500,6 +507,7 @@ const ProductSelection = ({ props }) => {
         },
         [allCollections]
     );
+
 
     const removeTag = useCallback(
         (tagValue) => () => {
@@ -520,7 +528,9 @@ const ProductSelection = ({ props }) => {
                 selectedProducts: productData.map((product, index) => ({
                     product_id: product.id,
                     priority: product.priority
-                }))
+                })),
+                excludeNotInStore: excludeNotInStore,
+                excludeOutOfStock: excludeOutOfStock,
             };
             console.log("productData from productSelection  ", productData);
             console.log("requestData ", requestData);
@@ -536,7 +546,7 @@ const ProductSelection = ({ props }) => {
             if (response?.errorCode == 0) {
                 showToast("Data saved successfully!");
                 // setTimeout(() => {
-                    navigate(`${URL_PREFIX}configrations?id=${response?.setting_id}`)
+                navigate(`${URL_PREFIX}configrations?id=${response?.setting_id}`)
                 // }, 2000);
                 // You can add any additional logic here, such as redirecting the user
             } else {
@@ -649,6 +659,8 @@ const ProductSelection = ({ props }) => {
                         </div>
                     </div>
                 </div>
+
+
                 <div style={{ marginTop: "20px" }}>
                     <Card>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -669,8 +681,32 @@ const ProductSelection = ({ props }) => {
                         {
                             fetchProductLoader ? <div style={{ display: "flex", justifyContent: "center", minHeight: "350px", alignItems: "center" }}>
                                 <Spinner accessibilityLabel="Spinner example" size="large" />
-                            </div> :
-                                productData.length === 0 ? (
+                            </div> : <>
+                                {showDataTableLoader? <>
+                                    <div style={{ padding: "20px" }}>
+                                        <LegacyCard>
+                                            <div style={{ padding: "20px" }}>
+                                                <div style={{ padding: "10px" }}>
+                                                    <SkeletonBodyText />
+                                                </div>
+                                                <div style={{ padding: "10px" }}>
+                                                    <SkeletonBodyText />
+                                                </div>
+                                                <div style={{ padding: "10px" }}>
+                                                    <SkeletonBodyText />
+                                                </div>
+                                                <div style={{ padding: "10px" }}>
+                                                    <SkeletonBodyText />
+                                                </div>
+                                                <div style={{ padding: "10px" }}>
+                                                    <SkeletonBodyText />
+                                                </div>
+                                            </div>
+                                        </LegacyCard>
+                                    </div>
+
+                                </> : <>
+                                    {productData.length === 0 ? (
                                     <div style={{ marginTop: "20px" }}>
 
                                         <LegacyCard sectioned>
@@ -692,11 +728,42 @@ const ProductSelection = ({ props }) => {
                                             </EmptyState>
                                         </LegacyCard>
                                     </div>
-                                ) : (
+                                    ) : (
                                     <>
+                                        <div style={{ display: "flex", justifyContent: "end" }}>
+                                            <div style={{ display: "flex", gap: "30px", alignItems: "end" }}>
+                                                <div style={{ marginTop: "10px" }}>
+                                                    <Checkbox
+                                                        label="Exclude product out of stock"
+                                                        checked={excludeOutOfStock}
+                                                        onChange={() => setExcludeOutOfStock((prevState) => !prevState)
+                                                        }
+                                                    />
+                                                </div>
+                                                <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+                                                    <div>
+                                                        <Checkbox
+                                                            label="Exclude product not in store"
+                                                            checked={excludeNotInStore}
+                                                            onChange={() => setExcludeNotInStore((prevState) => !prevState)
+                                                            } />
+                                                    </div>
+                                                    <div>
+                                                        <Tooltip content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
+                                                            <Icon
+                                                                source={QuestionCircleIcon}
+                                                                tone="base"
+                                                            />
+                                                        </Tooltip>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
                                     </>
-                                )
+                                    )}
+                                </>}
+                            </>
                         }
 
                     </Card>

@@ -3,7 +3,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 
-const DraggableTable = ({ productData, setProductData , sortOption , setSortOption }) => {
+const DraggableTable = ({ productData, setProductData, sortOption, setSortOption }) => {
     console.log("productData from the draggable table ", productData)
     const [searchQuery, setSearchQuery] = useState("");
     // const [sortOption, setSortOption] = useState("default");
@@ -105,7 +105,7 @@ const DraggableTable = ({ productData, setProductData , sortOption , setSortOpti
 
     return (
         <div style={styles.container}>
-            
+
             {/* Search and Sort */}
             <div style={{ display: "flex", gap: "20px", marginBottom: "15px" }} >
                 <div style={{ width: "50%" }}>
@@ -131,7 +131,7 @@ const DraggableTable = ({ productData, setProductData , sortOption , setSortOpti
                         ]}
                         value={sortOption}
                         onChange={setSortOption}
-                        helpText="Custom sorting won't work when a filter is applied."
+                        helpText={sortOption != "default" ? "Custom sorting won't work when a filter is applied." : ""}
                     />
                 </div>
             </div>
@@ -170,7 +170,7 @@ const DraggableTable = ({ productData, setProductData , sortOption , setSortOpti
                                             {(provided, snapshot) => (
                                                 <tr
                                                     ref={provided.innerRef}
-                                                    {...(sortOption === "default" ? provided.draggableProps : {})}  
+                                                    {...(sortOption === "default" ? provided.draggableProps : {})}
                                                     {...(sortOption === "default" ? provided.dragHandleProps : {})}
                                                     style={{
                                                         ...styles.row,
@@ -197,7 +197,8 @@ const DraggableTable = ({ productData, setProductData , sortOption , setSortOpti
                                                         {item?.currency} {item.price}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {item.currency} {item.compareAtPrice}
+                                                        {item.compareAtPrice == "N/A" ? item.compareAtPrice : <>{item.currency} {item.compareAtPrice}</>}
+
                                                     </td>
                                                     <td align="center" style={styles.td}>
                                                         <Button icon={DeleteIcon} onClick={() => handleDelete(item.id)} destructive size="slim" />

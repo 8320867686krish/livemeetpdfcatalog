@@ -2141,7 +2141,7 @@ const Configrations = (props = {}) => {
                                                             />
                                                         </FormLayout>
                                                     </div>
-                                                    <div style={{ marginTop: "10px" }}>
+                                                    {/* <div style={{ marginTop: "10px" }}>
                                                         <Checkbox
                                                             label="Exclude product out of stock"
                                                             checked={excludeOutOfStock}
@@ -2155,7 +2155,7 @@ const Configrations = (props = {}) => {
                                                     <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
                                                         <div>
                                                             <Checkbox
-                                                                label="Exclude products that are not available in the online store"
+                                                                label="Exclude product not in store"
                                                                 checked={excludeNotInStore}
                                                                 onChange={(e) =>
                                                                     handleConfigData(
@@ -2172,7 +2172,7 @@ const Configrations = (props = {}) => {
                                                                 />
                                                             </Tooltip>
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                 </Collapsible>
                                             </LegacyStack>
                                         </LegacyCard>
