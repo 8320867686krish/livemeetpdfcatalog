@@ -542,7 +542,7 @@ class ApiController extends Controller
                         'cost_per_item' =>  $this->formatMoney($node['inventoryItem']['unitCost']['amount'] ?? 0, $priceFormat),
                         'orignal_cost_per_item' => $node['inventoryItem']['unitCost']['amount'] ?? 0,
                         'weight' => $node['weight'],
-                        'weight_unit ' => $node['weightUnit'],
+                        'weight_unit' => $node['weightUnit'],
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
                         'title' => $node['displayName'],
                         'price' => $this->formatMoney($node['price'], $priceFormat),

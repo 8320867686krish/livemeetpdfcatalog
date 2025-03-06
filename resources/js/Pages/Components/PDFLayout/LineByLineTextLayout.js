@@ -1,5 +1,5 @@
 import React from "react";
-import { displayStringBaseOnLimit } from "../../helper";
+import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
 
 const LineByLineTextLayout = (data) => {
     const {
@@ -23,12 +23,20 @@ const LineByLineTextLayout = (data) => {
         price = "",
         storeurl = "",
         compareAtPrice = "",
+        stock_quantity = "",
+        tags = "",
+        weight = "",
+        weight_unit = "",
+        vendor = "",
+        product_type = "",
+        cost_per_item = "",
     } = productData;
     const _description =
         description !== null
             ? displayStringBaseOnLimit(description, descriptionCharLimit)
             : "";
-
+    const _tags = tags !== null ? displayStringBaseOnLimit(tags, 40) : "";
+    const _weight = weight + getAbbreviatedWeightUnit(weight_unit)
     // Get the price without currency
     price = price.replaceAll(",", "");
     var priceMatches = price.match(/[0-9]*\.?[0-9]+/g);
@@ -167,51 +175,6 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && sku !== "" && (
-                        <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
-                            <div
-                                style={{
-                                    flex: "1 1 auto",
-                                    justifyContent: "flex-end",
-                                    display: "flex",
-                                    color: valueColor,
-                                }}
-                            >
-                                {sku}
-                            </div>
-                        </div>
-                    )}
-                    {productAttributes.includes("weight") && sku !== "" && (
-                        <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>Weight : </div>
-                            <div
-                                style={{
-                                    flex: "1 1 auto",
-                                    justifyContent: "flex-end",
-                                    display: "flex",
-                                    color: valueColor,
-                                }}
-                            >
-                                {sku}
-                            </div>
-                        </div>
-                    )}
-                    {productAttributes.includes("tag") && sku !== "" && (
-                        <div style={{ display: "flex", opacity: "0.7" }}>
-                            <div style={{ flex: "1 0 auto" }}>Tag : </div>
-                            <div
-                                style={{
-                                    flex: "1 1 auto",
-                                    justifyContent: "flex-end",
-                                    display: "flex",
-                                    color: valueColor,
-                                }}
-                            >
-                                {sku}
-                            </div>
-                        </div>
-                    )}
                     {productAttributes.includes("vendor") && sku !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Vendor : </div>
@@ -223,7 +186,7 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {sku}
+                                {vendor}
                             </div>
                         </div>
                     )}
@@ -238,10 +201,56 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {sku}
+                                {product_type}
                             </div>
                         </div>
                     )}
+                    {productAttributes.includes("quantity") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {stock_quantity === false ? "Not tracked" : stock_quantity + " Units"}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("weight") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Weight : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {_weight}
+                            </div>
+                        </div>
+                    )}
+                    {productAttributes.includes("tag") && sku !== "" && (
+                        <div style={{ display: "flex", opacity: "0.7" }}>
+                            <div style={{ flex: "1 0 auto" }}>Tag : </div>
+                            <div
+                                style={{
+                                    flex: "1 1 auto",
+                                    justifyContent: "flex-end",
+                                    display: "flex",
+                                    color: valueColor,
+                                }}
+                            >
+                                {_tags}
+                            </div>
+                        </div>
+                    )}
+
                     {productAttributes.includes("costPerItem") && sku !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Cost per item : </div>
@@ -253,7 +262,7 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {sku}
+                                {Array.isArray(cost_per_item) ? "" : cost_per_item.amount + cost_per_item.currencyCode}
                             </div>
                         </div>
                     )}
