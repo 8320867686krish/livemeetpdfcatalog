@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pdf Preview</title>
  
-    <link rel="stylesheet" href="<?php echo e(asset('FlipPdfJs/style.css')); ?>"></link>
+    <link rel="stylesheet" href="<?php echo e(asset('public/FlipPdfJs/style.css')); ?>"></link>
 </head>
 
 <body>
@@ -15,11 +15,11 @@
         source="<?php echo e(asset($pdfurl)); ?>">
     </div>
   
-   <script src="<?php echo e(asset('FlipPdfJs/jquerymin.js')); ?>"></script>
-<script src="<?php echo e(asset('FlipPdfJs/dflip.min.js')); ?>"></script>
-<script src="<?php echo e(asset('FlipPdfJs/pdf.min.js')); ?>"></script>
-<script src="<?php echo e(asset('FlipPdfJs/pdfworker.min.js')); ?>"></script>
-<script src="<?php echo e(asset('FlipPdfJs/three.min.js')); ?>"></script>
+   <script src="<?php echo e(asset('public/FlipPdfJs/jquerymin.js')); ?>"></script>
+<script src="<?php echo e(asset('public/FlipPdfJs/dflip.min.js')); ?>"></script>
+<script src="<?php echo e(asset('public/FlipPdfJs/pdf.min.js')); ?>"></script>
+<script src="<?php echo e(asset('public/FlipPdfJs/pdfworker.min.js')); ?>"></script>
+<script src="<?php echo e(asset('public/FlipPdfJs/three.min.js')); ?>"></script>
 </body>
 
 </html><?php /**PATH /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/resources/views/flipBook.blade.php ENDPATH**/ ?>

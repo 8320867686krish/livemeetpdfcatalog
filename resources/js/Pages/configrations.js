@@ -190,7 +190,6 @@ const Configrations = (props = {}) => {
     const [generalCollapsibleOpen, setGeneralCollapsibleOpen] = useState(false);
     const [productSettingCollapsibleOpen, setProductSettingCollapsibleOpen] = useState(false);
     const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(false);
-
     const handleTogglegeneralCollapsible = useCallback(() => {
         setGeneralCollapsibleOpen((open) => !open);
         setProductSettingCollapsibleOpen(false);
@@ -1417,7 +1416,7 @@ const Configrations = (props = {}) => {
                 fullWidth
                 backAction={{
                     content: "Products",
-                    onAction: () => navigate(URL_PREFIX),
+                    onAction: () => navigate(`${URL_PREFIX}add-product?id=${settingId}`),
                 }}
                 title={settingId > 0 ? "Edit Catalog" : "Create a New Catalog"}
                 primaryAction={

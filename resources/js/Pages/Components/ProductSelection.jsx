@@ -44,21 +44,7 @@ const ProductSelection = ({ props }) => {
     const [excludeOutOfStock, setExcludeOutOfStock] = useState(false);
     const [excludeNotInStore, setExcludeNotInStore] = useState(false);
     const [showDataTableLoader, setShowDataTableLoader] = useState(false);
-
-
-    const handleCollectionSelect = (selected) => {
-        // Map selected values back to objects for UI rendering
-        const selectedItems = selected.map(value => {
-            return collectionOptions.find(option => option.value === value);
-        }).filter(Boolean);
-
-        setSelectedCollections(selectedItems);
-    };
-
-    const removeSelectedCollection = (value) => {
-        setSelectedCollections(prev => prev.filter(item => item.value !== value));
-    };
-
+    const [selectedCollection, setSelectedCollection] = useState([]); // Store selected collections`
 
 
     const handleFilterApply = (filters) => {
@@ -78,7 +64,7 @@ const ProductSelection = ({ props }) => {
 
     const getSelectedProductIds = () => {
         const selectedProducts = {};
-
+        console.log("selected products from getSelectedProductIds ", productData)
         productData.forEach(item => {
             const productId = item.productId;
             const variantId = item.variantId ? item.variantId : null;
@@ -130,49 +116,6 @@ const ProductSelection = ({ props }) => {
         return { productMap, variantMap };
     };
 
-    /**
-     * Utility for debugging - checks for duplicate products in data
-     */
-    const checkForDuplicates = (productData) => {
-        const variantMap = {};
-        const productMap = {};
-        const duplicates = [];
-
-        productData.forEach((item, index) => {
-            const normProductId = normalizeId(item.productId);
-            const normVariantId = normalizeId(item.variantId || item.productId);
-
-            const key = normVariantId || normProductId;
-
-            if (variantMap[key]) {
-                duplicates.push({
-                    index,
-                    item,
-                    normalizedId: key,
-                    duplicateOf: variantMap[key]
-                });
-            } else {
-                variantMap[key] = index;
-            }
-
-            // Also track products
-            if (normProductId && !item.variantId && productMap[normProductId]) {
-                if (!duplicates.some(d => d.index === index)) {
-                    duplicates.push({
-                        index,
-                        item,
-                        normalizedProductId: normProductId,
-                        duplicateOf: productMap[normProductId]
-                    });
-                }
-            } else if (normProductId && !item.variantId) {
-                productMap[normProductId] = index;
-            }
-        });
-
-        console.log('Duplicate products/variants found:', duplicates);
-        return duplicates;
-    };
 
 
     const handleAddProductClick = () => {
@@ -434,15 +377,85 @@ const ProductSelection = ({ props }) => {
                         setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
                         console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
                         setSelectedCollections(responseData?.data?.settings?.collectionName?.split(','));
-                        const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
-                            id: product.id,
-                            priority: product.priority,
-                            price: product.price,
-                            name: product.displayName,
-                            compareAtPrice: product.compareAtPrice,
+                        // const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
+                        //     id: product.id,
+                        //     priority: product.priority,
+                        //     price: product.price,
+                        //     name: product.displayName,
+                        //     compareAtPrice: product.compareAtPrice,
 
-                        })) || [];
-                        setProductData(formattedProducts);
+                        // })) || [];
+
+                        const existingProductMap = {};
+                        const existingVariantMap = {};
+                        productData.forEach(item => {
+                            const normProductId = normalizeId(item.productId);
+                            if (normProductId) existingProductMap[normProductId] = true;
+                            const normVariantId = normalizeId(item.variantId);
+                            if (normVariantId) existingVariantMap[normVariantId] = true;
+                        });
+                        const lastPriority = productData.length > 0
+                            ? Math.max(...productData.map(item => item.priority))
+                            : 0;
+
+                        let newProducts = [];
+                        responseData?.data?.selectedProducts?.forEach((product, index) => {
+                            const productNormalizedId = normalizeId(product.id);
+                            console.log(`Checking product: ${product.title}, ID: ${product.id}, Normalized ID: ${productNormalizedId}`);
+
+                            // Check if the product has variants
+                            if (product.variants && product.variants.length > 0) {
+                                product.variants.forEach(variant => {
+                                    const variantNormalizedId = normalizeId(variant.id);
+                                    console.log(`  - Checking variant: ${variant.title || 'Default'}, ID: ${variant.id}, Normalized ID: ${variantNormalizedId}`);
+
+                                    // Check if this variant is already in our data
+                                    if (!existingVariantMap[variantNormalizedId]) {
+                                        console.log(`    - Adding new variant: ${variantNormalizedId}`);
+
+                                        newProducts.push({
+                                            id: variant.id,
+                                            productId: product.id,
+                                            variantId: variant.id,
+                                            normalizedProductId: productNormalizedId,
+                                            normalizedVariantId: variantNormalizedId,
+                                            name: `${product.title} - ${variant.title || 'Default'}`,
+                                            priority: lastPriority + newProducts.length + 1,
+                                            price: variant.price || "N/A",
+                                            compareAtPrice: variant.compareAtPrice || "N/A",
+                                            currency: "USD" // Adjust if you have currency info
+                                        });
+
+                                        // Mark as existing to prevent duplicates within this batch
+                                        existingVariantMap[variantNormalizedId] = true;
+                                    } else {
+                                        console.log(`    - Skipping existing variant: ${variantNormalizedId}`);
+                                    }
+                                });
+                            } else {
+                                // Handle products without variants
+                                if (!existingProductMap[productNormalizedId]) {
+                                    console.log(`  - Adding new product: ${productNormalizedId}`);
+
+                                    newProducts.push({
+                                        id: product.id,
+                                        productId: product.id,
+                                        normalizedProductId: productNormalizedId,
+                                        name: product.title,
+                                        priority: lastPriority + newProducts.length + 1,
+                                        price: product.variants?.[0]?.price || "N/A",
+                                        compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
+                                        currency: "USD" // Adjust if you have currency info
+                                    });
+
+                                    // Mark as existing
+                                    existingProductMap[productNormalizedId] = true;
+                                } else {
+                                    console.log(`  - Skipping existing product: ${productNormalizedId}`);
+                                }
+                            }
+                        });
+                        setProductData(newProducts);
                         return responseData.data;
                     } else {
                         console.error("Failed to fetch product edit:", responseData);
@@ -682,7 +695,7 @@ const ProductSelection = ({ props }) => {
                             fetchProductLoader ? <div style={{ display: "flex", justifyContent: "center", minHeight: "350px", alignItems: "center" }}>
                                 <Spinner accessibilityLabel="Spinner example" size="large" />
                             </div> : <>
-                                {showDataTableLoader? <>
+                                {showDataTableLoader ? <>
                                     <div style={{ padding: "20px" }}>
                                         <LegacyCard>
                                             <div style={{ padding: "20px" }}>
@@ -707,60 +720,60 @@ const ProductSelection = ({ props }) => {
 
                                 </> : <>
                                     {productData.length === 0 ? (
-                                    <div style={{ marginTop: "20px" }}>
+                                        <div style={{ marginTop: "20px" }}>
 
-                                        <LegacyCard sectioned>
-                                            <EmptyState
-                                                heading="Which product do you want to include?"
-                                                image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-                                            >
-                                                <ButtonGroup>
-                                                    <Button primary onClick={handleAddProductClick}>
-                                                        Add product
-                                                    </Button>
-                                                    <Button onClick={() => setFilterModalOpen(true)}>
-                                                        Add product using filters
-                                                    </Button>
-                                                    <Button onClick={handleAddCollectionClick}>
-                                                        Add collections
-                                                    </Button>
-                                                </ButtonGroup>
-                                            </EmptyState>
-                                        </LegacyCard>
-                                    </div>
+                                            <LegacyCard sectioned>
+                                                <EmptyState
+                                                    heading="Which product do you want to include?"
+                                                    image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+                                                >
+                                                    <ButtonGroup>
+                                                        <Button primary onClick={handleAddProductClick}>
+                                                            Add product
+                                                        </Button>
+                                                        <Button onClick={() => setFilterModalOpen(true)}>
+                                                            Add product using filters
+                                                        </Button>
+                                                        <Button onClick={handleAddCollectionClick}>
+                                                            Add collections
+                                                        </Button>
+                                                    </ButtonGroup>
+                                                </EmptyState>
+                                            </LegacyCard>
+                                        </div>
                                     ) : (
-                                    <>
-                                        <div style={{ display: "flex", justifyContent: "end" }}>
-                                            <div style={{ display: "flex", gap: "30px", alignItems: "end" }}>
-                                                <div style={{ marginTop: "10px" }}>
-                                                    <Checkbox
-                                                        label="Exclude product out of stock"
-                                                        checked={excludeOutOfStock}
-                                                        onChange={() => setExcludeOutOfStock((prevState) => !prevState)
-                                                        }
-                                                    />
-                                                </div>
-                                                <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
-                                                    <div>
+                                        <>
+                                            <div style={{ display: "flex", justifyContent: "end" }}>
+                                                <div style={{ display: "flex", gap: "30px", alignItems: "end" }}>
+                                                    <div style={{ marginTop: "10px" }}>
                                                         <Checkbox
-                                                            label="Exclude product not in store"
-                                                            checked={excludeNotInStore}
-                                                            onChange={() => setExcludeNotInStore((prevState) => !prevState)
-                                                            } />
+                                                            label="Exclude product out of stock"
+                                                            checked={excludeOutOfStock}
+                                                            onChange={() => setExcludeOutOfStock((prevState) => !prevState)
+                                                            }
+                                                        />
                                                     </div>
-                                                    <div>
-                                                        <Tooltip content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
-                                                            <Icon
-                                                                source={QuestionCircleIcon}
-                                                                tone="base"
-                                                            />
-                                                        </Tooltip>
+                                                    <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+                                                        <div>
+                                                            <Checkbox
+                                                                label="Exclude product not in store"
+                                                                checked={excludeNotInStore}
+                                                                onChange={() => setExcludeNotInStore((prevState) => !prevState)
+                                                                } />
+                                                        </div>
+                                                        <div>
+                                                            <Tooltip content={`This will remove any product that is currently in the Draft or Archived state along with any product where the "Online Store" sales channel is not enabled or that doesn't have any assigned markets..`}>
+                                                                <Icon
+                                                                    source={QuestionCircleIcon}
+                                                                    tone="base"
+                                                                />
+                                                            </Tooltip>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
-                                    </>
+                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
+                                        </>
                                     )}
                                 </>}
                             </>
