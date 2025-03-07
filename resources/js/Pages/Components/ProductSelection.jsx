@@ -292,7 +292,7 @@ const ProductSelection = ({ props }) => {
         const collectionPicker = ResourcePicker.create(app, {
             resourceType: ResourcePicker.ResourceType.Collection,
             options: {
-                initialSelectionIds: getSelectedCollectionIds(), // Maintain previously selected collections
+                // initialSelectionIds: getSelectedCollectionIds(), // Maintain previously selected collections
             },
         });
 
