@@ -196,10 +196,10 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                                         {item.name}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {item?.currency} {item.price}
+                                                        {item.price}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {item.compareAtPrice == "N/A" ? item.compareAtPrice : <>{item.currency} {item.compareAtPrice}</>}
+                                                        {item.compareAtPrice}
 
                                                     </td>
                                                     <td align="center" style={styles.td}>
