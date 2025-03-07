@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
+import { useAppBridge } from '@shopify/app-bridge-react';
 
 const DraggableTable = ({ productData, setProductData, sortOption, setSortOption }) => {
-    console.log("productData from the draggable table ", productData)
+    const app = useAppBridge();
+    const shopCurrency = app?.shop?.currencyCode;
     const [searchQuery, setSearchQuery] = useState("");
     // const [sortOption, setSortOption] = useState("default");
     const [items, setItems] = useState(() => {

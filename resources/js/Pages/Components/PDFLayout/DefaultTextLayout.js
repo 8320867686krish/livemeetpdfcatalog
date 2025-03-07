@@ -176,7 +176,7 @@ const DefaultTextLayout = (data) => {
                     )}
                     {productAttributes.includes("costPerItem") && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Cost per item : {Array.isArray(cost_per_item) ? "" : cost_per_item.amount + cost_per_item.currencyCode}
+                            Cost per item : {cost_per_item}	
                         </div>
                     )}
                     {productAttributes.includes("description") &&

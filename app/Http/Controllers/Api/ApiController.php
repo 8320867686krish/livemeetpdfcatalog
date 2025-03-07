@@ -205,8 +205,8 @@ class ApiController extends Controller
         $checkValidSettings = Settings::where([
             ['id', '=', $post['setting_id']],
             ['shop_id', '=', $post['shop_id']]
-        ])->select('id', 'catalog_name', 'sort_by', 'collectionName','excludeNotInStore','excludeOutOfStock')->first();
-      
+        ])->select('id', 'catalog_name', 'sort_by', 'collectionName', 'excludeNotInStore', 'excludeOutOfStock')->first();
+
         if (!@$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
@@ -234,8 +234,12 @@ class ApiController extends Controller
                     ... on ProductVariant {
                         id
                         price,
-                        displayName
+                        title
                         compareAtPrice
+                        product{
+                        id,
+                        title
+                    }
                     }
                 }
                 $shopQuery
@@ -255,20 +259,46 @@ class ApiController extends Controller
                     $shop = $response->json('data.shop', []);
                     $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
                 }
-                $filteredNodes = collect($nodes)
+                //     id": "gid://shopify/Product/8150770974901",
+                // "normalizedId": "8150770974901",
+                // "title": "Chow chow - Diced",
+                // "variants": [
+                // 	{
+                // 		"id": "gid://shopify/ProductVariant/45069081542837",
+                // 		"normalizedId": "45069081542837",
+                // 		"title": "300g",
+                // 		"price": "19.00",
+                // 		"product": "gid://shopify/Product/8150770974901",
+                // 		"normalizedProductId": "8150770974901"
+                // 	}
+                // ]
+                $filteredNodes = collect($nodes?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
-                    ->map(function ($node) use ($variantIds, $priceFormat) {
-                        $node['orignalPrice'] = $node['price'];
+                    ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
+                    ->map(function ($variants, $productId) use ($priceFormat) {
+                        $firstVariant = $variants->first(); // Get product details from the first variant
 
-                        $node['price'] = $this->formatMoney($node['price'], $priceFormat);
-                        $node['compareAtPrice'] = $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat);
-
-                        $productId = $node['id'];
-                        $node['priority'] = $variantIds[$productId] ?? null; // Attach priority
-                        return $node;
+                        return [
+                            'id' => $productId,
+                            'normalizedId' => str_replace('gid://shopify/Product/', '', $productId),
+                            'title' => $firstVariant['product']['title'],
+                            'variants' => $variants->map(function ($variant) use ($priceFormat) {
+                                return [
+                                    'id' => $variant['id'],
+                                    'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
+                                    'title' => $variant['title'],
+                                    'price' => $this->formatMoney($variant['price'], $priceFormat),
+                                    'compareAtPrice' => $this->formatMoney($variant['compareAtPrice'] ?? 0, $priceFormat),
+                                    'product' => $variant['product']['id'],
+                                    'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
+                                ];
+                            })->values()->toArray(),
+                        ];
                     })
-                    ->values(); // Reset array keys
-                $results = array_merge($results, $filteredNodes->toArray());
+                    ->values()->toArray(); // Reset array keys
+
+
+                $results = array_merge($results, $filteredNodes);
             } else {
                 throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
@@ -577,7 +607,7 @@ class ApiController extends Controller
                             : ($redirectValue == 1
                                 ? 'https://' . $user['name']
                                 : ($redirectValue == 2
-                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']).'&quantity=1&&'
+                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . '&quantity=1&&'
                                     : 'https://' . $user['name'] . '/cart/' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . ':1?&')
                             ),
 

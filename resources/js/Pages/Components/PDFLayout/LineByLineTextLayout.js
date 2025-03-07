@@ -262,7 +262,7 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {Array.isArray(cost_per_item) ? "" : cost_per_item.amount + cost_per_item.currencyCode}
+                                {cost_per_item}
                             </div>
                         </div>
                     )}
