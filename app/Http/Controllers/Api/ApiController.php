@@ -1286,7 +1286,7 @@ class ApiController extends Controller
         }
 
 
-        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl', 'flipId')
+        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl', 'flipId','catalog_name')
             ->where('shop_id', $shop_id)
             ->orderBy('id', 'desc')
             ->get();

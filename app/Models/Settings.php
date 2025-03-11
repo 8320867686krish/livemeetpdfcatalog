@@ -66,7 +66,7 @@ class Settings extends Model
         "paperLayout" => "a4",
         "productAttributes" => "name,price",
         "productButtonEnabled" => "0",
-        "productAttributeAlignment" => "center",
+        "productAttributeAlignment" => "line_by_line",
         "productDescriptionCharLimit" => "50",
         "productAttributeLabelColor" => "#000000",
         "productAttributeValueColor" => "#000000",
