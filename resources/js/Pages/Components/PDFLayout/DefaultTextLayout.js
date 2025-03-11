@@ -66,20 +66,27 @@ const DefaultTextLayout = (data) => {
     console.log("newCompareAtPrice", newCompareAtPrice)
     // Price Adjustment calculation
     if (priceAdjustment !== "") {
-        const changePrice =
-            (newPrice * Number(productChangeInPercentage)) / 100;
-        newPrice =
-            priceAdjustment == "1"
-                ? newPrice - changePrice
-                : newPrice + changePrice;
+        let adjustmentValue = Number(productChangeInPercentage);
 
-        const changeCompareAtPrice =
-            (newCompareAtPrice * Number(productChangeInPercentage)) / 100;
-        newCompareAtPrice =
-            priceAdjustment == "1"
-                ? newCompareAtPrice - changeCompareAtPrice
-                : newCompareAtPrice + changeCompareAtPrice;
+        if (priceAdjustment === "0") {
+            // Increment by percentage
+            newPrice += (newPrice * adjustmentValue) / 100;
+            newCompareAtPrice += (newCompareAtPrice * adjustmentValue) / 100;
+        } else if (priceAdjustment === "1") {
+            // Decrement by percentage
+            newPrice -= (newPrice * adjustmentValue) / 100;
+            newCompareAtPrice -= (newCompareAtPrice * adjustmentValue) / 100;
+        } else if (priceAdjustment === "2") {
+            // Increment by fixed value
+            newPrice += adjustmentValue;
+            newCompareAtPrice += adjustmentValue;
+        } else if (priceAdjustment === "3") {
+            // Decrement by fixed value
+            newPrice -= adjustmentValue;
+            newCompareAtPrice -= adjustmentValue;
+        }
     }
+
 
     // Price Tax calculation
     if (productTaxPercentage !== "") {
@@ -161,7 +168,7 @@ const DefaultTextLayout = (data) => {
                     )}
                     {productAttributes.includes("quantity") && sku !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Quantity : {stock_quantity === false ? "Not tracked" : stock_quantity + " Units"}
+                            Quantity : {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
                         </div>
                     )}
                     {productAttributes.includes("weight") && sku !== "" && (
@@ -176,7 +183,7 @@ const DefaultTextLayout = (data) => {
                     )}
                     {productAttributes.includes("costPerItem") && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Cost per item : {cost_per_item}	
+                            Cost per item : {cost_per_item}
                         </div>
                     )}
                     {productAttributes.includes("description") &&

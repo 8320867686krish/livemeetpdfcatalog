@@ -901,7 +901,7 @@ const Configrations = (props = {}) => {
                         console.log("send data is chunks is called ");
                         let isLastRequestVariable = false;
                         let lastSendedData = ""
-                        setLoader(true);
+                        setBtnSpinner(true);
                         for (let i = 0; i < chunks.length; i++) {
                             try {
                                 const formData = {
