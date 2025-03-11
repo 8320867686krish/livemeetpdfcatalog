@@ -272,7 +272,7 @@ class ApiController extends Controller
                 // 		"normalizedProductId": "8150770974901"
                 // 	}
                 // ]
-                $filteredNodes = collect($nodes?? []) // Ensure 'nodes' exists
+                $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
                     ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
                     ->map(function ($variants, $productId) use ($priceFormat) {
@@ -605,11 +605,15 @@ class ApiController extends Controller
                                 ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source])
                                 : '')
                             : ($redirectValue == 1
-                                ? 'https://' . $user['name']
+                                ? 'https://' . $user['name'] . (!empty($utm_source) ? '?' . http_build_query(['utm_source' => $utm_source]) : '')
                                 : ($redirectValue == 2
-                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . '&quantity=1&&'
-                                    : 'https://' . $user['name'] . '/cart/' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . ':1?&')
+                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . '&quantity=1'
+                                    . (!empty($utm_source) ? '&' . http_build_query(['utm_source' => $utm_source]) : '')
+                                    : 'https://' . $user['name'] . '/cart/' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . ':1?'
+                                    . (!empty($utm_source) ? '&' . http_build_query(['utm_source' => $utm_source]) : '')
+                                )
                             ),
+
 
 
                     ];
@@ -633,6 +637,7 @@ class ApiController extends Controller
         $token = User::where('name', $shop)->pluck('password')->first();
 
         $query = '{
+            shop { currencyFormats { moneyInEmailsFormat } }
             collections(sortKey: UPDATED_AT, reverse: false, first: 100) {
 
                 edges {
@@ -668,14 +673,18 @@ class ApiController extends Controller
         // Get the JSON response
         $jsonResponse = $response->json();
         if (@$jsonResponse['data']) {
+            $text = $jsonResponse['data']['shop']['currencyFormats']['moneyInEmailsFormat'];
+
+            $updatedText = preg_replace('/{{.*?}}/', '', $text);
+
+            $data['currency'] = $updatedText;
+
             $collections_array = [];
             foreach (@$jsonResponse['data']['collections']['edges'] as $value) {
                 $item_array = [];
                 $item_array['value'] = str_replace('gid://shopify/Collection/', '', $value['node']['id']);
-
                 $title = $value['node']['title'];
                 $item_array['label'] = ucfirst($title); // Capitalize the first character of the title
-
                 $collections_array[] = $item_array; // Use [] to push $item_array into $collections_array
             }
             $responseCode = 1;
@@ -1213,6 +1222,11 @@ class ApiController extends Controller
 
     public function formatMoney($price, $format)
     {
+        if (empty($price) || $price == 0) {
+        return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
+
+
+        }
 
         $placeholders = [
             'amount' => number_format($price, 2),
@@ -1286,7 +1300,7 @@ class ApiController extends Controller
         }
 
 
-        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl', 'flipId','catalog_name')
+        $settingsData = Settings::select('id', 'shop_id', 'collectionId', 'enabled', 'isPdf', 'collectionName', 'pdfUrl', 'flipId', 'catalog_name')
             ->where('shop_id', $shop_id)
             ->orderBy('id', 'desc')
             ->get();
