@@ -376,7 +376,7 @@ const ProductSelection = ({ props }) => {
                         setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
                         setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
                         console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
-                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(','));
+                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(',') || []);
                         // const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
                         //     id: product.id,
                         //     priority: product.priority,
@@ -628,7 +628,7 @@ const ProductSelection = ({ props }) => {
                                     />
                                 </div>
                                 <div>
-                                    Cancel
+                                    Back
                                 </div>
                             </div>
                         </Button>
