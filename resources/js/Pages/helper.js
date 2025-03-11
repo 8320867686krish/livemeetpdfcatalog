@@ -192,8 +192,10 @@ export const convertPaperSize = (paperType = 'a4', paperOrientation = 'portrait'
 
 export const optionsPriceAdjustment = [
     { label: 'None', value: '' },
-    { label: 'Increment', value: '0' },
-    { label: 'Decrement', value: '1' }
+    { label: 'Increment by percentage', value: '0' },
+    { label: 'Decrement by percentage', value: '1' }, 
+    { label: 'Increment by fixed value', value: '2' }, 
+    { label: 'Decrement by fixed value', value: '3' }, 
 ];
 
 export const optionsForRedirectButton = [

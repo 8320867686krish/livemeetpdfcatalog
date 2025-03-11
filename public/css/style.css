@@ -228,7 +228,7 @@
 
 .page_layout_area .page_layout_item {
     flex: 1 1 auto;
-    height: 100px;
+    height: 150px;
     display: flex;
     justify-content: center;
 }
@@ -239,7 +239,7 @@
 }
 
 .page_layout_item .layout_btn {
-    width: 66px;
+    width: 100px;
     height: 100%;
     padding: 0px;
     outline: none;
