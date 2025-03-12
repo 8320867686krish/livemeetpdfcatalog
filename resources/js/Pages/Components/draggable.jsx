@@ -4,7 +4,7 @@ import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 import { useAppBridge } from '@shopify/app-bridge-react';
 
-const DraggableTable = ({ productData, setProductData, sortOption, setSortOption }) => {
+const DraggableTable = ({ productData, setProductData, sortOption, setSortOption, parentCurrency }) => {
     const app = useAppBridge();
     const shopCurrency = app?.shop?.currencyCode;
     const [searchQuery, setSearchQuery] = useState("");
@@ -196,11 +196,10 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                                         {item.name}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {item.price}
+                                                        {parentCurrency}  {item.price}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {item.compareAtPrice}
-
+                                                        {parentCurrency} {item.compareAtPrice}
                                                     </td>
                                                     <td align="center" style={styles.td}>
                                                         <Button icon={DeleteIcon} onClick={() => handleDelete(item.id)} destructive size="slim" />

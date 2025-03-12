@@ -45,7 +45,7 @@ const ProductSelection = ({ props }) => {
     const [excludeNotInStore, setExcludeNotInStore] = useState(false);
     const [showDataTableLoader, setShowDataTableLoader] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState([]); // Store selected collections`
-
+    const [currency, setCurrency] = useState('');
 
     const handleFilterApply = (filters) => {
         console.log("Applied Filters:", filters);
@@ -351,7 +351,7 @@ const ProductSelection = ({ props }) => {
                         label: col.label,
                         value: col.value,
                     }));
-
+                    setCurrency(responseData?.data?.currency);
                     return [{ label: "Please select collection", value: "" }, ...options];
                 } else {
                     console.error("Failed to fetch collections:", responseData);
@@ -772,7 +772,7 @@ const ProductSelection = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
+                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} parentCurrency={currency} />
                                         </>
                                     )}
                                 </>}

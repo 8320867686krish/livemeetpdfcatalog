@@ -1764,26 +1764,6 @@ const Configrations = (props = {}) => {
                                                     <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
-                                                                label="Print quality"
-                                                                name="printQuality"
-                                                                options={
-                                                                    optionsForPrintQuality
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleConfigData(
-                                                                        e,
-                                                                        "printQuality"
-                                                                    )
-                                                                }
-                                                                value={
-                                                                    printQuality
-                                                                }
-                                                            />
-                                                        </FormLayout>
-                                                    </div>
-                                                    <div style={{ marginTop: "10px" }}>
-                                                        <FormLayout>
-                                                            <Select
                                                                 label="Date Format"
                                                                 name="footerDateFormat"
                                                                 options={
@@ -1812,6 +1792,27 @@ const Configrations = (props = {}) => {
                                                     <div style={{ marginTop: "10px" }}>
                                                         <FormLayout>
                                                             <Select
+                                                                label="Print quality"
+                                                                name="printQuality"
+                                                                options={
+                                                                    optionsForPrintQuality
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleConfigData(
+                                                                        e,
+                                                                        "printQuality"
+                                                                    )
+                                                                }
+                                                                value={
+                                                                    printQuality
+                                                                }
+                                                            />
+                                                        </FormLayout>
+                                                    </div>
+
+                                                    {/* <div style={{ marginTop: "10px" }}>
+                                                        <FormLayout>
+                                                            <Select
                                                                 label="Paper Layout"
                                                                 name="paperLayout"
                                                                 options={
@@ -1831,7 +1832,7 @@ const Configrations = (props = {}) => {
                                                                 }
                                                             />
                                                         </FormLayout>
-                                                    </div>
+                                                    </div> */}
 
                                                 </Collapsible>
                                             </LegacyStack>

@@ -134,32 +134,32 @@ const LeftTextLayout = (data) => {
                             SKU : {sku}
                         </div>
                     )}
-                    {productAttributes.includes("vendor") && sku !== "" && (
+                    {productAttributes.includes("vendor") && vendor !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Vendor : {vendor}
                         </div>
                     )}
-                    {productAttributes.includes("type") && sku !== "" && (
+                    {productAttributes.includes("type") && product_type !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Product type : {product_type}
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && sku !== "" && (
+                    {productAttributes.includes("quantity") &&  (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Stock quantity :  {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
                         </div>
                     )}
-                    {productAttributes.includes("weight") && sku !== "" && (
+                    {productAttributes.includes("weight") && weight !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Weight : {_weight}
                         </div>
                     )}
-                    {productAttributes.includes("tag") && sku !== "" && (
+                    {productAttributes.includes("tag") && tags !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Tag : {_tags}
                         </div>
                     )}
-                    {productAttributes.includes("costPerItem") && sku !== "" && (
+                    {productAttributes.includes("costPerItem") && cost_per_item !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Cost per item : {cost_per_item}
                         </div>
