@@ -141,7 +141,8 @@ const LineByLineTextLayout = (data) => {
         newCompareAtPrice.toFixed(2)
     );
 
-
+    console.log('line by line layout called ',productData);
+    console.log('line by line productAttributes ',productAttributes);
     return (
         <>
             <div
@@ -182,7 +183,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("vendor") && sku !== "" && (
+                    {productAttributes.includes("vendor") && vendor !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Vendor : </div>
                             <div
@@ -197,7 +198,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("type") && sku !== "" && (
+                    {productAttributes.includes("type") && product_type !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Product type : </div>
                             <div
@@ -212,7 +213,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && sku !== "" && (
+                    {productAttributes.includes("quantity") &&  (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
                             <div
@@ -227,7 +228,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("weight") && sku !== "" && (
+                    {productAttributes.includes("weight") && weight !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Weight : </div>
                             <div
@@ -242,7 +243,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("tag") && sku !== "" && (
+                    {productAttributes.includes("tag") && tags !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Tag : </div>
                             <div
@@ -258,7 +259,7 @@ const LineByLineTextLayout = (data) => {
                         </div>
                     )}
 
-                    {productAttributes.includes("costPerItem") && sku !== "" && (
+                    {productAttributes.includes("costPerItem") && cost_per_item !== "" && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Cost per item : </div>
                             <div

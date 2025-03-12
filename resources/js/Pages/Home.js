@@ -11,6 +11,12 @@ import {
     Spinner,
     Toast,
     Banner,
+    Card,
+    InlineGrid,
+    Grid,
+    MediaCard,
+    SkeletonDisplayText, SkeletonBodyText,
+    SkeletonThumbnail
 } from "@shopify/polaris";
 import { FileMinor, ThemesMajor } from "@shopify/polaris-icons";
 import TableNoRecord from "./Components/TableNoRecord";
@@ -39,6 +45,13 @@ const Home = (props = {}) => {
     const [warningBannerMessage, setWarningBannerMessage] = useState("");
     const [bannerErrorMessage, setBannerErrorMessage] = useState("Upgrade your plan to create more catelogs");
     const [activeBannerError, setActiveBannerError] = useState(false);
+    const [data, setData] = useState(null);
+    const [ctaImage, setCtaImage] = useState()
+    const [ctaLink, setCtaLink] = useState()
+    const [loading, setLoading] = useState(true)
+    const [dashboardLoader, setDashboardLoader] = useState(false);
+    const [isExtensionActive, setIsExtensionActive] = useState("");
+
     const location = useLocation();
     console.log("location :", location);
 
@@ -256,7 +269,7 @@ const Home = (props = {}) => {
     //Define the row html for index table.........
     var rIndex = 1;
     const rowMarkup = catalogList.map((row, index) => {
-        let { id, shop_id, enabled, pdfUrl, collectionName, flipId } = row;
+        let { id, shop_id, enabled, pdfUrl, collectionName, catalog_name, flipId } = row;
         pdfUrl =
             pdfUrl !== ""
                 ? `${IMAGE_PREFIX}uploads/pdfFile/shop_${shop_id}/collections_${collectionName}/${pdfUrl}`
@@ -274,7 +287,7 @@ const Home = (props = {}) => {
                 }
             >
                 <IndexTable.Cell>{rIndex++}</IndexTable.Cell>
-                <IndexTable.Cell>{collectionName}</IndexTable.Cell>
+                <IndexTable.Cell>{catalog_name || "Untitled catalogs"}</IndexTable.Cell>
                 <IndexTable.Cell>
                     {enabled ? (
                         <Badge tone="success">Enabled</Badge>
@@ -339,7 +352,25 @@ const Home = (props = {}) => {
         );
     });
 
-    return (
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get('https://api.meetanshi.com/shopify/related-apps.php?id=3');
+                setData(response?.data?.apps);
+                setCtaImage(response?.data?.cta_image);
+                setCtaLink(response?.data?.cta_link);
+                setLoading(false)
+
+            } catch (error) {
+                console.error('Response error:', error);
+            }
+            finally {
+            }
+        };
+        fetchData()
+    }, []);
+
+    return (<>
         <Page
             fullWidth
             title="Dashboard"
@@ -427,26 +458,153 @@ const Home = (props = {}) => {
                         }
                         headings={[
                             { title: "Sr No." },
-                            { title: "Collection Name" },
+                            { title: "Catalogs name" },
                             { title: "Status" },
                             { title: "Actions" },
                         ]}
                     >
                         {rowMarkup}
                     </IndexTable>
-                    {/* {(!loader && catalogList.length > 0) &&
-                        <div className="pagination_area">
-                            <Pagination
-                                hasPrevious={hasPreviousPage}
-                                onPrevious={() => getCatalogCollections({ currentState: "previous" })}
-                                hasNext={hasNextPage}
-                                onNext={() => getCatalogCollections({ currentState: "next" })}
-                            />
-                        </div>
-                    } */}
+
+
                 </div>
             </LegacyCard>
         </Page>
+        <Page>
+            <div className='apps'>
+                <div className='appLeft'>
+                    <Card style={{ height: "100%" }}>
+                        <div style={{ marginBottom: "15px" }}>
+                            {loading ? <>
+                                <Text variant="headingLg" as="h5">
+                                    <SkeletonDisplayText size="small" />
+                                </Text>
+                            </>
+                                :
+                                <>
+                                    <Text variant="headingLg" as="h5">
+                                        Suggested  apps for {storeName}
+                                    </Text></>
+                            }
+
+                        </div>
+                        <InlineGrid gap="400" columns={2}>
+                            {data?.map((app) => (
+                                <Card key={app.id}>
+                                    {loading ? <>
+                                        <SkeletonBodyText lines={5} />
+                                    </>
+                                        :
+                                        <>
+                                            <div>
+                                                <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+                                                    <img
+                                                        src={app.image}
+                                                        alt={app.title}
+                                                        style={{ borderRadius: "10px", height: "50px", widows: "50px" }}
+                                                    />
+                                                    <Text variant="headingMd" as="h6">
+                                                        {app.title}
+                                                    </Text>
+                                                </div>
+                                                <div style={{ marginTop: "10px", }}>
+                                                    <Text variant="bodyLg" as="p">
+                                                        {app.subtitle}
+                                                    </Text>
+                                                </div>
+                                                <div style={{ marginTop: "10px" }}>
+                                                    <Button
+                                                        variant="plain"
+                                                        onClick={() => window.open(app.link, "_blank")}
+                                                    >
+                                                        Get app
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    }
+
+                                </Card>
+                            ))}
+                        </InlineGrid>
+                    </Card>
+                </div>
+                <div
+                    className='appRight'
+
+                    onClick={() => {
+                        if (ctaLink) {
+                            window.open(ctaLink, "_blank");
+                        }
+                    }}
+                >
+                    <img
+                        src={ctaImage}
+                        alt="Recommended apps box"
+                        style={{
+                        }}
+                    />
+                </div>
+            </div>
+
+            <div style={{
+                marginTop: "2%",
+                marginBottom: "20px",
+            }}>
+                <Grid>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
+                        <div style={{ maxHeight: "30%" }}>
+                            <MediaCard
+                                title="User Guild"
+                                primaryAction={{
+                                    content: 'user Guide',
+                                    onAction: () => { },
+                                }}
+                                description={
+                                    <div >
+                                        In this course, you’ll learn how the Kular family turned their mom’s recipe book into a global business.
+
+                                    </div>
+                                }
+                            >
+                                <img src={`${IMAGE_PREFIX}images/user_guide.png`} alt="Fake Image"
+                                    style={{ height: "100%", width: "100%" }}
+                                />
+                            </MediaCard>
+                        </div>
+                    </Grid.Cell>
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 3, md: 3, lg: 6, xl: 6 }}>
+                        <MediaCard
+                            title="Theme installation"
+                            primaryAction={{
+                                loading: dashboardLoader,
+                                content: 'Manage installation',
+                                onAction: () => {
+                                    window.open(
+                                        themeUrl
+                                    )
+                                },
+                            }}
+                            description={
+                                <>
+                                    You currently do not have Meteor installed on your live StoreFront. <br />
+                                    <div style={{ marginTop: "3%" }}>
+                                        {!isExtensionActive ? <Badge tone="success">Active</Badge> : <Badge tone="critical">Inactive</Badge>}
+                                    </div>
+                                </>
+                            }
+                        >
+                            <img
+                                src={`${IMAGE_PREFIX}images/extension.png`}
+                                alt="Fake Image"
+                                style={{ height: "100%", width: "100%" }}
+                            />
+                        </MediaCard>
+                    </Grid.Cell>
+                </Grid>
+            </div>
+        </Page>
+    </>
     );
 };
 

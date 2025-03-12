@@ -156,27 +156,27 @@ const DefaultTextLayout = (data) => {
                             SKU : {sku}
                         </div>
                     )}
-                    {productAttributes.includes("vendor") && sku !== "" && (
+                    {productAttributes.includes("vendor") && vendor !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Vendor : {vendor}
                         </div>
                     )}
-                    {productAttributes.includes("type") && sku !== "" && (
+                    {productAttributes.includes("type") && product_type !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Product type : {product_type}
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && sku !== "" && (
+                    {productAttributes.includes("quantity") && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Quantity : {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
                         </div>
                     )}
-                    {productAttributes.includes("weight") && sku !== "" && (
+                    {productAttributes.includes("weight") && weight !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Weight : {_weight}
                         </div>
                     )}
-                    {productAttributes.includes("tag") && sku !== "" && (
+                    {productAttributes.includes("tag") && tags !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
                             Tag : {_tags}
                         </div>

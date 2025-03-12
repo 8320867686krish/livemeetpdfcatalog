@@ -45,7 +45,7 @@ const ProductSelection = ({ props }) => {
     const [excludeNotInStore, setExcludeNotInStore] = useState(false);
     const [showDataTableLoader, setShowDataTableLoader] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState([]); // Store selected collections`
-
+    const [currency, setCurrency] = useState('');
 
     const handleFilterApply = (filters) => {
         console.log("Applied Filters:", filters);
@@ -351,7 +351,7 @@ const ProductSelection = ({ props }) => {
                         label: col.label,
                         value: col.value,
                     }));
-
+                    setCurrency(responseData?.data?.currency);
                     return [{ label: "Please select collection", value: "" }, ...options];
                 } else {
                     console.error("Failed to fetch collections:", responseData);
@@ -376,7 +376,7 @@ const ProductSelection = ({ props }) => {
                         setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
                         setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
                         console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
-                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(','));
+                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(',') || []);
                         // const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
                         //     id: product.id,
                         //     priority: product.priority,
@@ -628,7 +628,7 @@ const ProductSelection = ({ props }) => {
                                     />
                                 </div>
                                 <div>
-                                    Cancel
+                                    Back
                                 </div>
                             </div>
                         </Button>
@@ -772,7 +772,7 @@ const ProductSelection = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} />
+                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} parentCurrency={currency} />
                                         </>
                                     )}
                                 </>}
