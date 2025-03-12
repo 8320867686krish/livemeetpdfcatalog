@@ -34,7 +34,7 @@ class HomeController extends Controller
     {
         $post = $request->input();
         $shop = $request->input('shop');
-        $shop = $request->input('host');
+        $host = $request->input('host');
         $plan = DB::table('plans')->where('name', 'Free')->first();
         $shopDetail = User::where('name', $shop)->first();
         $shop_exist = $shopDetail;
