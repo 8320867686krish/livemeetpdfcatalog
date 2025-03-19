@@ -3,3 +3,7 @@ in collection_products
 title:nullble
 
 ALTER TABLE chunk_pdfs CHANGE collection_id collection_id VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL;
+
+
+sync in settings table
+collection_name update into catalog_name

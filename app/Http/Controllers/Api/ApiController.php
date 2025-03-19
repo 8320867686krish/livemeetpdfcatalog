@@ -1568,10 +1568,10 @@ class ApiController extends Controller
         $collectionId = $post['collectionId'];
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
-        $settings = Settings::where('shop_id', $user)->where('collectionId', $collectionId)->where('enabled', 1)->first();
+        $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])
+        ->where('enabled', 1)->first();
         if ($settings) {
-            $path = url('uploads/pdfFile/shop_' . $user . "/collections_" . $settings['collectionName'] . "/"
-                . $settings['pdfUrl']);
+           
             //return response()->download($path);
             if (@$settings['flipId']) {
                 $flipstatus = true;
@@ -1590,10 +1590,10 @@ class ApiController extends Controller
         $collectionId = $post['collectionId'];
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
-        $settings = Settings::where('shop_id', $user)->where('collectionId', $collectionId)->where('enabled', 1)->first();
+        $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])->first();
         if ($settings) {
-            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings['collectionName'] . "/"
-                . $settings['pdfUrl']);
+            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name. "/"
+                . $settings->pdfUrl);
             return response()->download($path);
         }
     }
@@ -1613,11 +1613,11 @@ class ApiController extends Controller
             if (!file_exists($shopFolder)) {
                 mkdir($shopFolder, 0777, true);
             }
-            $collectionFolder = $shopFolder . "/collections_" . $post['collection_name'];
+            $collectionFolder = $shopFolder . "/collections_" . $settingsData['catalog_name'];
             if (!file_exists($collectionFolder)) {
                 mkdir($collectionFolder, 0777, true);
             }
-            $png_url = "PDF-" . $post['collection_name'] . time() . ".pdf";
+            $png_url = "PDF-" . $settingsData['catalog_name'] . time() . ".pdf";
             $path = $collectionFolder . "/" . $png_url;
             $img = $commaSeparatedString;
             $img = substr($img, strpos($img, ",") + 1);
@@ -1775,11 +1775,11 @@ class ApiController extends Controller
             if (!file_exists($shopFolder)) {
                 mkdir($shopFolder, 0777, true);
             }
-            $collectionFolder = $shopFolder . "/collections_" . $post['collection_name'];
+            $collectionFolder = $shopFolder . "/collections_" . $settingsData['catalog_name'];
             if (!file_exists($collectionFolder)) {
                 mkdir($collectionFolder, 0777, true);
             }
-            $png_url = "PDF-" . $post['collection_name'] . time() . ".pdf";
+            $png_url = "PDF-" . $settingsData['catalog_name'] . time() . ".pdf";
             $path = $collectionFolder . "/" . $png_url;
             $img = $commaSeparatedString;
             $img = substr($img, strpos($img, ",") + 1);

@@ -272,7 +272,7 @@ const Home = (props = {}) => {
         let { id, shop_id, enabled, pdfUrl, collectionName, catalog_name, flipId } = row;
         pdfUrl =
             pdfUrl !== ""
-                ? `${IMAGE_PREFIX}uploads/pdfFile/shop_${shop_id}/collections_${collectionName}/${pdfUrl}`
+                ? `${IMAGE_PREFIX}uploads/pdfFile/shop_${shop_id}/collections_${catalog_name}/${pdfUrl}`
                 : "";
         console.log("row flip id : ", flipId);
         // const selectedRow = selectedResources.some(item => item.id == id); //If selected product is object..
