@@ -18,7 +18,7 @@ mix.js('resources/js/app.js', 'public/js').version()
     ]);
     mix.webpackConfig({
         output: {
-            publicPath: mix.inProduction() ? 'https://lara.meetanshi.org/ReactMpdf/public/' : '/',chunkFilename: 'js/chunks/[name].js',
+            publicPath: mix.inProduction() ? 'https://lara.meetanshi.org/pdfcatalog/public/' : '/',chunkFilename: 'livemeetpdfcatalog/public/js/chunks/[name].js',
             // publicPath: mix.inProduction() ? 'https://lara.meetanshi.org/ReactMpdf/public/' : '/',chunkFilename: 'public/js/chunks/[name].js',
         },
     });
