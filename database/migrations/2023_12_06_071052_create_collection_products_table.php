@@ -23,6 +23,7 @@ return new class extends Migration
             $table->text('desc')->nullable(); 
             $table->string('sku')->nullable();
             $table->string('price',100)->nullable();
+            $table->string('compareAtPrice',100)->nullable();
             $table->text('store_url')->nullable();
             $table->string('barcode')->nullable();
             $table->foreign('shop_id')->references('id')->on('users'); // Assuming 'shops' is the related table.
