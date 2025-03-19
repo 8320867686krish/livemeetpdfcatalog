@@ -22,7 +22,6 @@ return new class extends Migration
             $table->tinyInteger('excludeOutOfStock')->default(0);
             $table->tinyInteger('excludeNotInStore')->default(0);
             $table->string('redirectValue',2)->default(0);
-            $table->string('printQuality',2)->default(0);
         });
     }
 
