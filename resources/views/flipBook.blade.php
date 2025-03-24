@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pdf Preview</title>
  
-    <link rel="stylesheet" href="{{ asset('FlipPdfJs/style.css')}}"></link>
+    <link rel="stylesheet" href="{{ asset('public/FlipPdfJs/style.css')}}"></link>
 </head>
 
 <body>
@@ -15,11 +15,11 @@
         source="{{asset($pdfurl)}}">
     </div>
   
-   <script src="{{ asset('FlipPdfJs/jquerymin.js') }}"></script>
-<script src="{{ asset('FlipPdfJs/dflip.min.js') }}"></script>
-<script src="{{ asset('FlipPdfJs/pdf.min.js') }}"></script>
-<script src="{{ asset('FlipPdfJs/pdfworker.min.js') }}"></script>
-<script src="{{ asset('FlipPdfJs/three.min.js') }}"></script>
+   <script src="{{ asset('public/FlipPdfJs/jquerymin.js') }}"></script>
+<script src="{{ asset('public/FlipPdfJs/dflip.min.js') }}"></script>
+<script src="{{ asset('public/FlipPdfJs/pdf.min.js') }}"></script>
+<script src="{{ asset('public/FlipPdfJs/pdfworker.min.js') }}"></script>
+<script src="{{ asset('public/FlipPdfJs/three.min.js') }}"></script>
 </body>
 
 </html>
