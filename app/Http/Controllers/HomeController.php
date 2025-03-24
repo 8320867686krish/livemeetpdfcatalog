@@ -205,7 +205,7 @@ class HomeController extends Controller
     public function flipBook($flipId){
         $settingsData = Settings::where('flipId', $flipId)->first();
         
-        $pdfurl = 'public/uploads/pdfFile/shop_'.$settingsData['shop_id']."/"."collections_".$settingsData['catalog_name']."/".$settingsData['pdfUrl'];
+        $pdfurl = 'uploads/pdfFile/shop_'.$settingsData['shop_id']."/"."collections_".$settingsData['catalog_name']."/".$settingsData['pdfUrl'];
         return view('flipBook',compact('pdfurl'));
 
     }
