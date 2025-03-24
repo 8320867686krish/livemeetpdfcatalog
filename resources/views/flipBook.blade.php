@@ -15,11 +15,11 @@
         source="{{asset($pdfurl)}}">
     </div>
   
-   <script src="{{ asset('public/FlipPdfJs/jquerymin.js') }}"></script>
-<script src="{{ asset('public/FlipPdfJs/dflip.min.js') }}"></script>
-<script src="{{ asset('public/FlipPdfJs/pdf.min.js') }}"></script>
-<script src="{{ asset('public/FlipPdfJs/pdfworker.min.js') }}"></script>
-<script src="{{ asset('public/FlipPdfJs/three.min.js') }}"></script>
+   <script src="{{ asset('FlipPdfJs/jquerymin.js') }}"></script>
+<script src="{{ asset('FlipPdfJs/dflip.min.js') }}"></script>
+<script src="{{ asset('FlipPdfJs/pdf.min.js') }}"></script>
+<script src="{{ asset('FlipPdfJs/pdfworker.min.js') }}"></script>
+<script src="{{ asset('FlipPdfJs/three.min.js') }}"></script>
 </body>
 
 </html>
