@@ -16,7 +16,7 @@ window.URL_PREFIX = '/livemeetpdfcatalog/';
 
 
 //window.IMAGE_PREFIX = `${window.location.origin}/`;
- window.IMAGE_PREFIX = `${window.location.origin}/public/`;
+ window.IMAGE_PREFIX = `${window.location.origin}/livemeetpdfcatalog/public/`;
 
 
 
