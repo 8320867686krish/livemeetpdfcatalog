@@ -155,7 +155,7 @@ class ApiController extends Controller
                     'image' => $value['image'],
                     'desc' => $value['description'],
                     'price' => $value['price'],
-                    'compareAtPrice' => $value['compareAtPrice'] ?? 0.00,
+                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
                     'sku' => $value['sku'],
                     'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
                     'barcode' => @$value['barcode'] ? $value['barcode'] : null,
@@ -288,9 +288,7 @@ class ApiController extends Controller
                                     'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
                                     'title' => $variant['title'],
                                     'price' => $this->formatMoney($variant['price'], $priceFormat),
-                                   // 'compareAtPrice' => $this->formatMoney($variant['compareAtPrice'] ?? 0.00, $priceFormat),
-                                 'compareAtPrice' => $variant['compareAtPrice'] ?? 0.00,
-
+                                    'compareAtPrice' => $this->formatMoney($variant['compareAtPrice'] ?? 0, $priceFormat),
                                     'product' => $variant['product']['id'],
                                     'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
                                 ];
