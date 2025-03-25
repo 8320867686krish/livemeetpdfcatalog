@@ -289,7 +289,7 @@ class ApiController extends Controller
                                     'title' => $variant['title'],
                                     'price' => $this->formatMoney($variant['price'], $priceFormat),
                                    // 'compareAtPrice' => $this->formatMoney($variant['compareAtPrice'] ?? 0.00, $priceFormat),
-                                 'compareAtPrice' => $variant['compareAtPrice'],
+                                 'compareAtPrice' => $variant['compareAtPrice'] ?? 0.00,
 
                                     'product' => $variant['product']['id'],
                                     'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
