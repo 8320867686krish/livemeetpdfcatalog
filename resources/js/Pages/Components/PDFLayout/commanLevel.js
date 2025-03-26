@@ -102,7 +102,8 @@ export function getStoreUrlFromShopifyProductUrl(productUrl) {
       return `${url.protocol}//${url.hostname}`;
     } catch (e) {
       console.error("Invalid URL:", e);
+      console.error("Invalid URL:", e);
       return null;
     }
-  }
+} 
   
