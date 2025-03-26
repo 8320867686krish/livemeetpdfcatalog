@@ -37,6 +37,8 @@ const FourItemList = (props) => {
             selectedProducts = [],
             productPageLayoutId = "",
             paperLayout = "",
+            utmSource = "",
+            redirectValue = "",
         } = {},
     } = props;
     const pageArray = objectTo2DArray(selectedProducts, displayPerPageProduct);
@@ -162,6 +164,8 @@ const FourItemList = (props) => {
                                                             productData: pItem,
                                                             paperLayout:
                                                                 paperLayout,
+                                                                utmSource: utmSource,
+                                                                redirectValue: redirectValue,
                                                         }}
                                                     />
                                                 </div>

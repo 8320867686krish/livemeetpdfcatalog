@@ -10,7 +10,7 @@ const displayPerPageProduct = 8;
 
 // Function to create rows with two columns
 const DrawGridLayout = (data = {}) => {
-    const { configData = {}, productItem = [] , paperLayout = ''} = data;
+    const { configData = {}, productItem = [], paperLayout = '' } = data;
     const {
         productPageLayoutId = "",
         fontColor = "",
@@ -25,7 +25,10 @@ const DrawGridLayout = (data = {}) => {
         productDescriptionCharLimit = "",
         productBackgroundColor = "",
         productAttributeLabelColor = "",
+        utmSource = "",
+        redirectValue = "",
     } = configData;
+    console.log("configData ", configData);
     const rows = [];
     let j = 1;
     const emptyItems = displayPerPageProduct - productItem.length;
@@ -94,7 +97,9 @@ const DrawGridLayout = (data = {}) => {
                                                     descriptionCharLimit:
                                                         productDescriptionCharLimit,
                                                     productData: pItem,
-                                                    paperLayout : paperLayout
+                                                    paperLayout: paperLayout,
+                                                    utmSource: utmSource,
+                                                    redirectValue: redirectValue,
                                                 }}
                                             />
                                         </div>
@@ -174,11 +179,11 @@ const EightItemGrid = (props) => {
                             height:
                                 paperLayout === "legal"
                                     ? legalPaperSize
-                                        : paperLayout === "a5"
-                                    ? A5PaperSize
-                                    : paperLayout === "letter"
-                                    ? letterPaperSize
-                                    : pdfHeight + paperSizeMeasurement,
+                                    : paperLayout === "a5"
+                                        ? A5PaperSize
+                                        : paperLayout === "letter"
+                                            ? letterPaperSize
+                                            : pdfHeight + paperSizeMeasurement,
                         }}
                     >
                         <div
@@ -202,7 +207,7 @@ const EightItemGrid = (props) => {
                                         fontColor,
                                         backgroundColor,
                                         logo,
-                                        paperLayout : paperLayout
+                                        paperLayout: paperLayout
                                     }}
                                 />
                             )}
@@ -216,21 +221,21 @@ const EightItemGrid = (props) => {
                             {(footerText != "" ||
                                 footerPageNoEnabled == "1" ||
                                 footerDateEnabled == "1") && (
-                                <Footer
-                                    {...{
-                                        footerText,
-                                        footerAlignment,
-                                        fontFamily,
-                                        fontColor,
-                                        backgroundColor,
-                                        footerPageNoEnabled,
-                                        footerDateEnabled,
-                                        footerDateFormat,
-                                        pageSize: _pageSize,
-                                        paperLayout : paperLayout
-                                    }}
-                                />
-                            )}
+                                    <Footer
+                                        {...{
+                                            footerText,
+                                            footerAlignment,
+                                            fontFamily,
+                                            fontColor,
+                                            backgroundColor,
+                                            footerPageNoEnabled,
+                                            footerDateEnabled,
+                                            footerDateFormat,
+                                            pageSize: _pageSize,
+                                            paperLayout: paperLayout
+                                        }}
+                                    />
+                                )}
                         </div>
                     </div>
                 );

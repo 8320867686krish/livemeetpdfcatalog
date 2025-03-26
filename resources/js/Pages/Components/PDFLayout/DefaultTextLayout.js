@@ -1,6 +1,6 @@
 import React from "react";
 import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
-import { commonLevel } from "./commanLevel";
+import { commonLevel, generateShopifyUrl, getStoreUrlFromShopifyProductUrl } from "./commanLevel";
 
 const DefaultTextLayout = (data) => {
     const {
@@ -14,10 +14,13 @@ const DefaultTextLayout = (data) => {
         fontColor = "",
         backgroundColor = "",
         paperLayout = "",
-        productPageLayoutId = ""
+        productPageLayoutId = "",
+        redirectValue = "",
+        utmSource = ""
     } = data;
-    console.log("productPageLayoutId ", productPageLayoutId);
+    console.log("productPageLayoutId ", data);
     let {
+        id = "",
         title = "",
         sku = "",
         description = "",
@@ -31,6 +34,7 @@ const DefaultTextLayout = (data) => {
         vendor = "",
         product_type = "",
         cost_per_item = "",
+
     } = productData;
     console.log("product data from default text layout ", productData)
     const _description =
@@ -114,6 +118,28 @@ const DefaultTextLayout = (data) => {
     const { letterSpacingBuyNow, letterSpacingTitle, buyNowButtonPadding } =
         commonLevel(paperLayout);
 
+    var shopDomain = getStoreUrlFromShopifyProductUrl(storeurl);
+    console.log("shop domain ", shopDomain);
+    console.log("redirect value  ", redirectValue);
+    var modifiedStoreUrl = storeurl
+    if (redirectValue == "0") {
+        modifiedStoreUrl = storeurl
+    }
+    if (redirectValue == "1") {
+        modifiedStoreUrl = generateShopifyUrl("", "online_store", shopDomain);
+    }
+    if (redirectValue == "2") {
+        modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
+        console.log("modified url before replace ", modifiedStoreUrl);
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+        console.log("modified url after replace ", modifiedStoreUrl);
+    }
+    if (redirectValue == "3") {
+        modifiedStoreUrl = generateShopifyUrl(id, "checkout", shopDomain)
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+    }
+    modifiedStoreUrl = modifiedStoreUrl + (utmSource && utmSource != "" ? `?utm_source=${utmSource}` : "")
+    console.log("modifiedStoreUrl ", modifiedStoreUrl);
     return (
         <>
             <div
@@ -183,7 +209,7 @@ const DefaultTextLayout = (data) => {
                     )}
                     {productAttributes.includes("costPerItem") && (
                         <div className="custom-sku" style={{ opacity: "0.7" }}>
-                            Cost per item : {cost_per_item}
+                            Cost per item : {cost_per_item == "" ? "--" : cost_per_item}
                         </div>
                     )}
                     {productAttributes.includes("description") &&
@@ -227,7 +253,7 @@ const DefaultTextLayout = (data) => {
                     {productButtonEnabled == "1" && (
                         <div style={{ opacity: "0.7" }}>
                             <a
-                                href={storeurl}
+                                href={modifiedStoreUrl}
                                 style={{
                                     backgroundColor: fontColor,
                                     color: backgroundColor,

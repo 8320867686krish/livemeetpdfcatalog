@@ -12,6 +12,7 @@ const ProductContentLayout = (data) => {
         productPageLayoutId = "",
         paperLayout = "",
     } = data;
+    console.log("data from product content ",data);
     const productArributeArray = convertStrToArr(productAttributes);
     const contentMargin = [
         "oneItemGrid",
