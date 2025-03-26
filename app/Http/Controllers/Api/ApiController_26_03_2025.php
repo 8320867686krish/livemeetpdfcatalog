@@ -155,7 +155,7 @@ class ApiController extends Controller
                     'image' => $value['image'],
                     'desc' => $value['description'],
                     'price' => $value['price'],
-                    'compareAtPrice' => $value['compareAtPrice'] ?? 0.00,
+                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
                     'sku' => $value['sku'],
                     'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
                     'barcode' => @$value['barcode'] ? $value['barcode'] : null,
@@ -259,7 +259,19 @@ class ApiController extends Controller
                     $shop = $response->json('data.shop', []);
                     $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
                 }
-               
+                //     id": "gid://shopify/Product/8150770974901",
+                // "normalizedId": "8150770974901",
+                // "title": "Chow chow - Diced",
+                // "variants": [
+                // 	{
+                // 		"id": "gid://shopify/ProductVariant/45069081542837",
+                // 		"normalizedId": "45069081542837",
+                // 		"title": "300g",
+                // 		"price": "19.00",
+                // 		"product": "gid://shopify/Product/8150770974901",
+                // 		"normalizedProductId": "8150770974901"
+                // 	}
+                // ]
                 $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
                     ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
@@ -277,7 +289,6 @@ class ApiController extends Controller
                                     'title' => $variant['title'],
                                     'price' => $this->formatMoney($variant['price'], $priceFormat),
                                     'compareAtPrice' => isset($variant['compareAtPrice']) && !is_null($variant['compareAtPrice']) ? $this->formatMoney($variant['compareAtPrice'], $priceFormat) : "",
-
                                     'product' => $variant['product']['id'],
                                     'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
                                 ];
@@ -579,7 +590,7 @@ class ApiController extends Controller
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
                         'title' => $node['displayName'],
                         'price' => $this->formatMoney($node['price'], $priceFormat),
-                        'compareAtPrice' => isset($node['compareAtPrice']) && !is_null($node['compareAtPrice']) ? $this->formatMoney($node['compareAtPrice'], $priceFormat) : "",
+                        'compareAtPrice' => $this->formatMoney($node['compareAtPrice'] ?? 0, $priceFormat),
                         'orignalPrice' => $node['price'],
                         'sku' => $node['sku'] ?? '',
                         'barcode' => $node['barcode'] ?? '',
@@ -589,7 +600,19 @@ class ApiController extends Controller
                         'tags' => $node['product']['tags'] ? implode(',', $node['product']['tags']) : '',
                         'product_type' => $node['product']['productType'] ?? '',
                         'status' => $node['product']['status'] ?? '',
-                        'storeurl' =>$node['product']['onlineStorePreviewUrl'] ?? ''
+                        'storeurl' => ($redirectValue == 0 && isset($node['product']['onlineStorePreviewUrl']))
+                            ? $node['product']['onlineStorePreviewUrl'] . (!empty($utm_source)
+                                ? (strpos($node['product']['onlineStorePreviewUrl'], '?') === false ? '?' : '&') . http_build_query(['utm_source' => $utm_source])
+                                : '')
+                            : ($redirectValue == 1
+                                ? 'https://' . $user['name'] . (!empty($utm_source) ? '?' . http_build_query(['utm_source' => $utm_source]) : '')
+                                : ($redirectValue == 2
+                                    ? 'https://' . $user['name'] . '/cart/add?id=' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . '&quantity=1'
+                                    . (!empty($utm_source) ? '&' . http_build_query(['utm_source' => $utm_source]) : '')
+                                    : 'https://' . $user['name'] . '/cart/' . str_replace('gid://shopify/ProductVariant/', '', $node['id']) . ':1?'
+                                    . (!empty($utm_source) ? '&' . http_build_query(['utm_source' => $utm_source]) : '')
+                                )
+                            ),
 
 
 
@@ -675,7 +698,271 @@ class ApiController extends Controller
 
         return response()->json(['responseCode' => $responseCode, 'errorCode' => 0, 'message' => $message, 'data' => $data]);
     }
- 
+    // public function collectionProductGet(Request $request)
+    // {
+    //     $shop = base64_decode($request->header('token'));
+    //     $post = $request->input();
+    //     $token = User::where('name', $shop)->pluck('password')->first();
+    //     $queryparam = $request->input('query');
+
+    //     $shopUrl = "https://" . $shop . "/admin/api/2023-10/shop.json";
+    //     $customHeaders = [
+    //         'X-Shopify-Access-Token' => $token, // Replace with your actual authorization token
+    //     ];
+    //     // Send a cURL request to the GraphQL endpoint
+    //     $shopDetailResponse = Http::withHeaders($customHeaders)->get($shopUrl);
+    //     $shopJsonResponse = $shopDetailResponse->json();
+    //     $priceFormat = $shopJsonResponse['shop']['money_with_currency_in_emails_format'];
+
+    //     if (isset($post['endCursor'])) {
+    //         $querystring = "first: 50, after: \"" . $post['endCursor'] . "\"";
+    //     } elseif (isset($post['startCursor'])) {
+    //         $querystring = "last: 50, before: \"" . $post['startCursor'] . "\"";
+    //     } else {
+
+    //         $querystring = "first:50";
+    //     }
+    //     if (isset($post['query'])) {
+    //         $queryParam = '*' . $post['query'] . '*';
+    //     } else {
+    //         $queryParam = '';
+    //     }
+    //     $collectionId = $post['collectionId'];
+    //     if (!@$queryparam && $collectionId != 0) {
+    //         $query = '{
+    //             collection(id: "gid://shopify/Collection/'.$collectionId.'") {
+    //                 id
+    //                 title
+    //                 products(' . $querystring . ') {
+    //                     pageInfo {
+    //                         hasNextPage
+    //                         hasPreviousPage
+    //                         endCursor
+    //                         startCursor
+    //                     }
+    //                     edges {
+    //                         node {
+    //                             id
+    //                             title
+    //                             description
+    //                             onlineStorePreviewUrl
+    //                             images(first: 1) {
+    //                                 edges {
+    //                                     node {
+    //                                         originalSrc
+    //                                     }
+    //                                 }
+    //                             }
+    //                             variants(first: 6) {
+    //                                 pageInfo {
+    //                                     hasNextPage
+    //                                     hasPreviousPage
+    //                                     endCursor
+    //                                     startCursor
+    //                                 }
+    //                                 edges {
+    //                                     node {
+    //                                         id
+    //                                         title
+    //                                         price
+    //                                         compareAtPrice
+    //                                         sku
+    //                                         barcode
+    //                                         image {
+    //                                             originalSrc
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }';
+    //     } else {
+    //         $query = '{
+    //             products(' . $querystring . ($queryparam ? ', query: "title:*' . $queryparam . '*"' : '') . ') {
+    //                 pageInfo {
+    //                     hasNextPage
+    //                     hasPreviousPage
+    //                     endCursor
+    //                     startCursor
+    //                 }
+    //                 edges {
+    //                     node {
+    //                         id
+    //                         title
+    //                         description
+    //                         onlineStorePreviewUrl
+    //                         images(first: 1) {
+    //                             edges {
+    //                                 node {
+    //                                     originalSrc
+    //                                 }
+    //                             }
+    //                         }
+    //                         variants(first: 6) {
+    //                             pageInfo {
+    //                                 hasNextPage
+    //                                 hasPreviousPage
+    //                                 endCursor
+    //                                 startCursor
+    //                             }
+    //                             edges {
+    //                                 node {
+    //                                     id
+    //                                     title
+    //                                     price
+    //                                     compareAtPrice
+    //                                     sku
+    //                                     barcode
+    //                                     image {
+    //                                         originalSrc
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }';
+    //     }
+
+    //     $graphqlEndpoint = 'https://' . $shop . '/admin/api/2023-10/graphql.json'; // Replace with your actual GraphQL endpoint URL
+    //     $customHeaders = [
+    //         'X-Shopify-Access-Token' => $token, // Replace with your actual authorization token
+    //     ];
+    //     // Send a cURL request to the GraphQL endpoint
+    //     $response = Http::withHeaders($customHeaders)->post($graphqlEndpoint, [
+    //         'query' => $query,
+    //     ]);
+    //     // Get the JSON response
+    //     $jsonResponse = $response->json();
+    //     if (@$jsonResponse['data']) {
+    //         $collections_array = [];
+
+    //         if ($jsonResponse['data']['products'] ?? $jsonResponse['data']['collection']['products']) {
+    //             $collestionloopdata = @$jsonResponse['data']['products']['edges'] ?? @$jsonResponse['data']['collection']['products']['edges'];
+    //             $pageData = $jsonResponse['data']['products'] ?? $jsonResponse['data']['collection']['products'];
+    //             if (@$collestionloopdata) {
+    //                 foreach (@$collestionloopdata as $value) {
+
+    //                     $minPriceSku = null;
+
+    //                     $item_array = [];
+    //                     $variants = $value['node']['variants']['edges'];
+    //                     $variants = array_map(function ($variant) {
+    //                         $variant['node']['compareAtPrice'] = $variant['node']['compareAtPrice'] ?? "0";
+    //                         return $variant;
+
+    //                     }, $variants);
+
+    //                     // If there are more variants, recursively fetch them
+    //                     while ($value['node']['variants']['pageInfo']['hasNextPage']) {
+    //                         $nextPage = $value['node']['variants']['pageInfo']['endCursor'];
+
+    //                         $queryVariant = '{
+    //                             product(id:"' . $value["node"]["id"] . '") {
+    //                                 variants(first: 94, after: "' . $nextPage . '") {
+    //                                     pageInfo {
+    //                                         hasNextPage
+    //                                         hasPreviousPage
+    //                                         endCursor
+    //                                         startCursor
+    //                                     }
+    //                                     edges {
+    //                                         node {
+    //                                             id
+    //                                             title
+    //                                             price
+    //                                             compareAtPrice
+    //                                             sku
+    //                                             barcode
+    //                                             image {
+    //                                                 originalSrc
+    //                                               }
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }';
+
+    //                         $responseVariant = Http::withHeaders($customHeaders)->post($graphqlEndpoint, [
+    //                             'query' => $queryVariant,
+    //                         ]);
+
+    //                         $jsonResponseVariant = $responseVariant->json();
+
+    //                         if (isset($jsonResponseVariant['data']['product']['variants'])) {
+    //                             $variants = array_merge($variants, $jsonResponseVariant['data']['product']['variants']['edges']);
+    //                         }
+
+    //                         $value['node']['variants']['pageInfo'] = $jsonResponseVariant['data']['product']['variants']['pageInfo'];
+    //                     }
+
+    //                     $item_array['id'] = str_replace('gid://shopify/Product/', '', $value['node']['id']);
+
+    //                     $title = $value['node']['title'];
+    //                     $item_array['title'] = ucfirst($title); // Capitalize the first character of the title
+
+    //                     if (isset($value['node']['images']['edges'][0]['node']['originalSrc'])) {
+    //                         $item_array['image'] = $value['node']['images']['edges'][0]['node']['originalSrc'];
+    //                     } else {
+    //                         $item_array['image'] = ''; // Assign null or any default value for missing image
+    //                     }
+
+    //                     $item_array['description'] = $value['node']['description'];
+    //                     $item_array['storeurl'] = $value['node']['onlineStorePreviewUrl'];
+    //                     $item_array['sku'] = (@$value['node']['variants']['edges'][0]['node']['sku']) ? @$value['node']['variants']['edges'][0]['node']['sku'] : "";
+    //                     $item_array['barcode'] = $value['node']['variants']['edges'][0]['node']['barcode'];
+    //                     $item_array['variants'] = $variants;
+
+    //                     $priceValue = $value['node']['variants']['edges'][0]['node']['price'];
+
+    //                   if($value['node']['variants']['edges'][0]['node']['compareAtPrice']){
+    //                           $comparePrice = $value['node']['variants']['edges'][0]['node']['compareAtPrice'];
+    //                           $formattedComparePrice = @$this->formatMoney($comparePrice, $priceFormat) ?? "0";
+    //                     }else{
+    //                       $comparePrice ="0.00";
+    //                              $formattedComparePrice = "0.00";
+    //                     }
+    //                     $formattedPrice = $this->formatMoney($priceValue, $priceFormat);
+
+    //                     $item_array['price'] = $formattedPrice;
+    //                     $item_array['orignalPrice'] = $priceValue;
+    //                     $collections_array[] = $item_array; // Use [] to push $item_array into $collections_array
+
+    //                     $item_array['compareAtPrice'] =     $formattedComparePrice;
+    //                     $item_array['orignalcompareAtPrice'] = $comparePrice;
+    //                     $data['products'] = $collections_array;
+    //                     $data['hasNextPage'] = $pageData['pageInfo']['hasNextPage'];
+
+    //                     $data['hasPreviousPage'] = $pageData['pageInfo']['hasPreviousPage'];
+    //                     $data['endCursor'] = $pageData['pageInfo']['endCursor'];
+    //                     $data['startCursor'] = $pageData['pageInfo']['startCursor'];
+    //                     $responseCode = 1;
+    //                     $message = 'success';
+    //                 }
+    //             } else {
+    //                 $message = $jsonResponse['errors'] ?? 'no';
+
+    //                 $responseCode = 0;
+    //                 $data['products'] = [];
+    //             }
+    //         } else {
+    //             $message = $jsonResponse['errors'] ?? 'no';
+
+    //             $responseCode = 0;
+    //             $data['products'] = [];
+    //         }
+    //     } else {
+    //         $message = $jsonResponse['errors'] ?? 'no';
+
+    //         $responseCode = 0;
+    //         $data['products'] = [];
+    //     }
+    //     return response()->json(['responseCode' => $responseCode, 'errorCode' => 0, 'message' => $message, 'data' => $data, 'priceFormate' => $priceFormat]);
+    // }
     public function collectionProductGet(Request $request)
     {
         $shop = base64_decode($request->header('token'));
@@ -936,7 +1223,7 @@ class ApiController extends Controller
     public function formatMoney($price, $format)
     {
         if (empty($price) || $price == 0) {
-            return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
+        return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
 
 
         }
@@ -1282,9 +1569,9 @@ class ApiController extends Controller
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
         $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])
-            ->where('enabled', 1)->first();
+        ->where('enabled', 1)->first();
         if ($settings) {
-
+           
             //return response()->download($path);
             if (@$settings['flipId']) {
                 $flipstatus = true;
@@ -1305,7 +1592,7 @@ class ApiController extends Controller
         $user = User::where('name', $shop)->pluck('id')->first();
         $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])->first();
         if ($settings) {
-            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name . "/"
+            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name. "/"
                 . $settings->pdfUrl);
             return response()->download($path);
         }
@@ -1778,7 +2065,10 @@ class ApiController extends Controller
 
     public function getProductsUsingFilter(Request $request)
     {
+        // Decode the shop name from the token header
         $shop = base64_decode($request->header('token'));
+
+        // Retrieve the access token from the database
         $token = User::where('name', $shop)->pluck('password')->first();
         if (!$token) {
             return response()->json([
@@ -1789,27 +2079,33 @@ class ApiController extends Controller
             ], 400);
         }
 
+        // Shopify API URL
         $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
         $headers = [
             'X-Shopify-Access-Token' => $token,
             'Content-Type' => 'application/json',
         ];
 
+        // Extract filter parameters
+        // Extract filter parameters
         $filters = [
             'product_type' => $request->input('productTypes'),
             'vendor'       => $request->input('vendors'),
-            'status'       => strtoupper($request->input('productStatus')),
-            'tags'         => $request->input('productTags'),
+            'status'       => strtoupper($request->input('productStatus')), // Ensure uppercase (ACTIVE, ARCHIVED, DRAFT)
+            'tags'         => $request->input('productTags'), // Ensure tags are handled correctly
         ];
 
+        // Construct dynamic query conditions
         $queryConditions = [];
+
         foreach ($filters as $key => $values) {
             if (!empty($values) && is_array($values)) {
                 if ($key === 'tags') {
+                    // Shopify uses `tag:` instead of `tags:`
                     $conditions = array_map(fn($value) => "tag:'$value'", $values);
-                    $queryConditions[] = '(' . implode(' AND ', $conditions) . ')';
+                    $queryConditions[] = '(' . implode(' AND ', $conditions) . ')'; // Use AND for filtering
                 } elseif ($key === 'product_type' && in_array('all_products', $values)) {
-                    continue;
+                    continue; // Skip adding product_type filter if 'all_products' is selected
                 } else {
                     $conditions = array_map(fn($value) => "$key:'$value'", $values);
                     $queryConditions[] = '(' . implode(' OR ', $conditions) . ')';
@@ -1817,10 +2113,12 @@ class ApiController extends Controller
             }
         }
 
+        // Ensure status filter is applied correctly
         if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
             $queryConditions[] = "status:{$filters['status']}";
         }
 
+        // Price filters
         $minPrice = floatval($request->input('minPrice', 0));
         $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
 
@@ -1830,44 +2128,47 @@ class ApiController extends Controller
 
         try {
             while ($hasNextPage) {
+                // Build the GraphQL query
                 $query = '{
-                    products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
-                        edges {
-                            node {
-                                id
-                                title
-                                handle
-                                status
-                                vendor
-                                productType
-                                tags
-                                variants(first: 10) {
-                                    edges {
-                                        node {
-                                            id
-                                            title
-                                            price
-                                            compareAtPrice
-                                            product {
-                                                id  
-                                            }
+                products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+                    edges {
+                        node {
+                            id
+                            title
+                            handle
+                            status
+                            vendor
+                            productType
+                            tags
+                            variants(first: 10) {
+                                edges {
+                                    node {
+                                        id
+                                        title
+                                        price
+                                        product {
+                                            id  
                                         }
                                     }
                                 }
                             }
                         }
-                        pageInfo {
-                            hasNextPage
-                            endCursor
-                        }
                     }
-                }';
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
+            }';
 
+                // Send request to Shopify API
                 $response = Http::withHeaders($headers)->post($shopifyUrl, [
                     'query' => $query,
                 ]);
 
                 $data = $response->json();
+
+                // Validate response
                 if (!isset($data['data']['products'])) {
                     return response()->json([
                         'status' => 'error',
@@ -1877,8 +2178,11 @@ class ApiController extends Controller
                     ], 500);
                 }
 
+                // Extract product data
                 foreach ($data['data']['products']['edges'] as $productEdge) {
                     $product = $productEdge['node'];
+
+                    // Extract numeric ID from Shopify GraphQL ID format
                     $productId = $product['id'];
                     $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
@@ -1899,15 +2203,13 @@ class ApiController extends Controller
                             $variantId = $variant['id'];
                             $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
                             $price = floatval($variant['price']);
-                            $compareAtPrice = isset($variant['compareAtPrice']) ? floatval($variant['compareAtPrice']) : null;
-
+                            // Apply price filter
                             if ($price >= $minPrice && $price <= $maxPrice) {
                                 $productData['variants'][] = [
                                     'id'                  => $variantId,
                                     'normalizedId'        => $normalizedVariantId,
                                     'title'               => $variant['title'] ?? null,
                                     'price'               => $variant['price'] ?? null,
-                                    'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
                                     'product'             => $variant['product']['id'] ?? null,
                                     'normalizedProductId' => $normalizedProductId
                                 ];
@@ -1915,11 +2217,13 @@ class ApiController extends Controller
                         }
                     }
 
+                    // Add product only if it has variants matching price criteria
                     if (!empty($productData['variants'])) {
                         $products[] = $productData;
                     }
                 }
 
+                // Check if more pages exist
                 $hasNextPage = $data['data']['products']['pageInfo']['hasNextPage'];
                 $endCursor = $data['data']['products']['pageInfo']['endCursor'];
             }
@@ -1943,6 +2247,7 @@ class ApiController extends Controller
     public function getProductsByCollections(Request $request)
     {
         $shop = base64_decode($request->header('token'));
+
         $token = User::where('name', $shop)->pluck('password')->first();
         if (!$token) {
             return response()->json([
@@ -1959,7 +2264,7 @@ class ApiController extends Controller
             'Content-Type' => 'application/json',
         ];
 
-        $collectionIds = $request->input('collectionIds', []);
+        $collectionIds = $request->input('collectionIds', []); // Array of Shopify GIDs
         if (empty($collectionIds) || !is_array($collectionIds)) {
             return response()->json([
                 'status' => 'error',
@@ -1982,40 +2287,38 @@ class ApiController extends Controller
 
                 while ($hasNextPage) {
                     $query = '{
-                        collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-                            products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
-                                edges {
-                                    node {
-                                        id
-                                        title
-                                        handle
-                                        status
-                                        vendor
-                                        productType
-                                        tags
-                                        variants(first: 10) {
-                                            edges {
-                                                node {
+                    collection(id: "gid://shopify/Collection/' . $collectionId . '") {
+                        products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                            edges {
+                                node {
+                                    id
+                                    title
+                                    handle
+                                    status
+                                    vendor
+                                    productType
+                                    tags
+                                    variants(first: 10) {
+                                        edges {
+                                            node {
+                                                id
+                                                title
+                                                price
+                                                product {
                                                     id
-                                                    title
-                                                    price
-                                                    compareAtPrice
-                                                    product {
-                                                        id
-                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                                pageInfo {
-                                    hasNextPage
-                                    endCursor
-                                }
+                            }
+                            pageInfo {
+                                hasNextPage
+                                endCursor
                             }
                         }
-                    }';
-
+                    }
+                }';
                     $response = Http::withHeaders($headers)->post($shopifyUrl, [
                         'query' => $query,
                     ]);
@@ -2052,15 +2355,12 @@ class ApiController extends Controller
                                 $variantId = $variant['id'];
                                 $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
                                 $price = floatval($variant['price']);
-                                $compareAtPrice = isset($variant['compareAtPrice']) ? floatval($variant['compareAtPrice']) : null;
-
                                 if ($price >= $minPrice && $price <= $maxPrice) {
                                     $productData['variants'][] = [
                                         'id'                  => $variantId,
                                         'normalizedId'        => $normalizedVariantId,
                                         'title'               => $variant['title'] ?? null,
                                         'price'               => $variant['price'] ?? null,
-                                        'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
                                         'product'             => $variant['product']['id'] ?? null,
                                         'normalizedProductId' => $normalizedProductId
                                     ];

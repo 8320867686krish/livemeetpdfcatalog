@@ -64,7 +64,7 @@ class Settings extends Model
         "footerDateFormat" => "dd/MM/yy",
         "pdfLayout" => "portrait",
         "paperLayout" => "a4",
-        "productAttributes" => "name,price",
+        "productAttributes" => "name,price,sku,description,weight,quantity,tag,vendor,type,costPerItem",
         "productButtonEnabled" => "0",
         "productAttributeAlignment" => "line_by_line",
         "productDescriptionCharLimit" => "50",
