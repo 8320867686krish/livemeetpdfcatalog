@@ -564,19 +564,19 @@ class ApiController extends Controller
             }
             $filteredNodes = collect($nodes)
 
-                // ->when($exclude_not_avaliable == 1, function ($collection) use ($exclude_out_of_stock) {
-                //     return $collection->filter(function ($node) use ($exclude_out_of_stock) {
-                //         return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' // Ensure product is active
-                //             && (!$exclude_out_of_stock || (isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0)); // Ensure stock is greater than 0 if required
-                //     });
-                // })
-                ->when($exclude_out_of_stock == 1, function ($collection) {
+             
+                ->when($exclude_not_avaliable == 1, function ($collection) {
+                    // Filter only ACTIVE products
                     return $collection->filter(function ($node) {
-                        return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE' 
-                            && isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0; 
+                        return isset($node['product']['status']) && $node['product']['status'] === 'ACTIVE';
                     });
                 })
-               
+                ->when($exclude_out_of_stock == 1, function ($collection) {
+                    // Further filter products that have inventoryQuantity > 0
+                    return $collection->filter(function ($node) {
+                        return isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0;
+                    });
+                })
                 ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user) {
 
                     return [
