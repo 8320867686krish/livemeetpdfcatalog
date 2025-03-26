@@ -24,7 +24,7 @@ document.addEventListener("shopify:section:select", function(event) {
 async function loadData(){
 try {
     // Make an asynchronous AJAX POST request to send data to the server
-    const response = await fetch('https://4ba3-103-56-183-234.ngrok-free.app/api/pdfShow', {
+    const response = await fetch('https://lara.meetanshi.work/livemeetpdfcatalog/api/pdfShow', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,17 +61,17 @@ try {
   $("#myButton").click(function () {
     if(flipstatus == true){
       //  window.open(flipUrl, '_blank');
-       $('body').prepend('<div id="bodyloader"><img src="https://4ba3-103-56-183-234.ngrok-free.app/public/images/loading-gif.gif" height="50" width="50" /></div>');
+       $('body').prepend('<div id="bodyloader"><img src="https://lara.meetanshi.work/livemeetpdfcatalog/public/images/loading-gif.gif" height="50" width="50" /></div>');
     download()
     }
      if(designMode == 'false' || flipstatus == false){
         console.log("ddddd111");
-    $('body').prepend('<div id="bodyloader"><img src="https://4ba3-103-56-183-234.ngrok-free.app/public/images/loading-gif.gif" height="50" width="50" /></div>');
+    $('body').prepend('<div id="bodyloader"><img src="https://lara.meetanshi.work/livemeetpdfcatalog/public/images/loading-gif.gif" height="50" width="50" /></div>');
     download()
     }
   });
   async function download() {
-    const response = await fetch('https://4ba3-103-56-183-234.ngrok-free.app/api/downloadpdf', {
+    const response = await fetch('https://lara.meetanshi.work/livemeetpdfcatalog/api/downloadpdf', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
