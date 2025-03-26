@@ -1,5 +1,6 @@
 import React from "react";
 import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
+import { generateShopifyUrl, getStoreUrlFromShopifyProductUrl } from "./commanLevel";
 
 const LineByLineTextLayout = (data) => {
     const {
@@ -13,16 +14,19 @@ const LineByLineTextLayout = (data) => {
         productTaxPercentage = "",
         fontColor = "",
         backgroundColor = "",
-        productPageLayoutId = ""
+        productPageLayoutId = "",
+        redirectValue = "",
+        utmSource = ""
     } = data;
     console.log("productPageLayoutId ", productPageLayoutId);
     let {
+        id = "",
         title = "",
         sku = "",
         description = "",
         price = "",
-        storeurl = "",
         compareAtPrice = "",
+        storeurl = "",
         stock_quantity = "",
         tags = "",
         weight = "",
@@ -141,8 +145,31 @@ const LineByLineTextLayout = (data) => {
         newCompareAtPrice.toFixed(2)
     );
 
-    console.log('line by line layout called ',productData);
-    console.log('line by line productAttributes ',productAttributes);
+    var shopDomain = getStoreUrlFromShopifyProductUrl(storeurl);
+    console.log("shop domain ", shopDomain);
+    console.log("redirect value  ", redirectValue);
+    var modifiedStoreUrl = storeurl
+    if (redirectValue == "0") {
+        modifiedStoreUrl = storeurl
+    }
+    if (redirectValue == "1") {
+        modifiedStoreUrl = generateShopifyUrl("", "online_store", shopDomain);
+    }
+    if (redirectValue == "2") {
+        modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
+        console.log("modified url before replace ", modifiedStoreUrl);
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+        console.log("modified url after replace ", modifiedStoreUrl);
+    }
+    if (redirectValue == "3") {
+        modifiedStoreUrl = generateShopifyUrl(id, "checkout", shopDomain)
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+    }
+    modifiedStoreUrl = modifiedStoreUrl + (utmSource && utmSource != "" ? `?utm_source=${utmSource}` : "")
+    console.log("modifiedStoreUrl ", modifiedStoreUrl);
+
+    console.log('line by line layout called ', productData);
+    console.log('line by line productAttributes ', productAttributes);
     return (
         <>
             <div
@@ -213,7 +240,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("quantity") &&  (
+                    {productAttributes.includes("quantity") && (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
                             <div
@@ -270,7 +297,7 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {cost_per_item}
+                                {cost_per_item == "" ? "--" : cost_per_item}
                             </div>
                         </div>
                     )}
@@ -349,7 +376,7 @@ const LineByLineTextLayout = (data) => {
                     {productButtonEnabled == "1" && (
                         <div style={{ opacity: "0.7" }}>
                             <a
-                                href={storeurl}
+                                href={modifiedStoreUrl}
                                 style={{
                                     backgroundColor: fontColor,
                                     color: backgroundColor,

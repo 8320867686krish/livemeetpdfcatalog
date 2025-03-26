@@ -25,6 +25,8 @@ const DrawGridLayout = (data = {}) => {
         productDescriptionCharLimit = "",
         productBackgroundColor = "",
         productAttributeLabelColor = "",
+        utmSource = "",
+        redirectValue = "",
     } = configData;
     const rows = [];
     let j = 1;
@@ -99,6 +101,8 @@ const DrawGridLayout = (data = {}) => {
                                                         productData: pItem,
                                                         paperLayout:
                                                             paperLayout,
+                                                            utmSource: utmSource,
+                                                            redirectValue: redirectValue,
                                                     }}
                                                 />
                                             </div>
@@ -169,6 +173,8 @@ const DrawGridLayout = (data = {}) => {
                                         productDescriptionCharLimit,
                                     productData: productItem[2],
                                     paperLayout: paperLayout,
+                                    utmSource: utmSource,
+                                    redirectValue: redirectValue,
                                 }}
                             />
                         </div>

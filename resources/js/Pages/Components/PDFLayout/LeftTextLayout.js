@@ -1,5 +1,6 @@
 import React from "react";
 import { displayStringBaseOnLimit, getAbbreviatedWeightUnit } from "../../helper";
+import { generateShopifyUrl, getStoreUrlFromShopifyProductUrl } from "./commanLevel";
 
 const LeftTextLayout = (data) => {
     const {
@@ -12,11 +13,14 @@ const LeftTextLayout = (data) => {
         productTaxPercentage = "",
         fontColor = "",
         backgroundColor = "",
-        productPageLayoutId = ""
+        productPageLayoutId = "",
+        redirectValue = "",
+        utmSource = ""
     } = data;
     console.log("data from left layout ", data);
 
     let {
+        id = "",
         title = "",
         sku = "",
         description = "",
@@ -102,6 +106,30 @@ const LeftTextLayout = (data) => {
 
     const fontSize = "0.7em";
 
+
+    var shopDomain = getStoreUrlFromShopifyProductUrl(storeurl);
+    console.log("shop domain ", shopDomain);
+    console.log("redirect value  ", redirectValue);
+    var modifiedStoreUrl = storeurl
+    if (redirectValue == "0") {
+        modifiedStoreUrl = storeurl
+    }
+    if (redirectValue == "1") {
+        modifiedStoreUrl = generateShopifyUrl("", "online_store", shopDomain);
+    }
+    if (redirectValue == "2") {
+        modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
+        console.log("modified url before replace ", modifiedStoreUrl);
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+        console.log("modified url after replace ", modifiedStoreUrl);
+    }
+    if (redirectValue == "3") {
+        modifiedStoreUrl = generateShopifyUrl(id, "checkout", shopDomain)
+        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+    }
+    modifiedStoreUrl = modifiedStoreUrl + (utmSource && utmSource != "" ? `?utm_source=${utmSource}` : "")
+    console.log("modifiedStoreUrl ", modifiedStoreUrl);
+
     return (
         <>
             <div
@@ -144,7 +172,7 @@ const LeftTextLayout = (data) => {
                             Product type : {product_type}
                         </div>
                     )}
-                    {productAttributes.includes("quantity") &&  (
+                    {productAttributes.includes("quantity") && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
                             Stock quantity :  {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
                         </div>
@@ -161,7 +189,7 @@ const LeftTextLayout = (data) => {
                     )}
                     {productAttributes.includes("costPerItem") && cost_per_item !== "" && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Cost per item : {cost_per_item}
+                            Cost per item : {cost_per_item == "" ? "--" : cost_per_item}
                         </div>
                     )}
                     {productAttributes.includes("description") &&
@@ -205,7 +233,7 @@ const LeftTextLayout = (data) => {
                     {productButtonEnabled == "1" && (
                         <div>
                             <a
-                                href={storeurl}
+                                href={modifiedStoreUrl}
                                 style={{
                                     backgroundColor: fontColor,
                                     color: backgroundColor,

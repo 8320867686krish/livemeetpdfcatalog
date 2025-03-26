@@ -42,6 +42,8 @@ const TwoItemRightList = (props) => {
             selectedProducts = [],
             productPageLayoutId = "",
             paperLayout = "",
+            utmSource = "",
+            redirectValue = "",
         } = {},
     } = props;
     const pageArray = objectTo2DArray(selectedProducts, displayPerPageProduct);
@@ -152,6 +154,8 @@ const TwoItemRightList = (props) => {
                                                                     pItem,
                                                                 paperLayout:
                                                                     paperLayout,
+                                                                    utmSource: utmSource,
+                                                                    redirectValue: redirectValue,
                                                             }}
                                                         />
                                                     </div>
@@ -226,6 +230,8 @@ const TwoItemRightList = (props) => {
                                                                     pItem,
                                                                 paperLayout:
                                                                     paperLayout,
+                                                                    utmSource: utmSource,
+                                                                    redirectValue: redirectValue,
                                                             }}
                                                         />
                                                     </div>
