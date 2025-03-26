@@ -40,6 +40,8 @@ const OneItemGrid = (props) => {
             selectedProducts = [],
             productPageLayoutId = "",
             paperLayout = "",
+            utmSource = "",
+            redirectValue = "",
         } = {},
     } = props;
     let pageSize = 1;
@@ -148,6 +150,8 @@ const OneItemGrid = (props) => {
                                                     productDescriptionCharLimit,
                                                 productData: pItem,
                                                 paperLayout: paperLayout,
+                                                utmSource: utmSource,
+                                                redirectValue: redirectValue,
                                             }}
                                         />
                                     </div>

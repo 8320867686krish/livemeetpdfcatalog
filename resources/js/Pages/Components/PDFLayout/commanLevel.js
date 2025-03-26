@@ -74,3 +74,35 @@ export function commonLevel(paperLayout) {
 export const legalPaperSize = "42.3cm";
 export const A5PaperSize = "36.30cm";
 export const letterPaperSize = "36.5cm";
+
+
+export function generateShopifyUrl(gid, type = "cart", shopDomain) {
+    // Extract the numeric ID from GID
+    const match = gid.match(/\/(\d+)$/);
+    if (!match) {
+        console.error("Invalid GID format");
+        return null;
+    }
+
+    const variantId = match[1];
+
+    if (type === "cart") {
+        return `https://${shopDomain}/cart/add?id=${variantId}&quantity=1&return_to=/cart`;
+    } else if (type === "checkout") {
+        return `https://${shopDomain}/cart/${variantId}:1?checkout`;
+    } else {
+        console.error("Invalid type. Use 'cart' or 'checkout'.");
+        return null;
+    }
+}
+
+export function getStoreUrlFromShopifyProductUrl(productUrl) {
+    try {
+      const url = new URL(productUrl);
+      return `${url.protocol}//${url.hostname}`;
+    } catch (e) {
+      console.error("Invalid URL:", e);
+      return null;
+    }
+  }
+  
