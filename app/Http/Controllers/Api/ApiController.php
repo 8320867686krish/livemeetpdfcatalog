@@ -275,7 +275,9 @@ class ApiController extends Controller
                                     'id' => $variant['id'],
                                     'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
                                     'title' => $variant['title'],
-                                    'price' => isset($variant['price']) && !is_null($variant['price']) ? $this->formatMoney($variant['price'], $priceFormat) : "",
+                                    'price' => isset($variant['price']) && !is_null($variant['price']) && $variant['price'] != 0.00 
+                                    ? $this->formatMoney($variant['price'], $priceFormat) 
+                                    : "",
                                     'compareAtPrice' => isset($variant['compareAtPrice']) && !is_null($variant['compareAtPrice']) ? $this->formatMoney($variant['compareAtPrice'], $priceFormat) : "",
 
                                     'product' => $variant['product']['id'],
@@ -578,7 +580,9 @@ class ApiController extends Controller
                         'weight_unit' => $node['weightUnit'],
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
                         'title' => $node['displayName'],
-                        'price' => isset($node['price']) && !is_null($node['price']) ? $this->formatMoney($node['price'], $priceFormat) : "",
+                        'price' => isset($node['price']) && !is_null($node['price']) && $node['price'] != 0.00 
+                            ? $this->formatMoney($node['price'], $priceFormat) 
+                            : "",
                         'compareAtPrice' => isset($node['compareAtPrice']) && !is_null($node['compareAtPrice']) ? $this->formatMoney($node['compareAtPrice'], $priceFormat) : "",
                         'orignalPrice' => $node['price'],
                         'sku' => $node['sku'] ?? '',
