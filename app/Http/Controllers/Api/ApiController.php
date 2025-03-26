@@ -155,7 +155,7 @@ class ApiController extends Controller
                     'image' => $value['image'],
                     'desc' => $value['description'],
                     'price' => $value['price'],
-                    'compareAtPrice' => $value['compareAtPrice'] ?? "",
+                    'compareAtPrice' => $value['compareAtPrice'] ?? 0.00,
                     'sku' => $value['sku'],
                     'store_url' => @$value['storeurl'] ? $value['storeurl'] : null,
                     'barcode' => @$value['barcode'] ? $value['barcode'] : null,
@@ -288,7 +288,9 @@ class ApiController extends Controller
                                     'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
                                     'title' => $variant['title'],
                                     'price' => $this->formatMoney($variant['price'], $priceFormat),
-                                    'compareAtPrice' => isset($variant['compareAtPrice']) && !is_null($variant['compareAtPrice']) ? $this->formatMoney($variant['compareAtPrice'], $priceFormat) : "",
+                                    // 'compareAtPrice' => $this->formatMoney($variant['compareAtPrice'] ?? 0.00, $priceFormat),
+                                    'compareAtPrice' => $variant['compareAtPrice'],
+
                                     'product' => $variant['product']['id'],
                                     'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
                                 ];
@@ -1569,9 +1571,9 @@ class ApiController extends Controller
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
         $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])
-        ->where('enabled', 1)->first();
+            ->where('enabled', 1)->first();
         if ($settings) {
-           
+
             //return response()->download($path);
             if (@$settings['flipId']) {
                 $flipstatus = true;
@@ -1592,7 +1594,7 @@ class ApiController extends Controller
         $user = User::where('name', $shop)->pluck('id')->first();
         $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])->first();
         if ($settings) {
-            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name. "/"
+            $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name . "/"
                 . $settings->pdfUrl);
             return response()->download($path);
         }
