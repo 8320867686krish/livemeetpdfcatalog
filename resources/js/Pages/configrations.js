@@ -66,8 +66,10 @@ import imageCompression from "browser-image-compression";
 import {
     NoteMinor,
     RefreshMinor,
-    MobileCancelMajor,
+    XIcon,
     QuestionCircleIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
 } from "@shopify/polaris-icons";
 import {
     optionsFontFamily,
@@ -189,7 +191,7 @@ const Configrations = (props = {}) => {
     const [errorBannerMessage, setErrorBannerMessage] = useState();
     const [generalCollapsibleOpen, setGeneralCollapsibleOpen] = useState(false);
     const [productSettingCollapsibleOpen, setProductSettingCollapsibleOpen] = useState(false);
-    const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(false);
+    const [layoutSettingCollapsibleOpen, setLayoutSettingCollapsibleOpen] = useState(true);
     const handleTogglegeneralCollapsible = useCallback(() => {
         setGeneralCollapsibleOpen((open) => !open);
         setProductSettingCollapsibleOpen(false);
@@ -612,7 +614,7 @@ const Configrations = (props = {}) => {
                         handleConfigData("", "logo");
                     }}
                 >
-                    <Icon source={MobileCancelMajor} tone="base" />
+                    <Icon source={XIcon} tone="base" />
                 </span>
             )}
         </LegacyStack>
@@ -649,7 +651,7 @@ const Configrations = (props = {}) => {
                         handleConfigData("", "frontImage");
                     }}
                 >
-                    <Icon source={MobileCancelMajor} tone="base" />
+                    <Icon source={XIcon} tone="base" />
                 </span>
             )}
         </LegacyStack>
@@ -686,7 +688,7 @@ const Configrations = (props = {}) => {
                         handleConfigData("", "backImage");
                     }}
                 >
-                    <Icon source={MobileCancelMajor} tone="base" />
+                    <Icon source={XIcon} tone="base" />
                 </span>
             )}
         </LegacyStack>
@@ -1452,13 +1454,23 @@ const Configrations = (props = {}) => {
                                     <div>
                                         <LegacyCard sectioned>
                                             <LegacyStack vertical>
-                                                <Button
-                                                    onClick={handleTogglegeneralCollapsible}
-                                                    ariaExpanded={generalCollapsibleOpen}
-                                                    ariaControls="basic-collapsible"
-                                                >
-                                                    General Settings
-                                                </Button>
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <div>
+                                                        <Text variant="headingMd" as="h6">
+                                                            General settings
+                                                        </Text>
+                                                    </div>
+                                                    <div>
+                                                        <Button
+                                                            onClick={handleTogglegeneralCollapsible}
+                                                            ariaExpanded={generalCollapsibleOpen}
+                                                            ariaControls="basic-collapsible"
+                                                            icon={generalCollapsibleOpen ? ChevronUpIcon : ChevronDownIcon}
+                                                        >
+                                                        </Button>
+                                                    </div>
+                                                </div>
+
                                                 <Collapsible
                                                     open={generalCollapsibleOpen}
                                                     id="basic-collapsible"
@@ -1842,13 +1854,22 @@ const Configrations = (props = {}) => {
                                     <div style={{ marginTop: "10px" }}>
                                         <LegacyCard sectioned>
                                             <LegacyStack vertical>
-                                                <Button
-                                                    onClick={handleToggleProductCollapsible}
-                                                    ariaExpanded={productSettingCollapsibleOpen}
-                                                    ariaControls="basic-collapsible"
-                                                >
-                                                    Product Settings
-                                                </Button>
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <div>
+                                                        <Text variant="headingMd" as="h6">
+                                                            Product settings
+                                                        </Text>
+                                                    </div>
+                                                    <div>
+                                                        <Button
+                                                            onClick={handleToggleProductCollapsible}
+                                                            ariaExpanded={productSettingCollapsibleOpen}
+                                                            ariaControls="basic-collapsible"
+                                                            icon={productSettingCollapsibleOpen ? ChevronUpIcon : ChevronDownIcon}
+                                                        >
+                                                        </Button>
+                                                    </div>
+                                                </div>
                                                 <Collapsible
                                                     open={productSettingCollapsibleOpen}
                                                     id="basic-collapsible"
@@ -2181,13 +2202,22 @@ const Configrations = (props = {}) => {
                                     <div style={{ marginTop: "10px" }}>
                                         <LegacyCard sectioned>
                                             <LegacyStack vertical>
-                                                <Button
-                                                    onClick={handleToggleLayoutCollapsible}
-                                                    ariaExpanded={layoutSettingCollapsibleOpen}
-                                                    ariaControls="basic-collapsible"
-                                                >
-                                                    Layout Settings
-                                                </Button>
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <div>
+                                                        <Text variant="headingMd" as="h6">
+                                                            Layout settings
+                                                        </Text>
+                                                    </div>
+                                                    <div>
+                                                        <Button
+                                                            onClick={handleToggleLayoutCollapsible}
+                                                            ariaExpanded={layoutSettingCollapsibleOpen}
+                                                            ariaControls="basic-collapsible"
+                                                            icon={layoutSettingCollapsibleOpen ? ChevronUpIcon : ChevronDownIcon}
+                                                        >
+                                                        </Button>
+                                                    </div>
+                                                </div>
                                                 <Collapsible
                                                     open={layoutSettingCollapsibleOpen}
                                                     id="basic-collapsible"

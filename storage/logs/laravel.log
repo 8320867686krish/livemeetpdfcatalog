@@ -9381,3 +9381,177 @@
 #55 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(16): require_once('...')
 #56 {main}
 "} 
+[2025-03-26 03:53:17] local.ERROR: Undefined array key "id" {"userId":1,"exception":"[object] (ErrorException(code: 0): Undefined array key \"id\" at /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Controllers/HomeController.php:49)
+[stacktrace]
+#0 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(270): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError()
+#1 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Controllers/HomeController.php(49): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}()
+#2 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\\Http\\Controllers\\HomeController->Index()
+#3 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(43): Illuminate\\Routing\\Controller->callAction()
+#4 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Route.php(259): Illuminate\\Routing\\ControllerDispatcher->dispatch()
+#5 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Route.php(205): Illuminate\\Routing\\Route->runController()
+#6 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(798): Illuminate\\Routing\\Route->run()
+#7 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(141): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}()
+#8 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/osiset/laravel-shopify/src/Http/Middleware/VerifyShopify.php(146): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#9 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Osiset\\ShopifyApp\\Http\\Middleware\\VerifyShopify->handle()
+#10 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Middleware/VerifyShop.php(24): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#11 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): App\\Http\\Middleware\\VerifyShop->handle()
+#12 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/osiset/laravel-shopify/src/Http/Middleware/IframeProtection.php(46): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#13 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Osiset\\ShopifyApp\\Http\\Middleware\\IframeProtection->handle()
+#14 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#15 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle()
+#16 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#17 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle()
+#18 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#19 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle()
+#20 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#21 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest()
+#22 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Session\\Middleware\\StartSession->handle()
+#23 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#24 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle()
+#25 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#26 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle()
+#27 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(116): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#28 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(797): Illuminate\\Pipeline\\Pipeline->then()
+#29 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(776): Illuminate\\Routing\\Router->runRouteWithinStack()
+#30 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(740): Illuminate\\Routing\\Router->runRoute()
+#31 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(729): Illuminate\\Routing\\Router->dispatchToRoute()
+#32 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(190): Illuminate\\Routing\\Router->dispatch()
+#33 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(141): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}()
+#34 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#35 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#36 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle()
+#37 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#38 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#39 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle()
+#40 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#41 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle()
+#42 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#43 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle()
+#44 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/fruitcake/laravel-cors/src/HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#45 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Fruitcake\\Cors\\HandleCors->handle()
+#46 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#47 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Http\\Middleware\\TrustProxies->handle()
+#48 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(116): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#49 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(165): Illuminate\\Pipeline\\Pipeline->then()
+#50 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(134): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter()
+#51 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle()
+#52 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(16): require_once('...')
+#53 {main}
+"} 
+[2025-03-26 03:53:27] local.INFO: array (
+  'id' => 66891448501,
+  'name' => 'Param-Patel-102',
+  'email' => 'cherrydmay@gmail.com',
+  'domain' => 'param-patel-102.myshopify.com',
+  'province' => NULL,
+  'country' => 'IN',
+  'address1' => NULL,
+  'zip' => NULL,
+  'city' => NULL,
+  'source' => NULL,
+  'phone' => '1234567890',
+  'latitude' => NULL,
+  'longitude' => NULL,
+  'primary_locale' => 'en',
+  'address2' => NULL,
+  'created_at' => '2024-10-18T01:58:13-04:00',
+  'updated_at' => '2025-03-19T08:27:03-04:00',
+  'country_code' => 'IN',
+  'country_name' => 'India',
+  'currency' => 'EUR',
+  'customer_email' => 'cherrydmay@gmail.com',
+  'timezone' => '(GMT-05:00) America/New_York',
+  'iana_timezone' => 'America/New_York',
+  'shop_owner' => 'Cherry May',
+  'money_format' => '€{{amount}}',
+  'money_with_currency_format' => '€{{amount}} EUR',
+  'weight_unit' => 'kg',
+  'province_code' => NULL,
+  'taxes_included' => false,
+  'auto_configure_tax_inclusivity' => NULL,
+  'tax_shipping' => NULL,
+  'county_taxes' => true,
+  'plan_display_name' => 'Developer Preview',
+  'plan_name' => 'partner_test',
+  'has_discounts' => true,
+  'has_gift_cards' => false,
+  'myshopify_domain' => 'param-patel-102.myshopify.com',
+  'google_apps_domain' => NULL,
+  'google_apps_login_enabled' => NULL,
+  'money_in_emails_format' => '€{{amount}}',
+  'money_with_currency_in_emails_format' => '€{{amount}} EUR',
+  'eligible_for_payments' => false,
+  'requires_extra_payments_agreement' => false,
+  'password_enabled' => true,
+  'has_storefront' => true,
+  'finances' => true,
+  'primary_location_id' => 73333473461,
+  'checkout_api_supported' => true,
+  'multi_location_enabled' => true,
+  'setup_required' => false,
+  'pre_launch_enabled' => false,
+  'enabled_presentment_currencies' => 
+  array (
+    0 => 'AED',
+    1 => 'EUR',
+  ),
+  'marketing_sms_consent_enabled_at_checkout' => false,
+  'transactional_sms_disabled' => true,
+)  
+[2025-03-26 03:53:46] local.ERROR: Undefined array key "id" {"userId":1,"exception":"[object] (ErrorException(code: 0): Undefined array key \"id\" at /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Controllers/HomeController.php:49)
+[stacktrace]
+#0 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(270): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError()
+#1 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Controllers/HomeController.php(49): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}()
+#2 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Controller.php(54): App\\Http\\Controllers\\HomeController->Index()
+#3 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(43): Illuminate\\Routing\\Controller->callAction()
+#4 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Route.php(259): Illuminate\\Routing\\ControllerDispatcher->dispatch()
+#5 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Route.php(205): Illuminate\\Routing\\Route->runController()
+#6 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(798): Illuminate\\Routing\\Route->run()
+#7 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(141): Illuminate\\Routing\\Router->Illuminate\\Routing\\{closure}()
+#8 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/osiset/laravel-shopify/src/Http/Middleware/VerifyShopify.php(146): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#9 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Osiset\\ShopifyApp\\Http\\Middleware\\VerifyShopify->handle()
+#10 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/app/Http/Middleware/VerifyShop.php(24): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#11 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): App\\Http\\Middleware\\VerifyShop->handle()
+#12 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/osiset/laravel-shopify/src/Http/Middleware/IframeProtection.php(46): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#13 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Osiset\\ShopifyApp\\Http\\Middleware\\IframeProtection->handle()
+#14 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#15 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle()
+#16 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#17 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle()
+#18 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#19 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle()
+#20 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#21 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest()
+#22 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Session\\Middleware\\StartSession->handle()
+#23 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#24 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle()
+#25 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#26 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle()
+#27 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(116): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#28 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(797): Illuminate\\Pipeline\\Pipeline->then()
+#29 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(776): Illuminate\\Routing\\Router->runRouteWithinStack()
+#30 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(740): Illuminate\\Routing\\Router->runRoute()
+#31 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Routing/Router.php(729): Illuminate\\Routing\\Router->dispatchToRoute()
+#32 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(190): Illuminate\\Routing\\Router->dispatch()
+#33 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(141): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}()
+#34 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#35 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#36 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle()
+#37 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#38 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle()
+#39 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle()
+#40 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#41 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle()
+#42 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(86): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#43 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle()
+#44 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/fruitcake/laravel-cors/src/HandleCors.php(38): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#45 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Fruitcake\\Cors\\HandleCors->handle()
+#46 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#47 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Http\\Middleware\\TrustProxies->handle()
+#48 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(116): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}()
+#49 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(165): Illuminate\\Pipeline\\Pipeline->then()
+#50 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(134): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter()
+#51 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle()
+#52 /opt/lampp/htdocs/pdfCatelog/livemeetpdfcatalog/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(16): require_once('...')
+#53 {main}
+"} 
