@@ -1,0 +1,105 @@
+
+{% if template == 'collection' %}
+  <input type="hidden" value="{{collection.id}}" name="pdf_collection_id" id="pdf_collection_id">
+
+<div style="padding-bottom:20px;text-align:{{ block.settings.buttonPosition }}">
+  <!-- Show the button and loader when API status is active -->
+  
+  <button id="myButton" class="myButton"
+    style="color:{{ block.settings.fontcolour }}; background-color:{{ block.settings.bgcolour }}; border-color:{{ block.settings.bordercolour }}; font-size:{{ block.settings.fontSize }}px; width:{{ block.settings.buttonWidth }}%;padding:{{ block.settings.buttonPadding }}px;border-width:{{ block.settings.buttonThickness }}px;border-radius:{{ block.settings.CornerRadius }}px; position: relative;border-style:solid">
+    <span id="labelText">{{ block.settings.buttonLabel }}</span>
+    <div id="loader" style="display: none;">Loading...</div>
+  </button>
+</div>
+<!-- This will only render in the theme editor -->
+{% endif %}
+<script src="https://pdf.meetanshi.work/public/assets/mit-pdf.j"></script>
+
+{% schema %}
+{
+"name": "PDF Product Catalog",
+"target": "section",
+"stylesheet": "app.css",
+"settings": [
+{
+"type": "text",
+"id": "buttonLabel",
+"label": "Button Label",
+"default": "Print Pdf"
+},
+{
+"type": "select",
+"id": "buttonPosition",
+"label": "Button Position",
+"options": [
+{
+"value": "-webkit-left",
+"label": "Left"
+},
+{
+"value": "-webkit-right",
+"label": "Right"
+}
+],
+"default": "-webkit-right"
+},
+{
+"type": "range",
+"id": "buttonWidth",
+"min": 10,
+"max": 100,
+"step": 1,
+"unit": "%",
+"label": "Button Width",
+"default": 18
+},
+{
+"type": "range",
+"id": "buttonPadding",
+"min": 5,
+"max": 100,
+"step": 1,
+"unit": "px",
+"label": "Button Padding",
+"default": 10
+},
+{
+"type": "range",
+"id": "buttonThickness",
+"min": 1,
+"max": 12,
+"step": 1,
+"unit": "px",
+"label": "Thickness",
+"default": 1
+},
+{
+"type": "range",
+"id": "CornerRadius",
+"min": 1,
+"max": 40,
+"step": 1,
+"unit": "px",
+"label": "Corner radius",
+"default": 1
+},
+
+{ "type": "color", "id": "bgcolour", "label": "Background Colour", "default": "#000000" },
+{ "type": "color", "id": "fontcolour", "label": "Font Colour", "default": "#fff" },
+{ "type": "color", "id": "bordercolour", "label": "Border Colour", "default": "#000" },
+{
+"type": "range",
+"id": "fontSize",
+"min": 12,
+"max": 24,
+"step": 1,
+"unit": "px",
+"label": "Font size",
+"default": 16
+}
+]
+
+
+}
+{% endschema %}
+<script src="https://pdf.meetanshi.work/public/assets/mit-pdf.js"></script>

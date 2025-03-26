@@ -1223,7 +1223,7 @@ class ApiController extends Controller
     public function formatMoney($price, $format)
     {
         if (empty($price) || $price == 0) {
-        return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
+            return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
 
 
         }
@@ -2065,10 +2065,7 @@ class ApiController extends Controller
 
     public function getProductsUsingFilter(Request $request)
     {
-        // Decode the shop name from the token header
         $shop = base64_decode($request->header('token'));
-
-        // Retrieve the access token from the database
         $token = User::where('name', $shop)->pluck('password')->first();
         if (!$token) {
             return response()->json([
@@ -2079,33 +2076,27 @@ class ApiController extends Controller
             ], 400);
         }
 
-        // Shopify API URL
         $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
         $headers = [
             'X-Shopify-Access-Token' => $token,
             'Content-Type' => 'application/json',
         ];
 
-        // Extract filter parameters
-        // Extract filter parameters
         $filters = [
             'product_type' => $request->input('productTypes'),
             'vendor'       => $request->input('vendors'),
-            'status'       => strtoupper($request->input('productStatus')), // Ensure uppercase (ACTIVE, ARCHIVED, DRAFT)
-            'tags'         => $request->input('productTags'), // Ensure tags are handled correctly
+            'status'       => strtoupper($request->input('productStatus')),
+            'tags'         => $request->input('productTags'),
         ];
 
-        // Construct dynamic query conditions
         $queryConditions = [];
-
         foreach ($filters as $key => $values) {
             if (!empty($values) && is_array($values)) {
                 if ($key === 'tags') {
-                    // Shopify uses `tag:` instead of `tags:`
                     $conditions = array_map(fn($value) => "tag:'$value'", $values);
-                    $queryConditions[] = '(' . implode(' AND ', $conditions) . ')'; // Use AND for filtering
+                    $queryConditions[] = '(' . implode(' AND ', $conditions) . ')';
                 } elseif ($key === 'product_type' && in_array('all_products', $values)) {
-                    continue; // Skip adding product_type filter if 'all_products' is selected
+                    continue;
                 } else {
                     $conditions = array_map(fn($value) => "$key:'$value'", $values);
                     $queryConditions[] = '(' . implode(' OR ', $conditions) . ')';
@@ -2113,12 +2104,10 @@ class ApiController extends Controller
             }
         }
 
-        // Ensure status filter is applied correctly
         if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
             $queryConditions[] = "status:{$filters['status']}";
         }
 
-        // Price filters
         $minPrice = floatval($request->input('minPrice', 0));
         $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
 
@@ -2128,47 +2117,44 @@ class ApiController extends Controller
 
         try {
             while ($hasNextPage) {
-                // Build the GraphQL query
                 $query = '{
-                products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
-                    edges {
-                        node {
-                            id
-                            title
-                            handle
-                            status
-                            vendor
-                            productType
-                            tags
-                            variants(first: 10) {
-                                edges {
-                                    node {
-                                        id
-                                        title
-                                        price
-                                        product {
-                                            id  
+                    products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+                        edges {
+                            node {
+                                id
+                                title
+                                handle
+                                status
+                                vendor
+                                productType
+                                tags
+                                variants(first: 10) {
+                                    edges {
+                                        node {
+                                            id
+                                            title
+                                            price
+                                            compareAtPrice
+                                            product {
+                                                id  
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        pageInfo {
+                            hasNextPage
+                            endCursor
+                        }
                     }
-                    pageInfo {
-                        hasNextPage
-                        endCursor
-                    }
-                }
-            }';
+                }';
 
-                // Send request to Shopify API
                 $response = Http::withHeaders($headers)->post($shopifyUrl, [
                     'query' => $query,
                 ]);
 
                 $data = $response->json();
-
-                // Validate response
                 if (!isset($data['data']['products'])) {
                     return response()->json([
                         'status' => 'error',
@@ -2178,11 +2164,8 @@ class ApiController extends Controller
                     ], 500);
                 }
 
-                // Extract product data
                 foreach ($data['data']['products']['edges'] as $productEdge) {
                     $product = $productEdge['node'];
-
-                    // Extract numeric ID from Shopify GraphQL ID format
                     $productId = $product['id'];
                     $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
@@ -2203,13 +2186,15 @@ class ApiController extends Controller
                             $variantId = $variant['id'];
                             $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
                             $price = floatval($variant['price']);
-                            // Apply price filter
+                            $compareAtPrice = isset($variant['compareAtPrice']) ? floatval($variant['compareAtPrice']) : null;
+
                             if ($price >= $minPrice && $price <= $maxPrice) {
                                 $productData['variants'][] = [
                                     'id'                  => $variantId,
                                     'normalizedId'        => $normalizedVariantId,
                                     'title'               => $variant['title'] ?? null,
                                     'price'               => $variant['price'] ?? null,
+                                    'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
                                     'product'             => $variant['product']['id'] ?? null,
                                     'normalizedProductId' => $normalizedProductId
                                 ];
@@ -2217,13 +2202,11 @@ class ApiController extends Controller
                         }
                     }
 
-                    // Add product only if it has variants matching price criteria
                     if (!empty($productData['variants'])) {
                         $products[] = $productData;
                     }
                 }
 
-                // Check if more pages exist
                 $hasNextPage = $data['data']['products']['pageInfo']['hasNextPage'];
                 $endCursor = $data['data']['products']['pageInfo']['endCursor'];
             }
@@ -2247,7 +2230,6 @@ class ApiController extends Controller
     public function getProductsByCollections(Request $request)
     {
         $shop = base64_decode($request->header('token'));
-
         $token = User::where('name', $shop)->pluck('password')->first();
         if (!$token) {
             return response()->json([
@@ -2264,7 +2246,7 @@ class ApiController extends Controller
             'Content-Type' => 'application/json',
         ];
 
-        $collectionIds = $request->input('collectionIds', []); // Array of Shopify GIDs
+        $collectionIds = $request->input('collectionIds', []);
         if (empty($collectionIds) || !is_array($collectionIds)) {
             return response()->json([
                 'status' => 'error',
@@ -2287,38 +2269,40 @@ class ApiController extends Controller
 
                 while ($hasNextPage) {
                     $query = '{
-                    collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-                        products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
-                            edges {
-                                node {
-                                    id
-                                    title
-                                    handle
-                                    status
-                                    vendor
-                                    productType
-                                    tags
-                                    variants(first: 10) {
-                                        edges {
-                                            node {
-                                                id
-                                                title
-                                                price
-                                                product {
+                        collection(id: "gid://shopify/Collection/' . $collectionId . '") {
+                            products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                                edges {
+                                    node {
+                                        id
+                                        title
+                                        handle
+                                        status
+                                        vendor
+                                        productType
+                                        tags
+                                        variants(first: 10) {
+                                            edges {
+                                                node {
                                                     id
+                                                    title
+                                                    price
+                                                    compareAtPrice
+                                                    product {
+                                                        id
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            pageInfo {
-                                hasNextPage
-                                endCursor
+                                pageInfo {
+                                    hasNextPage
+                                    endCursor
+                                }
                             }
                         }
-                    }
-                }';
+                    }';
+
                     $response = Http::withHeaders($headers)->post($shopifyUrl, [
                         'query' => $query,
                     ]);
@@ -2355,12 +2339,15 @@ class ApiController extends Controller
                                 $variantId = $variant['id'];
                                 $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
                                 $price = floatval($variant['price']);
+                                $compareAtPrice = isset($variant['compareAtPrice']) ? floatval($variant['compareAtPrice']) : null;
+
                                 if ($price >= $minPrice && $price <= $maxPrice) {
                                     $productData['variants'][] = [
                                         'id'                  => $variantId,
                                         'normalizedId'        => $normalizedVariantId,
                                         'title'               => $variant['title'] ?? null,
                                         'price'               => $variant['price'] ?? null,
+                                        'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
                                         'product'             => $variant['product']['id'] ?? null,
                                         'normalizedProductId' => $normalizedProductId
                                     ];

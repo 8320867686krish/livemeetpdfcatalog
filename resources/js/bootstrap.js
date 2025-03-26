@@ -10,8 +10,14 @@ window.axios = require('axios');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+<<<<<<< HEAD
 window.API_PREFIX = 'livemeetpdfcatalog/api/';
 window.URL_PREFIX = '/livemeetpdfcatalog/';
+=======
+window.API_PREFIX = 'api/';
+// window.API_PREFIX = 'livemeetpdfcatalog/api/';
+window.URL_PREFIX = '/';
+>>>>>>> b9a23c996caef552dcc4508fbb3dde40b68ddbba
 // window.URL_PREFIX = '/pdfcatalog/';//staging
 
 

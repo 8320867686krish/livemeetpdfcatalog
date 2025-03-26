@@ -27,7 +27,7 @@ const ProductSelection = ({ props }) => {
     const pdfId = queryParams.get("id");
     console.log("edit pdf id is ", pdfId);
     const navigate = useNavigate()
-    const [catelogName, setCatelogName] = useState("");
+    const [catelogName, setCatelogName] = useState("Untitled catelog");
     const [productData, setProductData] = useState([]);
     const [sortOption, setSortOption] = useState("default");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
@@ -307,7 +307,7 @@ const ProductSelection = ({ props }) => {
                 handle: col.handle,
             }));
 
-            setSelectedCollections(newCollections);
+            // setSelectedCollections(newCollections);
             console.log("Selected Collections: ", newCollections);
             collectionPicker.dispatch(ResourcePicker.Action.CLOSE);
 
@@ -530,6 +530,10 @@ const ProductSelection = ({ props }) => {
     );
 
     const handleSaveAndContinue = async () => {
+        if (!catelogName || catelogName == "" || catelogName == " ") {
+            showToast("Catelog name cannot be empty.");
+            return false;
+        }
         try {
             setButtonLoader(true);
             // Prepare the data for the API call
@@ -606,7 +610,7 @@ const ProductSelection = ({ props }) => {
     return (
         <>
             <Page
-                title="Create new catalog"
+                title={pdfId ? "Edit new catalog" : "Create new catalog"}
                 subtitle="Pick the products you'd like to add to your catalog. We support adding products using multiple methods including manually, using various filters, tags, and through collections."
                 fullWidth
             >
@@ -657,6 +661,7 @@ const ProductSelection = ({ props }) => {
                             value={catelogName}
                             onChange={(value) => setCatelogName(value)}
                             autoComplete="off"
+                            disabled={loadingCollections}
                             placeholder="Eg: Example Catalog"
                         />
                     </div>

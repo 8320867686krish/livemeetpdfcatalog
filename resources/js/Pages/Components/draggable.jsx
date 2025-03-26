@@ -15,7 +15,7 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
             priority: item.priority || index + 1,
         }));
     });
-
+    console.log("product data ", productData);
     const handleDragEnd = (result) => {
         if (!result.destination || sortOption !== "default") return;
 
@@ -64,15 +64,17 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
 
     if (sortOption !== "default") {
         sortedItems = [...filteredItems].sort((a, b) => {
+            const getPrice = (price) => (price === "N/A" || price === "" ? null : price);
+
             switch (sortOption) {
                 case "priceHighLow":
-                    return b.price - a.price;
+                    return getPrice(b.price) === null ? -1 : getPrice(a.price) === null ? 1 : b.price - a.price;
                 case "priceLowHigh":
-                    return a.price - b.price;
+                    return getPrice(a.price) === null ? 1 : getPrice(b.price) === null ? -1 : a.price - b.price;
                 case "comparePriceHighLow":
-                    return b.compareAtPrice - a.compareAtPrice;
+                    return getPrice(b.compareAtPrice) === null ? -1 : getPrice(a.compareAtPrice) === null ? 1 : b.compareAtPrice - a.compareAtPrice;
                 case "comparePriceLowHigh":
-                    return a.compareAtPrice - b.compareAtPrice;
+                    return getPrice(a.compareAtPrice) === null ? 1 : getPrice(b.compareAtPrice) === null ? -1 : a.compareAtPrice - b.compareAtPrice;
                 case "titleAZ":
                     return a.name.localeCompare(b.name);
                 case "titleZA":
@@ -82,6 +84,7 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
             }
         });
     }
+
 
     useEffect(() => {
         setItems([...productData].map((item, index) => ({
@@ -198,8 +201,8 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                                     <td style={styles.td}>
                                                         {parentCurrency}  {item.price}
                                                     </td>
-                                                    <td style={styles.td}>
-                                                        {parentCurrency} {item.compareAtPrice}
+                                                    <td style={styles.tdPrice}>
+                                                        {item.compareAtPrice == "N/A" || item.compareAtPrice == "" ? `--` : `${parentCurrency} ${item.compareAtPrice}`}
                                                     </td>
                                                     <td align="center" style={styles.td}>
                                                         <Button icon={DeleteIcon} onClick={() => handleDelete(item.id)} destructive size="slim" />
@@ -263,6 +266,12 @@ const styles = {
     td: {
         padding: "12px",
         fontSize: "14px",
+        borderBottom: "1px solid #dfe3e8",
+    },
+    tdPrice: {
+        padding: "12px",
+        fontSize: "14px",
+        paddingLeft: "30px",
         borderBottom: "1px solid #dfe3e8",
     },
     productImage: {
