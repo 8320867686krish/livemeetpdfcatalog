@@ -1291,7 +1291,7 @@ class ApiController extends Controller
             //return response()->download($path);
             if (@$settings['flipId']) {
                 $flipstatus = true;
-                $flipUrl = 'https://pdf.meetanshi.work/flipBook/' . $settings['flipId'];
+                $flipUrl = 'https://lara.meetanshi.work/livemeetpdfcatalog/flipBook/' . $settings['flipId'];
             } else {
                 $flipstatus = false;
             }
