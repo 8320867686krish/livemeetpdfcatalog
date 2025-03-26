@@ -610,7 +610,7 @@ const ProductSelection = ({ props }) => {
     return (
         <>
             <Page
-                title={pdfId ? "Edit new catalog" : "Create new catalog"}
+                title={pdfId ? "Edit catalog" : "Create new catalog"}
                 subtitle="Pick the products you'd like to add to your catalog. We support adding products using multiple methods including manually, using various filters, tags, and through collections."
                 fullWidth
             >
