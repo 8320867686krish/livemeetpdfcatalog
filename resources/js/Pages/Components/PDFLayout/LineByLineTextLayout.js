@@ -146,27 +146,28 @@ const LineByLineTextLayout = (data) => {
     );
 
     var shopDomain = getStoreUrlFromShopifyProductUrl(storeurl);
-    console.log("shop domain ", shopDomain);
-    console.log("redirect value  ", redirectValue);
-    var modifiedStoreUrl = storeurl
-    if (redirectValue == "0") {
-        modifiedStoreUrl = storeurl
-    }
-    if (redirectValue == "1") {
-        modifiedStoreUrl = generateShopifyUrl("", "online_store", shopDomain);
-    }
-    if (redirectValue == "2") {
-        modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
-        console.log("modified url before replace ", modifiedStoreUrl);
-        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
-        console.log("modified url after replace ", modifiedStoreUrl);
-    }
-    if (redirectValue == "3") {
-        modifiedStoreUrl = generateShopifyUrl(id, "checkout", shopDomain)
-        modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
-    }
-    modifiedStoreUrl = modifiedStoreUrl + (utmSource && utmSource != "" ? `?utm_source=${utmSource}` : "")
-    console.log("modifiedStoreUrl ", modifiedStoreUrl);
+        console.log("shop domain ", shopDomain);
+        console.log("redirect value  ", redirectValue);
+        var modifiedStoreUrl = storeurl
+        if (redirectValue == "0") {
+            modifiedStoreUrl = storeurl
+        }
+        if (redirectValue == "1") {
+            modifiedStoreUrl = shopDomain;
+            console.log("online modified store url ", modifiedStoreUrl);
+        }
+        if (redirectValue == "2") {
+            modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
+            console.log("modified url before replace ", modifiedStoreUrl);
+            modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+            console.log("modified url after replace ", modifiedStoreUrl);
+        }
+        if (redirectValue == "3") {
+            modifiedStoreUrl = generateShopifyUrl(id, "checkout", shopDomain)
+            modifiedStoreUrl = modifiedStoreUrl.replace("https://", "")
+        }
+        modifiedStoreUrl = modifiedStoreUrl + (utmSource && utmSource != "" ? `?utm_source=${utmSource}` : "")
+        console.log("modifiedStoreUrl ", modifiedStoreUrl);
 
     console.log('line by line layout called ', productData);
     console.log('line by line productAttributes ', productAttributes);

@@ -975,14 +975,14 @@ const Configrations = (props = {}) => {
                         // Calculate total chunks for HTML pages
                         for (let i = 0; i < pageArray.length; i++) {
                             const htmlString = pageArray[i].outerHTML;
-                            const chunks = chunkString(htmlString, 1000000);
+                            const chunks = chunkString(htmlString, 3000000);
                             totalChunks += chunks.length;
                         }
 
                         // Calculate chunks for additional string
                         additionalStringChunks = chunkString(
                             additionalString,
-                            1000000
+                            3000000
                         );
                         totalAdditionalStringChunks =
                             additionalStringChunks.length;
@@ -990,7 +990,7 @@ const Configrations = (props = {}) => {
                         // Send data in chunks
                         for (let i = 0; i < pageArray.length; i++) {
                             const htmlString = pageArray[i].outerHTML;
-                            const chunks = chunkString(htmlString, 1000000);
+                            const chunks = chunkString(htmlString, 3000000);
                             const isLastRequest = i === pageArray.length - 1; // Check if it's the last page
                             await sendDataInChunks(
                                 chunks,

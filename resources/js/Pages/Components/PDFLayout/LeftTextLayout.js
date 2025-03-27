@@ -115,7 +115,8 @@ const LeftTextLayout = (data) => {
         modifiedStoreUrl = storeurl
     }
     if (redirectValue == "1") {
-        modifiedStoreUrl = generateShopifyUrl("", "online_store", shopDomain);
+        modifiedStoreUrl = shopDomain;
+        console.log("online modified store url ", modifiedStoreUrl);
     }
     if (redirectValue == "2") {
         modifiedStoreUrl = generateShopifyUrl(id, "cart", shopDomain)
