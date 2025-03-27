@@ -1090,7 +1090,7 @@ class ApiController extends Controller
                 if ($settings) {
                     $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $settings['shop_id'];
                     $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $settings['shop_id'];
-                    $collectionFolder = $shopFolder . "/collections_" . $settings['collectionName'];
+                    $collectionFolder = $shopFolder . "/collections_" . $settings['catalog_name'];
                     $image_path = $collectionFolder . "/" . $settings['pdfUrl'];
                     if (file_exists($image_path)) {
                         @unlink($image_path);
