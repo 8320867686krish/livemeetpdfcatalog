@@ -427,44 +427,52 @@ const Home = (props = {}) => {
             </div>
             <LegacyCard>
                 <div className="table_area">
-                    {loader && (
-                        <Spinner
-                            accessibilityLabel="Spinner example"
-                            size="large"
-                        />
-                    )}
-                    <IndexTable
-                        // selectable={false}
-                        items={catalogList}
-                        resourceName={resourceName}
-                        itemCount={catalogList.length}
-                        promotedBulkActions={promotedBulkActions}
-                        selectedItemsCount={
-                            allResourcesSelected
-                                ? "All"
-                                : selectedResources.length
-                        }
-                        onSelectionChange={handleSelectionChange}
-                        emptyState={
-                            <TableNoRecord
-                                emptyProps={{
-                                    heading: "Manage Product Catalogs",
-                                    message:
-                                        "Create a new product catalog to get started!",
-                                    // action: { content: 'Create New Catalog', url: 'dashboard' },
-                                    image: "https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png",
-                                }}
-                            />
-                        }
-                        headings={[
-                            { title: "Sr No." },
-                            { title: "Catalogs name" },
-                            { title: "Status" },
-                            { title: "Actions" },
-                        ]}
-                    >
-                        {rowMarkup}
-                    </IndexTable>
+                    {loader ?
+                        <Card>
+                            <div style={{ marginTop: "15px", marginBottom: "15px" }}>
+                                <SkeletonBodyText />
+                            </div>
+                            <div style={{ marginTop: "15px", marginBottom: "15px" }}>
+                                <SkeletonBodyText />
+                            </div>
+                            <div style={{ marginTop: "15px", marginBottom: "15px" }}>
+                                <SkeletonBodyText />
+                            </div>
+                        </Card>
+                        : <IndexTable
+                            // selectable={false}
+                            items={catalogList}
+                            resourceName={resourceName}
+                            itemCount={catalogList.length}
+                            promotedBulkActions={promotedBulkActions}
+                            selectedItemsCount={
+                                allResourcesSelected
+                                    ? "All"
+                                    : selectedResources.length
+                            }
+                            onSelectionChange={handleSelectionChange}
+                            emptyState={
+                                <TableNoRecord
+                                    emptyProps={{
+                                        heading: "Manage Product Catalogs",
+                                        message:
+                                            "Create a new product catalog to get started!",
+                                        // action: { content: 'Create New Catalog', url: 'dashboard' },
+                                        image: "https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png",
+                                    }}
+                                />
+                            }
+                            headings={[
+                                { title: "Sr No." },
+                                { title: "Catalogs name" },
+                                { title: "Status" },
+                                { title: "Actions" },
+                            ]}
+                        >
+                            {rowMarkup}
+                        </IndexTable>
+                    }
+
 
 
                 </div>

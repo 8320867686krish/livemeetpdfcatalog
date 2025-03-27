@@ -1,10 +1,11 @@
 
 import { useMemo, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Spinner, Toast } from '@shopify/polaris';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {  Spinner, Toast } from '@shopify/polaris';
 import { Provider } from '@shopify/app-bridge-react';
 import Routes from '../Routing/Routes'
 import { fetchMethod } from './helper';
+import { NavMenu } from '@shopify/app-bridge-react';
 
 export default function Main(props = {}) {
     const { shopid = '' } = props;
@@ -89,7 +90,9 @@ export default function Main(props = {}) {
         >
             {loader
                 ? <div className="main_container">{toastError}<Spinner accessibilityLabel="Spinner example" size="large" /></div>
-                : <Routes {...{ ...props, activePlan }} />
+                : <>
+                    <Routes {...{ ...props, activePlan }} />
+                </>
             }
         </Provider>
     );

@@ -360,7 +360,7 @@ const Configrations = (props = {}) => {
         } else {
             setActiveBannerError(false);
             setErrorBannerMessage();
-            await setTimeout(() => {
+            setTimeout(() => {
                 generatePDF(e);
             }, 300);
         }
@@ -723,61 +723,6 @@ const Configrations = (props = {}) => {
             const backPageElement = document.getElementById("back_page");
             pageArray.push(backPageElement);
         }
-        const jsxElement = pageArray.map((hmtlContent) => {
-            return `<div
-                    style={{
-                        zoom: 0.65,
-                        // backgroundColor: "blue !important",
-                        // borderRadius: "25px",
-                        // borderRight: "2px solid black",
-                        // boxShadow: "5px 2px 5px 0px rgba(0,0,0,0.50)",
-                    }}
-                >
-                    ${hmtlContent}
-                </div>`;
-        });
-        const jsxToBase = pageArray.map((element) => {
-            return window.btoa(element);
-        });
-        // Start Generate the PDF file base on HTML content..
-        // let outputPDF = await html2PDF(pageArray, {
-        //     jsPDF: {
-        //         orientation: pdfLayout ?? "p",
-        //         unit: paperSizeMeasurement ?? "cm",
-        //         format: paperLayout,
-        //         compress: true,
-        //         // precision: 0
-        //     },
-        //     html2canvas: {
-        //         imageTimeout: 0,
-        //         logging: false,
-        //         // useCORS: false,
-        //         useCORS: true,
-        //         height: pdfHeight[paperLayout],
-        //         scrollX: -window.scrollY,
-        //         scrollY: -window.scrollY,
-        //         windowWidth: document.documentElement.offsetWidth,
-        //         windowHeight: document.documentElement.offsetHeight,
-        //         scale: 1,
-        //         dpi: 96,
-        //         letterRendering: true,
-        //         x: 0,
-        //         y: 0,
-        //     },
-        //     margin: 0,
-        //     autoResize: true,
-        //     applyImageFit: true,
-        //     enableLinks: true,
-        //     autoPagination: true,
-        //     // imageType: 'image/jpeg',
-        //     image: { type: "jpeg", quality: 0.3 },
-        //     // output: 'demo.pdf',
-        //     success: function (pdf) {
-        //     },
-        // }).then((pdf) => {
-        //     pdf.save();
-        //     return pdf.output("datauristring");
-        // });
         const generatePdf = async () => {
             window.scrollTo(0, 0);
             const options = {
