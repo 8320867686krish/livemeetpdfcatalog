@@ -276,8 +276,7 @@ class ApiController extends Controller
                                     'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
                                     'title' => $variant['title'],
                                     'price' => $variant['price'],
-                                    'compareAtPrice' => isset($variant['compareAtPrice']) && !is_null($variant['compareAtPrice']) ? $this->formatMoney($variant['compareAtPrice'], $priceFormat) : "",
-
+                                    'compareAtPrice' => $variant['compareAtPrice'] ?? '',
                                     'product' => $variant['product']['id'],
                                     'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
                                 ];
