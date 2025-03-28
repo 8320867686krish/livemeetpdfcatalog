@@ -176,7 +176,7 @@ return [
     */
 
   //   'api_key' => env('SHOPIFY_API_KEY', '5b7fd5bcc773fe3efc10fdc89ce5e8e6'),
-        'api_key' => env('SHOPIFY_API_KEY', '096a269d4de043bf37c691a4540451f8'),
+        'api_key' => env('SHOPIFY_API_KEY', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -188,7 +188,7 @@ return [
     */
 
     //'api_secret' => env('SHOPIFY_API_SECRET', 'c55cda342604686659f8117ab310791e'),
-    'api_secret' => env('SHOPIFY_API_SECRET', '7772aeea7c7e148a714a2d50ab7b9bb6'),
+    'api_secret' => env('SHOPIFY_API_SECRET', ''),
 
     /*
     |--------------------------------------------------------------------------

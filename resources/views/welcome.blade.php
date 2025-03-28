@@ -36,7 +36,8 @@
         }
     </style>
     @yield('styles')
-    <meta name="shopify-api-key" content="67c6b06a5ed3454e8ce7ef18faed64ee" />
+    api_key
+    <meta name="shopify-api-key" content="{{config('shopify.api_key')}}" />
     <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 </head>
 
@@ -74,7 +75,7 @@
         });
     </script>
 
-    <script src="{{url('js/app.js?v=55561')}}"></script>
+    <script src="{{ mix('js/app.js?v=9999') }}"></script>
 
     @yield('scripts')
 </body>

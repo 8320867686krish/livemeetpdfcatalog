@@ -259,7 +259,7 @@ class ApiController extends Controller
                     $shop = $response->json('data.shop', []);
                     $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
                 }
-               
+
                 $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
                     ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
@@ -414,7 +414,7 @@ class ApiController extends Controller
 
         $dataToUpdate = Arr::except($post, ['selectedProducts']);
         if ($post['enabled'] == 1) {
-            Settings::where('shop_id', $post['shop_id'])->where('collectionId', $post['collectionId'])->update(['enabled' => 0]);
+            //  Settings::where('shop_id', $post['shop_id'])->where('collectionId', $post['collectionId'])->update(['enabled' => 0]);
         }
         $saveData = Settings::updateOrCreate(['id' => $dataToUpdate['id']], $dataToUpdate);
         //now get shop_id and collectionId wise get data
@@ -558,12 +558,11 @@ class ApiController extends Controller
             }
 
             // ✅ Transform Shopify API Response
-            if($exclude_out_of_stock == 1){
-                    
+            if ($exclude_out_of_stock == 1) {
             }
             $filteredNodes = collect($nodes)
 
-             
+
                 ->when($exclude_not_avaliable == 1, function ($collection) {
                     // Filter only ACTIVE products
                     return $collection->filter(function ($node) {
@@ -588,7 +587,7 @@ class ApiController extends Controller
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
                         'title' => $node['displayName'],
                         'price' => isset($node['price']) && !is_null($node['price'])
-                            ? $this->formatMoney($node['price'], $priceFormat) 
+                            ? $this->formatMoney($node['price'], $priceFormat)
                             : "",
                         'compareAtPrice' => isset($node['compareAtPrice']) && !is_null($node['compareAtPrice']) ? $this->formatMoney($node['compareAtPrice'], $priceFormat) : "",
                         'orignalPrice' => $node['price'],
@@ -600,7 +599,7 @@ class ApiController extends Controller
                         'tags' => $node['product']['tags'] ? implode(',', $node['product']['tags']) : '',
                         'product_type' => $node['product']['productType'] ?? '',
                         'status' => $node['product']['status'] ?? '',
-                        'storeurl' =>$node['product']['onlineStorePreviewUrl'] ?? ''
+                        'storeurl' => $node['product']['onlineStorePreviewUrl'] ?? ''
 
 
 
@@ -686,7 +685,7 @@ class ApiController extends Controller
 
         return response()->json(['responseCode' => $responseCode, 'errorCode' => 0, 'message' => $message, 'data' => $data]);
     }
- 
+
     public function collectionProductGet(Request $request)
     {
         $shop = base64_decode($request->header('token'));
@@ -947,8 +946,8 @@ class ApiController extends Controller
     public function formatMoney($price, $format)
     {
         if (empty($price) || $price == 0) {
-      
-         //   return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
+
+            //   return preg_replace('/\{\{\s*amount.*?\s*\}\}/', '', $format); // Remove placeholders if price is null or 0
 
 
         }
@@ -1294,17 +1293,21 @@ class ApiController extends Controller
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
         $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])
-            ->where('enabled', 1)->first();
-        if ($settings) {
+            ->where('enabled', 1)->get();
+        if ($settings->isNotEmpty()) { // Check if records exist
+            $data = $settings->map(function ($setting) {
+                return [
+                    'catalog_name' =>  $setting->catalog_name,
+                    'pdfName' => $setting->pdfUrl,
+                    'flipstatus' => !empty($setting->flipId),
+                    'flipUrl' => $setting->flipId ? 'https://lara.meetanshi.work/livemeetpdfcatalog/flipBook/' . $setting->flipId : null
+                ];
+            });
 
-            //return response()->download($path);
-            if (@$settings['flipId']) {
-                $flipstatus = true;
-                $flipUrl = 'https://lara.meetanshi.work/livemeetpdfcatalog/flipBook/' . $settings['flipId'];
-            } else {
-                $flipstatus = false;
-            }
-            return response()->json(['status' => 'true', 'pdfName' => $settings['pdfUrl'], 'flipstatus' => $flipstatus, 'flipUrl' => $flipUrl]);
+            return response()->json([
+                'status' => 'true',
+                'data' => $data
+            ]);
         } else {
             return response()->json(['status' => 'false']);
         }
@@ -1315,7 +1318,8 @@ class ApiController extends Controller
         $collectionId = $post['collectionId'];
         $shop = $post['shop'];
         $user = User::where('name', $shop)->pluck('id')->first();
-        $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])->first();
+     //   $settings = Settings::where('shop_id', $user)->whereRaw("FIND_IN_SET(?, collectionName)", [$collectionId])->first();
+        $settings = Settings::where('shop_id', $user)->where('catalog_name',$collectionId)->first();
         if ($settings) {
             $path = public_path('uploads/pdfFile/shop_' . $user . "/collections_" . $settings->catalog_name . "/"
                 . $settings->pdfUrl);
