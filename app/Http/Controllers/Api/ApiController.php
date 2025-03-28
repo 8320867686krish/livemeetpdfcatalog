@@ -1994,12 +1994,12 @@ class ApiController extends Controller
         try {
             foreach ($normalizedCollectionIds as $collectionId) {
                 $endCursor = null;
-                $hasNextPage = true;
+             //   $hasNextPage = true;
 
-                while ($hasNextPage) {
+              //  while ($hasNextPage) {
                     $query = '{
                         collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-                            products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                            products(first: 20' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                                 edges {
                                     node {
                                         id
@@ -2089,12 +2089,14 @@ class ApiController extends Controller
                     }
                     $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
                     $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
-                }
+              //  }
             }
             return response()->json([
                 'status' => 'success',
                 'message' => 'Products fetched successfully',
                 'products' => $products,
+                'hasNextPage'=>$hasNextPage,
+                'endCursor' => $endCursor ?? '',
                 'count' => count($products),
             ]);
         } catch (\Exception $e) {
