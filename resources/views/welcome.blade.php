@@ -75,7 +75,7 @@
         });
     </script>
 
-    <script src="{{ mix('js/app.js?v=9999') }}"></script>
+    <script src="{{url('public/js/app.js?v=55561')}}"></script>
 
     @yield('scripts')
 </body>
