@@ -173,9 +173,9 @@ const LeftTextLayout = (data) => {
                             Product type : {product_type}
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && (
+                    {productAttributes.includes("quantity") && stock_quantity != false  && (
                         <div className="custom-sku" style={{ opacity: "0.7", letterSpacing: "1px" }}>
-                            Stock quantity :  {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
+                            Stock quantity :  {stock_quantity > 0 ? stock_quantity + " Units" : "0 Unit"}
                         </div>
                     )}
                     {productAttributes.includes("weight") && weight !== "" && (

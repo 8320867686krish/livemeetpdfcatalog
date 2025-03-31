@@ -605,8 +605,6 @@ const ProductSelection = ({ props }) => {
         />
     );
 
-
-
     return (
         <>
             <Page
