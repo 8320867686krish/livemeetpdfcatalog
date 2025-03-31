@@ -750,20 +750,20 @@ const Configrations = (props = {}) => {
                     dpi: printQuality == 0 ? 100 : 300,
                     letterRendering: false,
                     logging: true,
-                    onclone: (document) => {
-                        const imgs = document.querySelectorAll("img");
+                    onclone: (clonedDoc) => {
+                        const imgs = clonedDoc.querySelectorAll("img");
                         imgs.forEach((img) => {
                             if (!img.complete) {
                                 img.onload = () => { };
                             }
-                            img.style.imageRendering = 'crisp-edges';
+                            img.style.imageRendering = "crisp-edges";
                         });
                     },
                 },
                 image: { type: 'jpeg', quality: 0.98 },
                 margin: 0,
-                // autoResize: true,
-                // applyImageFit: true,
+                autoResize: true,
+                applyImageFit: true,
                 enableLinks: true,
                 autoPagination: true,
 
@@ -796,6 +796,8 @@ const Configrations = (props = {}) => {
                 console.error("Error generating PDF: ", error);
             }
         };
+
+        console.log("code was here ");
         const outputPDF = await generatePdf();
         if (outputPDF !== "") {
             const { ...requestData } = configData;
@@ -973,72 +975,6 @@ const Configrations = (props = {}) => {
                         }
                     );
 
-                    // function blobToBase64(blob) {
-                    //     return new Promise((resolve, reject) => {
-                    //         const reader = new FileReader();
-                    //         reader.onloadend = () => resolve(reader.result);
-                    //         reader.onerror = reject;
-                    //         reader.readAsDataURL(blob);
-                    //     });
-                    // }
-
-                    // async function sendHtmlArrayToServer(htmlArray, url) {
-                    //     // Convert the array of HTML elements to a single HTML string
-                    //     const htmlString = htmlArray
-                    //         .map((htmlElement) => {
-                    //             // Ensure the element is a Node or string
-                    //             if (typeof htmlElement === "string") {
-                    //                 return htmlElement;
-                    //             }
-                    //             // Serialize the HTML element to a string
-                    //             if (htmlElement instanceof Node) {
-                    //                 return htmlElement.outerHTML;
-                    //             }
-                    //             return "";
-                    //         })
-                    //         .join("");
-                    //     // Create a Blob from the HTML string
-                    //     const blob = new Blob([htmlString], {
-                    //         type: "text/html",
-                    //     });
-                    //     const base64Data = await blobToBase64(blob);
-                    //     // Create a FormData object and append the Blob
-                    //     const formData = {
-                    //         flipHtml: JSON.stringify(base64Data)
-                    //     };
-
-                    //     try {
-                    //         // Send the FormData to the server
-                    //         const responseFlipPdfGenrate = await fetchMethod(
-                    //             postMethodType,
-                    //             `flipPdfGenrate/${setting_id}`,
-                    //             shopid,
-                    //             formData
-                    //         );
-
-                    //         // Check if the request was successful
-                    //         // if (!response.ok) {
-                    //         //     throw new Error(
-                    //         //         `Server error: ${response.statusText}`
-                    //         //     );
-                    //         // }
-
-                    //         // Handle the response if needed
-                    //         // const result = await response.json();
-                    //     } catch (error) {
-                    //         console.error("Error sending data:", error);
-                    //     }
-                    // }
-                    // sendHtmlArrayToServer(pageArray, 'serverUrl');
-                    // var flipPdfData = {};
-                    // // flipPdfData["settings_id"] = setting_id;
-                    // flipPdfData["flipHtml"] = pageArray;
-                    // const responseFlipPdfGenrate = await fetchMethod(
-                    //     postMethodType,
-                    //     `flipPdfGenrate/${setting_id}`,
-                    //     shopid,
-                    //     flipPdfData
-                    // );
                 }
             } else {
                 requestData["pdfUrl"] = outputPDF;

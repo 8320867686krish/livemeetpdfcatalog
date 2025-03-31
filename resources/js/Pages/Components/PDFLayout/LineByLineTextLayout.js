@@ -241,7 +241,7 @@ const LineByLineTextLayout = (data) => {
                             </div>
                         </div>
                     )}
-                    {productAttributes.includes("quantity") && (
+                    {productAttributes.includes("quantity") && stock_quantity != false  &&   (
                         <div style={{ display: "flex", opacity: "0.7" }}>
                             <div style={{ flex: "1 0 auto" }}>Stock Quantity : </div>
                             <div
@@ -252,7 +252,7 @@ const LineByLineTextLayout = (data) => {
                                     color: valueColor,
                                 }}
                             >
-                                {stock_quantity === false ? "Not tracked" : stock_quantity > 0 ? stock_quantity + " Units" : "0 Units"}
+                                {stock_quantity > 0 ? stock_quantity + " Units" : "0 Unit"}
                             </div>
                         </div>
                     )}

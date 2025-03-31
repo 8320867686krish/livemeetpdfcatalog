@@ -39,8 +39,6 @@
     <meta name="shopify-api-key" content="67c6b06a5ed3454e8ce7ef18faed64ee" />
     <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 </head>
-
-
 <body>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -54,7 +52,6 @@
     <div class="app-wrapper">
         <div class="app-content">
             <main role="main">
-
                 <div id="main" data-shopid="<?php echo e($shop); ?>"></div>
             </main>
         </div>
@@ -74,7 +71,7 @@
         });
     </script>
 
-    <script src="<?php echo e(url('js/app.js?v=55561')); ?>"></script>
+    <script src="<?php echo e(url('/js/app.js?v=230')); ?>"></script>
 
     <?php echo $__env->yieldContent('scripts'); ?>
 </body>
