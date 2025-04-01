@@ -27,6 +27,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Sub Domain
+    |--------------------------------------------------------------------------
+    |
+    | This is the subdomain where Shopify will be accessible from. If the
+    | setting is null, Shopify will reside under the same domain as the
+    | application. Otherwise, this value will be used as the subdomain.
+    |
+    */
+
+    'domain' => env('SHOPIFY_DOMAIN'),
+    /*
+    |--------------------------------------------------------------------------
     | Manual routes
     |--------------------------------------------------------------------------
     |
@@ -56,13 +68,13 @@ return [
     */
 
     'route_names' => [
-        'home'                 => env('SHOPIFY_ROUTE_NAME_HOME', 'home'),
-        'authenticate'         => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE', 'authenticate'),
-        'authenticate.token'   => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE_TOKEN', 'authenticate.token'),
-        'billing'              => env('SHOPIFY_ROUTE_NAME_BILLING', 'billing'),
-        'billing.process'      => env('SHOPIFY_ROUTE_NAME_BILLING_PROCESS', 'billing.process'),
+        'home' => env('SHOPIFY_ROUTE_NAME_HOME', 'home'),
+        'authenticate' => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE', 'authenticate'),
+        'authenticate.token' => env('SHOPIFY_ROUTE_NAME_AUTHENTICATE_TOKEN', 'authenticate.token'),
+        'billing' => env('SHOPIFY_ROUTE_NAME_BILLING', 'billing'),
+        'billing.process' => env('SHOPIFY_ROUTE_NAME_BILLING_PROCESS', 'billing.process'),
         'billing.usage_charge' => env('SHOPIFY_ROUTE_NAME_BILLING_USAGE_CHARGE', 'billing.usage_charge'),
-        'webhook'              => env('SHOPIFY_ROUTE_NAME_WEBHOOK', 'webhook'),
+        'webhook' => env('SHOPIFY_ROUTE_NAME_WEBHOOK', 'webhook'),
     ],
 
     /*
@@ -88,11 +100,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Namespace
+    | App Namespace
     |--------------------------------------------------------------------------
     |
-    | This option allows you to set a namespace.
-    | Useful for multiple apps using the same database instance.
+    | This option allows you to set a namespace for the users in the DB.
+    | Useful for running multiple apps using the same database instance.
     | Meaning, one shop can be part of many apps on the same database.
     |
     */
@@ -127,22 +139,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | AppBridge Mode
-    |--------------------------------------------------------------------------
-    |
-    | AppBridge (embedded apps) are enabled by default. Set to false to use legacy
-    | mode and host the app inside your own container.
-    |
-    */
-
-    'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
-
-    // Use semver range to link to a major or minor version number.
-    // Leaving empty will use the latest version - not recommended in production.
-    'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', 'latest'),
-
-    /*
-    |--------------------------------------------------------------------------
     | Shopify App Name
     |--------------------------------------------------------------------------
     |
@@ -164,7 +160,7 @@ return [
     |
     */
 
-    'api_version' => env('SHOPIFY_API_VERSION', '2022-01'),
+    'api_version' => env('SHOPIFY_API_VERSION', '2024-04'),
 
     /*
     |--------------------------------------------------------------------------
@@ -175,8 +171,7 @@ return [
     |
     */
 
-  //   'api_key' => env('SHOPIFY_API_KEY', '5b7fd5bcc773fe3efc10fdc89ce5e8e6'),
-        'api_key' => env('SHOPIFY_API_KEY', ''),
+    'api_key' => env('SHOPIFY_API_KEY', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -187,7 +182,6 @@ return [
     |
     */
 
-    //'api_secret' => env('SHOPIFY_API_SECRET', 'c55cda342604686659f8117ab310791e'),
     'api_secret' => env('SHOPIFY_API_SECRET', ''),
 
     /*
@@ -235,7 +229,7 @@ return [
     |
     */
 
-    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_time_store' => env('SHOPIFY_API_TIME_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -247,7 +241,7 @@ return [
     |
     */
 
-    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Osiset\BasicShopifyAPI\Store\Memory::class),
+    'api_limit_store' => env('SHOPIFY_API_LIMIT_STORE', \Gnikyt\BasicShopifyAPI\Store\Memory::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -259,7 +253,7 @@ return [
     |
     */
 
-    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Osiset\BasicShopifyAPI\Deferrers\Sleep::class),
+    'api_deferrer' => env('SHOPIFY_API_DEFERRER', \Gnikyt\BasicShopifyAPI\Deferrers\Sleep::class),
 
     /*
     |--------------------------------------------------------------------------
@@ -268,9 +262,9 @@ return [
     |
     | This option is for initializing the BasicShopifyAPI package yourself.
     | The first param injected in is the current options.
-    |    (\Osiset\BasicShopifyAPI\Options)
+    |    (\Gnikyt\BasicShopifyAPI\Options)
     | The second param injected in is the session (if available) .
-    |    (\Osiset\BasicShopifyAPI\Session)
+    |    (\Gnikyt\BasicShopifyAPI\Session)
     | The third param injected in is the current request input/query array.
         (\Illuminate\Http\Request::all())
     | With all this, you can customize the options, change params, and more.
@@ -328,6 +322,54 @@ return [
 
     'billing_redirect' => env('SHOPIFY_BILLING_REDIRECT', '/billing/process'),
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Enable legacy support for features
+    |--------------------------------------------------------------------------
+    |
+    */
+    'app_legacy_supports' => [
+        'after_authenticate_job' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Register listeners to the events
+    |--------------------------------------------------------------------------
+    |
+    | In Laravel version 11 and later, event listeners located in the `App\Listeners`
+    | directory are automatically registered by default. Therefore, manual registration
+    | in this configuration file is unnecessary.
+    |
+    | If you register the listeners manually again here, the listener will be called twice.
+    |
+    | If you plan to store your listeners in a different directory like `App\Shopify\Listeners`
+    | or within multiple directories, then you should register them here.
+    |
+    | If you are using Laravel version 10 or earlier, then corresponding listeners
+    | must be registered here.
+    |
+    */
+
+    'listen' => [
+        \Osiset\ShopifyApp\Messaging\Events\AppInstalledEvent::class => [
+            // \App\Listeners\MyListener::class,
+        ],
+        \Osiset\ShopifyApp\Messaging\Events\ShopAuthenticatedEvent::class => [
+            // \App\Listeners\MyListener::class,
+        ],
+        \Osiset\ShopifyApp\Messaging\Events\ShopDeletedEvent::class => [
+            // \App\Listeners\MyListener::class,
+        ],
+        \Osiset\ShopifyApp\Messaging\Events\AppUninstalledEvent::class => [
+            // \App\Listeners\MyListener::class,
+        ],
+        \Osiset\ShopifyApp\Messaging\Events\PlanActivatedEvent::class => [
+            // \App\Listeners\MyListener::class,
+        ],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Shopify Webhooks
@@ -351,20 +393,14 @@ return [
                 'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'APP_PURCHASES_ONE_TIME_UPDATE'),
                 'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://some-app.com/webhook/purchase'),
             ]
-            ...
-        */
-     $webhook1 = [
-    'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'app/uninstalled'),
-    'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://' . env('APP_URL') . "/webhook/app-uninstall")
-],
-
-$webhook2 = [
-    'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'app_subscriptions/update'),
-    'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://' . env('APP_URL') . '/webhook/appsubscriptions-update')
-]
-
-
-    ],
+            // In certain situations you may wish to map the webhook to a specific class
+            // To do this, change the array to an associative array with a 'class' key
+            'orders-create' => [
+                'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'ORDERS_PAID'),
+                'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://some-app.com/webhook/orders-create'),
+                'class' => \App\Shopify\Actions\ExampleAppJob::class
+            ],
+        */],
 
     /*
     |--------------------------------------------------------------------------
@@ -394,8 +430,13 @@ $webhook2 = [
     | This, like webhooks and scripttag jobs, will fire every time a shop
     | authenticates, not just once.
     |
+    |
     */
 
+    /*
+     * @deprecated This will be removed in the next major version.
+     * @see
+     */
     'after_authenticate_job' => [
         /*
             [
@@ -415,11 +456,25 @@ $webhook2 = [
     */
 
     'job_queues' => [
-        'webhooks'           => env('WEBHOOKS_JOB_QUEUE', null),
-        'scripttags'         => env('SCRIPTTAGS_JOB_QUEUE', null),
+        'webhooks' => env('WEBHOOKS_JOB_QUEUE', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_QUEUE', null),
         'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_QUEUE', null),
     ],
+    /*
+    |--------------------------------------------------------------------------
+    | Job Connections
+    |--------------------------------------------------------------------------
+    |
+    | This option is for setting a specific job connection for webhooks, scripttags
+    | and after_authenticate_job.
+    |
+    */
 
+    'job_connections' => [
+        'webhooks' => env('WEBHOOKS_JOB_CONNECTION', null),
+        'scripttags' => env('SCRIPTTAGS_JOB_CONNECTION', null),
+        'after_authenticate' => env('AFTER_AUTHENTICATE_JOB_CONNECTION', null),
+    ],
     /*
     |--------------------------------------------------------------------------
     | Config API Callback
@@ -436,18 +491,6 @@ $webhook2 = [
     */
 
     'config_api_callback' => null,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Enable Turbolinks or Hotwire Turbo
-    |--------------------------------------------------------------------------
-    |
-    | If you use Turbolinks/Turbo and Livewire, turn on this setting to get
-    | the token assigned automatically.
-    |
-    */
-
-    'turbo_enabled' => (bool) env('SHOPIFY_TURBO_ENABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -488,6 +531,48 @@ $webhook2 = [
         'shops' => 'users',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Checking theme compatibility
+    |--------------------------------------------------------------------------
+    |
+    | It is necessary to check if your application is compatible with
+    | the theme app blocks.
+    |
+    */
+
+    'theme_support' => [
+        /*
+         * Specify the name of the template the app will integrate with
+         */
+        'templates' => ['product', 'collection', 'index'],
+        /*
+         * Interval for caching the request: minutes, seconds, hours, days, etc.
+         */
+        'cache_interval' => 'hours',
+        /*
+         * Cache duration
+         */
+        'cache_duration' => 12,
+        /*
+         * At which levels of theme support the use of "theme app extension" is not available
+         * and script tags will be installed.
+         * Available levels: FULL, PARTIAL, UNSUPPORTED.
+         */
+        'unacceptable_levels' => [
+            Osiset\ShopifyApp\Objects\Enums\ThemeSupportLevel::UNSUPPORTED,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Session token refresh
+    |--------------------------------------------------------------------------
+    |
+    | For AppBridge, how often to refresh the session token for the user.
+    |
+    */
+
     'session_token_refresh_interval' => env('SESSION_TOKEN_REFRESH_INTERVAL', 2000),
 
     /*
@@ -501,4 +586,6 @@ $webhook2 = [
     |
     */
     'frontend_engine' => env('SHOPIFY_FRONTEND_ENGINE', 'BLADE'),
+
+    'iframe_ancestors' => '',
 ];
