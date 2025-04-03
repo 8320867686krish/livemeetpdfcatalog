@@ -2190,7 +2190,7 @@ class ApiController extends Controller
         ];
 
         $collectionIds = $request->input('collectionIds', []);
-        $isRequest = $request->input('isRequest', '');
+        $isRequest = $request->input('hasNextPage', '');
 
         if (!$isRequest && (empty($collectionIds) || !is_array($collectionIds))) {
             return response()->json([
@@ -2291,8 +2291,9 @@ class ApiController extends Controller
             $shopifyhasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'] ?? false;
             $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'] ?? null;
 
-            if (!$shopifyhasNextPage) {
+            if ($shopifyhasNextPage == false) {
                 getProductsByCollections::where('collection_id', $currentCollectionId)->delete();
+                $hasNextPage = false;
             } else {
                 getProductsByCollections::where('collection_id', $currentCollectionId)
                     ->update(['end_cursor' => $endCursor]);
@@ -2309,7 +2310,7 @@ class ApiController extends Controller
 
         $exist = getProductsByCollections::where('shop_id', $user->id)->first();
         if (!$exist) {
-            $hasNextPag = false; // No more collections to process
+            $hasNextPage = false; // No more collections to process
         }
 
         return response()->json([

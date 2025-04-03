@@ -36,7 +36,7 @@
         }
     </style>
     <?php echo $__env->yieldContent('styles'); ?>
-    <meta name="shopify-api-key" content="67c6b06a5ed3454e8ce7ef18faed64ee" />
+    <meta name="shopify-api-key" content="<?php echo e(config('shopify-app.api_key')); ?>" />
     <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
 </head>
 <body>
@@ -71,7 +71,7 @@
         });
     </script>
 
-    <script src="<?php echo e(url('/js/app.js?v=230')); ?>"></script>
+    <script src="<?php echo e(url('/js/app.js?v=231')); ?>"></script>
 
     <?php echo $__env->yieldContent('scripts'); ?>
 </body>

@@ -1,21 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
 import { useAppBridge } from '@shopify/app-bridge-react';
 
-const DraggableTable = ({ productData, setProductData, sortOption, setSortOption, parentCurrency }) => {
+const DraggableTable = ({
+    productData,
+    setProductData,
+    sortOption,
+    setSortOption,
+    parentCurrency,
+    hasNextPage,
+    loadMore
+}) => {
     const app = useAppBridge();
     const shopCurrency = app?.shop?.currencyCode;
     const [searchQuery, setSearchQuery] = useState("");
-    // const [sortOption, setSortOption] = useState("default");
     const [items, setItems] = useState(() => {
         return [...productData].map((item, index) => ({
             ...item,
             priority: item.priority || index + 1,
         }));
     });
+    const [loadingMore, setLoadingMore] = useState(false); // Local loading state
+    const loadMoreRef = useRef(null); // Ref for the Load More button
+
     console.log("product data ", productData);
+
     const handleDragEnd = (result) => {
         if (!result.destination || sortOption !== "default") return;
 
@@ -23,14 +34,13 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
         const [movedItem] = updatedItems.splice(result.source.index, 1);
         updatedItems.splice(result.destination.index, 0, movedItem);
 
-        // Update priority based on new order
         const reorderedItems = updatedItems.map((item, index) => ({
             ...item,
             priority: index + 1,
         }));
 
         setItems(reorderedItems);
-        setProductData(reorderedItems)
+        setProductData(reorderedItems);
         console.log(`Item "${movedItem.name}" moved from position ${result.source.index + 1} to ${result.destination.index + 1}`);
     };
 
@@ -54,12 +64,34 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
         setProductData([]);
     };
 
-    // Filter items based on search query
+    // Modified to maintain scroll position
+    const handleLoadMore = async () => {
+        if (loadMoreRef.current) {
+            const scrollPosition = loadMoreRef.current.getBoundingClientRect().top + window.pageYOffset  + 1500;
+
+            setLoadingMore(true);
+            try {
+                await loadMore();
+                // Scroll back to position after loading
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: scrollPosition,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            } catch (error) {
+                console.error("Error loading more:", error);
+            } finally {
+                setLoadingMore(false);
+            }
+        }
+    };
+
+    // Filter and sort logic remains the same
     let filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Sort items based on selected sorting option
     let sortedItems = [...filteredItems];
 
     if (sortOption !== "default") {
@@ -85,7 +117,6 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
         });
     }
 
-
     useEffect(() => {
         setItems([...productData].map((item, index) => ({
             ...item,
@@ -100,19 +131,12 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
             name: item.name,
             priority: item.priority
         })));
-    }, [items, productData]);
-
-    useEffect(() => {
-        setItems([...productData]);
-    }, [productData]);
-
-
+    }, [items]);
 
     return (
         <div style={styles.container}>
-
             {/* Search and Sort */}
-            <div style={{ display: "flex", gap: "20px", marginBottom: "15px" }} >
+            <div style={{ display: "flex", gap: "20px", marginBottom: "15px" }}>
                 <div style={{ width: "50%" }}>
                     <TextField
                         label="Search Products"
@@ -141,13 +165,8 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                 </div>
             </div>
 
-            {/* Warning Message */}
-            {/* {sortOption !== "default" && (
-                <InlineError message="Custom sorting won't work when a filter is applied." />
-            )} */}
-
             <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="table" >
+                <Droppable droppableId="table">
                     {(provided) => (
                         <table ref={provided.innerRef} {...provided.droppableProps} style={styles.table}>
                             <thead>
@@ -170,7 +189,6 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                             key={item.id}
                                             draggableId={item.id}
                                             index={index}
-                                        // isDragDisabled={sortOption !== "default"}
                                         >
                                             {(provided, snapshot) => (
                                                 <tr
@@ -181,7 +199,6 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                                         ...styles.row,
                                                         backgroundColor: snapshot.isDragging ? "#f0f0f0" : "white",
                                                         boxShadow: snapshot.isDragging ? "0px 4px 10px rgba(0,0,0,0.1)" : "none",
-                                                        // opacity: sortOption !== "default" ? 0.5 : 1,
                                                         ...provided.draggableProps.style,
                                                     }}
                                                 >
@@ -199,7 +216,7 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                                                         {item.name}
                                                     </td>
                                                     <td style={styles.td}>
-                                                        {parentCurrency}  {item.price}
+                                                        {parentCurrency} {item.price}
                                                     </td>
                                                     <td style={styles.tdPrice}>
                                                         {item.compareAtPrice == "N/A" || item.compareAtPrice == "" ? `--` : `${parentCurrency} ${item.compareAtPrice}`}
@@ -222,12 +239,28 @@ const DraggableTable = ({ productData, setProductData, sortOption, setSortOption
                     )}
                 </Droppable>
             </DragDropContext>
+
+            {hasNextPage && (
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        padding: "20px"
+                    }}
+                    ref={loadMoreRef}
+                >
+                    <Button
+                        onClick={handleLoadMore}
+                        loading={loadingMore}
+                        variant="primary"
+                    >
+                        Load More
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };
-
-
-
 
 // Styles remain unchanged
 const styles = {
