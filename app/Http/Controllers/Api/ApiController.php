@@ -2240,7 +2240,7 @@ class ApiController extends Controller
                     products(first: ' . $remaining . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                         edges {
                             node {
-                                id title handle status vendor productType tags
+                                id title
                                 variants(first: 10) {
                                     edges {
                                         node {
@@ -2273,10 +2273,6 @@ class ApiController extends Controller
                     'id' => $product['id'],
                     'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id']),
                     'title' => $product['title'] ?? null,
-                    'vendor' => $product['vendor'] ?? null,
-                    'productType' => $product['productType'] ?? null,
-                    'tags' => $product['tags'] ?? [],
-                    'status' => $product['status'] ?? null,
                     'variants' => array_map(function ($variantEdge) use ($product) {
                         $variant = $variantEdge['node'];
                         return [
@@ -2292,14 +2288,15 @@ class ApiController extends Controller
                 ];
             }, $data['data']['collection']['products']['edges'] ?? []);
 
-            $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'] ?? false;
+            $shopifyhasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'] ?? false;
             $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'] ?? null;
 
-            if (!$hasNextPage) {
+            if (!$shopifyhasNextPage) {
                 getProductsByCollections::where('collection_id', $currentCollectionId)->delete();
             } else {
                 getProductsByCollections::where('collection_id', $currentCollectionId)
                     ->update(['end_cursor' => $endCursor]);
+                    $hasNextPage = true;
             }
 
             $products = array_merge($products, $fetchedProducts);
@@ -2312,7 +2309,7 @@ class ApiController extends Controller
 
         $exist = getProductsByCollections::where('shop_id', $user->id)->first();
         if (!$exist) {
-            $isRequest = false; // No more collections to process
+            $hasNextPag = false; // No more collections to process
         }
 
         return response()->json([
@@ -2321,8 +2318,6 @@ class ApiController extends Controller
             'products' => array_slice($products, 0, 25), // Ensure exactly 25 are returned
             'count' => count($products),
             'hasNextPage' => $hasNextPage,
-            'endCursor' => $endCursor,
-            'isRequest' => $isRequest
         ]);
     }
 }
