@@ -364,7 +364,7 @@ const ProductSelection = ({ props }) => {
                 await fetchProductEdit(true);
             } else if (paginationData.source === 'collections' && paginationData.collectionIds.length > 0) {
                 let payload = {
-                    collectionIds: paginationData.collectionIds,
+                    // collectionIds: paginationData.collectionIds,
                     hasNextPage: true,
                     endCursor: paginationData.endCursor
                 };
