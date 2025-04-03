@@ -46,10 +46,22 @@ const ProductSelection = ({ props }) => {
     const [showDataTableLoader, setShowDataTableLoader] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState([]); // Store selected collections`
     const [currency, setCurrency] = useState('');
+    const [paginationData, setPaginationData] = useState({
+        hasNextPage: false,
+        endCursor: null,
+        collectionIds: [],
+        source: null,
+        loadMoreFunc: null // Store the loadMore function from filters
+    });
 
-    const handleFilterApply = (filters) => {
-        console.log("Applied Filters:", filters);
-        // You can now use these filters to fetch and display filtered products
+    const handleFilterApply = (filterData) => {
+        setPaginationData({
+            hasNextPage: filterData.hasNextPage,
+            endCursor: filterData.endCursor,
+            collectionIds: [],
+            source: filterData.source,
+            loadMoreFunc: filterData.loadMore
+        });
     };
 
 
@@ -323,6 +335,12 @@ const ProductSelection = ({ props }) => {
                         shopid,
                         { collectionIds: selectedCollectionIds }
                     );
+                    setPaginationData({
+                        hasNextPage: response.hasNextPage,
+                        endCursor: response.endCursor,
+                        collectionIds: selectedCollectionIds,
+                        source: 'collections'
+                    });
 
                     console.log("Products from collections:", response);
                     handleProductResponse(response);
@@ -333,143 +351,179 @@ const ProductSelection = ({ props }) => {
                     setFetchProductLoader(false);
                 }
             }
+
         });
 
         collectionPicker.dispatch(ResourcePicker.Action.OPEN);
+
     };
 
-
-    // Fetch collections when component mounts
-    useEffect(() => {
-        const fetchCollections = async () => {
-            try {
-                const responseData = await fetchMethod(getMethodType, "collections/get", shopid);
-                console.log("collection responseData ", responseData);
-
-                if (responseData?.message === "suceess") {
-                    const options = responseData.data.collections.map((col) => ({
-                        label: col.label,
-                        value: col.value,
-                    }));
-                    setCurrency(responseData?.data?.currency);
-                    return [{ label: "Please select collection", value: "" }, ...options];
-                } else {
-                    console.error("Failed to fetch collections:", responseData);
-                    return [];
-                }
-            } catch (error) {
-                console.error("Error fetching collections:", error);
-                return [];
+    const loadMoreProducts = async () => {
+        try {
+            if (paginationData.source === 'edit') {
+                await fetchProductEdit(true);
+            } else if (paginationData.source === 'collections' && paginationData.collectionIds.length > 0) {
+                let payload = {
+                    collectionIds: paginationData.collectionIds,
+                    hasNextPage: true,
+                    endCursor: paginationData.endCursor
+                };
+                const response = await fetchMethod(
+                    postMethodType,
+                    `getProductsByCollections`,
+                    shopid,
+                    payload
+                );
+                setPaginationData(prev => ({
+                    ...prev,
+                    hasNextPage: response.hasNextPage,
+                    endCursor: response.endCursor,
+                    source: 'collections',
+                    loadMoreFunc: null
+                }));
+                handleProductResponse(response);
+            } else if (paginationData.source === 'filters' && paginationData.loadMoreFunc) {
+                await paginationData.loadMoreFunc();
             }
-        };
+        } catch (error) {
+            console.error("Error loading more products:", error);
+            showToast("Failed to load more products");
+        }
+    };
 
-        const fetchProductEdit = async () => {
-            if (pdfId && pdfId != null) {
-                try {
-                    setShowDataTableLoader(true);
-                    const responseData = await fetchMethod(postMethodType, "product/edit", shopid, { "setting_id": pdfId });
-                    console.log("productEdit responseData ", responseData);
+    const fetchProductEdit = async (loadMore = false, setShowDataTableLoaderInput = true) => {
+        if (pdfId && pdfId != null) {
+            try {
+                setShowDataTableLoader(setShowDataTableLoaderInput);
+                const payload = {
+                    "setting_id": pdfId,
+                    ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor })
+                };
+                const responseData = await fetchMethod(postMethodType, "product/edit", shopid, payload);
+                console.log("productEdit responseData ", responseData);
 
-                    if (responseData?.errorCode == 0) {
+                if (responseData?.errorCode == 0) {
+                    if (!loadMore) {
+                        // Only set these on initial load, not when loading more
                         setCatelogName(responseData?.data?.settings?.catalog_name);
                         setSortOption(responseData?.data?.settings?.sort_by);
                         setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
                         setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
-                        console.log("responseData?.data?.collectionName?.split(',')", responseData?.data?.settings?.collectionName?.split(','));
                         setSelectedCollections(responseData?.data?.settings?.collectionName?.split(',') || []);
-                        // const formattedProducts = responseData?.data?.selectedProducts?.map((product) => ({
-                        //     id: product.id,
-                        //     priority: product.priority,
-                        //     price: product.price,
-                        //     name: product.displayName,
-                        //     compareAtPrice: product.compareAtPrice,
+                    }
 
-                        // })) || [];
+                    // Update pagination data
+                    setPaginationData({
+                        hasNextPage: responseData.data.hasNextPage,
+                        endCursor: responseData.data.endCursor,
+                        collectionIds: responseData?.data?.settings?.collectionName?.split(',') || [],
+                        source: 'edit',
+                        loadMoreFunc: null
+                    });
 
-                        const existingProductMap = {};
-                        const existingVariantMap = {};
-                        productData.forEach(item => {
-                            const normProductId = normalizeId(item.productId);
-                            if (normProductId) existingProductMap[normProductId] = true;
-                            const normVariantId = normalizeId(item.variantId);
-                            if (normVariantId) existingVariantMap[normVariantId] = true;
-                        });
-                        const lastPriority = productData.length > 0
-                            ? Math.max(...productData.map(item => item.priority))
-                            : 0;
+                    const existingProductMap = {};
+                    const existingVariantMap = {};
+                    productData.forEach(item => {
+                        const normProductId = normalizeId(item.productId);
+                        if (normProductId) existingProductMap[normProductId] = true;
+                        const normVariantId = normalizeId(item.variantId);
+                        if (normVariantId) existingVariantMap[normVariantId] = true;
+                    });
+                    const lastPriority = productData.length > 0
+                        ? Math.max(...productData.map(item => item.priority))
+                        : 0;
 
-                        let newProducts = [];
-                        responseData?.data?.selectedProducts?.forEach((product, index) => {
-                            const productNormalizedId = normalizeId(product.id);
-                            console.log(`Checking product: ${product.title}, ID: ${product.id}, Normalized ID: ${productNormalizedId}`);
-
-                            // Check if the product has variants
-                            if (product.variants && product.variants.length > 0) {
-                                product.variants.forEach(variant => {
-                                    const variantNormalizedId = normalizeId(variant.id);
-                                    console.log(`  - Checking variant: ${variant.title || 'Default'}, ID: ${variant.id}, Normalized ID: ${variantNormalizedId}`);
-
-                                    // Check if this variant is already in our data
-                                    if (!existingVariantMap[variantNormalizedId]) {
-                                        console.log(`    - Adding new variant: ${variantNormalizedId}`);
-
-                                        newProducts.push({
-                                            id: variant.id,
-                                            productId: product.id,
-                                            variantId: variant.id,
-                                            normalizedProductId: productNormalizedId,
-                                            normalizedVariantId: variantNormalizedId,
-                                            name: `${product.title} - ${variant.title || 'Default'}`,
-                                            priority: lastPriority + newProducts.length + 1,
-                                            price: variant.price || "N/A",
-                                            compareAtPrice: variant.compareAtPrice || "N/A",
-                                            currency: "USD" // Adjust if you have currency info
-                                        });
-
-                                        // Mark as existing to prevent duplicates within this batch
-                                        existingVariantMap[variantNormalizedId] = true;
-                                    } else {
-                                        console.log(`    - Skipping existing variant: ${variantNormalizedId}`);
-                                    }
-                                });
-                            } else {
-                                // Handle products without variants
-                                if (!existingProductMap[productNormalizedId]) {
-                                    console.log(`  - Adding new product: ${productNormalizedId}`);
+                    let newProducts = [];
+                    responseData?.data?.selectedProducts?.forEach((product, index) => {
+                        const productNormalizedId = normalizeId(product.id);
+                        console.log(`Checking product: ${product.title}, ID: ${product.id}, Normalized ID: ${productNormalizedId}`);
+                        if (product.variants && product.variants.length > 0) {
+                            product.variants.forEach(variant => {
+                                const variantNormalizedId = normalizeId(variant.id);
+                                console.log(`  - Checking variant: ${variant.title || 'Default'}, ID: ${variant.id}, Normalized ID: ${variantNormalizedId}`);
+                                if (!existingVariantMap[variantNormalizedId]) {
+                                    console.log(`    - Adding new variant: ${variantNormalizedId}`);
 
                                     newProducts.push({
-                                        id: product.id,
+                                        id: variant.id,
                                         productId: product.id,
+                                        variantId: variant.id,
                                         normalizedProductId: productNormalizedId,
-                                        name: product.title,
+                                        normalizedVariantId: variantNormalizedId,
+                                        name: `${product.title} - ${variant.title || 'Default'}`,
                                         priority: lastPriority + newProducts.length + 1,
-                                        price: product.variants?.[0]?.price || "N/A",
-                                        compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
+                                        price: variant.price || "N/A",
+                                        compareAtPrice: variant.compareAtPrice || "N/A",
                                         currency: "USD" // Adjust if you have currency info
                                     });
-
-                                    // Mark as existing
-                                    existingProductMap[productNormalizedId] = true;
+                                    existingVariantMap[variantNormalizedId] = true;
                                 } else {
-                                    console.log(`  - Skipping existing product: ${productNormalizedId}`);
+                                    console.log(`    - Skipping existing variant: ${variantNormalizedId}`);
                                 }
+                            });
+                        } else {
+                            if (!existingProductMap[productNormalizedId]) {
+                                console.log(`  - Adding new product: ${productNormalizedId}`);
+                                newProducts.push({
+                                    id: product.id,
+                                    productId: product.id,
+                                    normalizedProductId: productNormalizedId,
+                                    name: product.title,
+                                    priority: lastPriority + newProducts.length + 1,
+                                    price: product.variants?.[0]?.price || "N/A",
+                                    compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
+                                    currency: "USD" // Adjust if you have currency info
+                                });
+                                existingProductMap[productNormalizedId] = true;
+                            } else {
+                                console.log(`  - Skipping existing product: ${productNormalizedId}`);
                             }
-                        });
-                        setProductData(newProducts);
-                        return responseData.data;
-                    } else {
-                        console.error("Failed to fetch product edit:", responseData);
-                        return null;
-                    }
-                } catch (error) {
-                    console.error("Error fetching product edit:", error);
+                        }
+                    });
+                    // Changed to append instead of replace
+                    setProductData(prevData => loadMore ? [...prevData, ...newProducts] : newProducts);
+                    return responseData.data;
+                } else {
+                    console.error("Failed to fetch product edit:", responseData);
                     return null;
                 }
-                finally {
-                    setShowDataTableLoader(false);
-                }
+            } catch (error) {
+                console.error("Error fetching product edit:", error);
+                return null;
             }
-        };
+            finally {
+                setShowDataTableLoader(false);
+            }
+        }
+    };
+
+    const fetchCollections = async () => {
+        try {
+            const responseData = await fetchMethod(getMethodType, "collections/get", shopid);
+            console.log("collection responseData ", responseData);
+
+            if (responseData?.message === "suceess") {
+                const options = responseData.data.collections.map((col) => ({
+                    label: col.label,
+                    value: col.value,
+                }));
+                setCurrency(responseData?.data?.currency);
+                return [{ label: "Please select collection", value: "" }, ...options];
+            } else {
+                console.error("Failed to fetch collections:", responseData);
+                return [];
+            }
+        } catch (error) {
+            console.error("Error fetching collections:", error);
+            return [];
+        }
+    };
+
+    // Fetch collections when component mounts
+    useEffect(() => {
+
+
+
 
         const fetchData = async () => {
             setLoadingCollections(true);
@@ -775,7 +829,15 @@ const ProductSelection = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <DraggableTable productData={productData} setProductData={setProductData} sortOption={sortOption} setSortOption={setSortOption} parentCurrency={currency} />
+                                            <DraggableTable
+                                                productData={productData}
+                                                setProductData={setProductData}
+                                                sortOption={sortOption}
+                                                setSortOption={setSortOption}
+                                                parentCurrency={currency}
+                                                hasNextPage={paginationData.hasNextPage}
+                                                loadMore={loadMoreProducts}
+                                            />
                                         </>
                                     )}
                                 </>}

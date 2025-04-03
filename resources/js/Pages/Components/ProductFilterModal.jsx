@@ -22,13 +22,19 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
     const [productTagLoader, setProductTagLoder] = useState(false);
     const [fetchProductLoader, setFetchProductLoader] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
-    
+    // Pagination states
+    const [paginationData, setPaginationData] = useState({
+        hasNextPage: false,
+        endCursor: null,
+        filters: {}
+    });
+
     // Fetch vendor list
     useEffect(() => {
         const fetchVendors = async () => {
             setVendorLoader(true);
             try {
-                if (vendorOptionsList.length == 0) {
+                if (vendorOptionsList.length === 0) {
                     const responseData = await fetchMethod(getMethodType, "getAllVendors", shopid);
                     if (responseData?.status === "success" && Array.isArray(responseData.vendors)) {
                         setVendorOptionsList(responseData.vendors);
@@ -36,8 +42,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 }
             } catch (error) {
                 console.error("Error fetching vendors:", error);
-            }
-            finally {
+            } finally {
                 setVendorLoader(false);
             }
         };
@@ -50,7 +55,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         const fetchProductTypes = async () => {
             setProductTypeLoader(true);
             try {
-                if (productTypeOptionsList.length == 0) {
+                if (productTypeOptionsList.length === 0) {
                     const responseData = await fetchMethod(getMethodType, "getAllProductTypes", shopid);
                     if (responseData?.status === "success" && Array.isArray(responseData.types)) {
                         setProductTypeOptionsList(responseData.types);
@@ -58,8 +63,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 }
             } catch (error) {
                 console.error("Error fetching product types:", error);
-            }
-            finally {
+            } finally {
                 setProductTypeLoader(false);
             }
         };
@@ -72,7 +76,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         const fetchProductTags = async () => {
             setProductTagLoder(true);
             try {
-                if (productTagsOptionsList.length == 0) {
+                if (productTagsOptionsList.length === 0) {
                     const responseData = await fetchMethod(getMethodType, "getAllProductTags", shopid);
                     if (responseData?.status === "success" && Array.isArray(responseData.tags)) {
                         setProductTagsOptionsList(responseData.tags);
@@ -80,8 +84,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 }
             } catch (error) {
                 console.error("Error fetching product tags:", error);
-            }
-            finally {
+            } finally {
                 setProductTagLoder(false);
             }
         };
@@ -94,33 +97,33 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         const [selected, setSelected] = useState([]);
         const [inputValue, setInputValue] = useState("");
         const [options, setOptions] = useState(optionsList);
-    
+
         useEffect(() => {
             setOptions(optionsList);
         }, [optionsList]);
-    
+
         const updateText = useCallback((value) => {
             setInputValue(value);
             if (value === "") {
                 setOptions(optionsList);
                 return;
             }
-    
+
             const filterRegex = new RegExp(value, "i");
             setOptions(optionsList.filter((option) => option.label.match(filterRegex)));
         }, [optionsList]);
-    
+
         const updateSelection = useCallback((selectedItems) => {
             setSelected(selectedItems);
             setInputValue("");
             setOptions(optionsList); // Reset options back to full list after selection
         }, [optionsList]);
-    
+
         const removeTag = useCallback((tag) => () => {
             setSelected(selected.filter((item) => item !== tag));
             setOptions(optionsList); // Ensure full list is shown again after removal
         }, [selected, optionsList]);
-    
+
         const verticalContentMarkup = selected.length > 0 ? (
             <LegacyStack spacing="extraTight" alignment="center">
                 {selected.map((option) => (
@@ -130,7 +133,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 ))}
             </LegacyStack>
         ) : null;
-    
+
         return { selected, inputValue, updateText, updateSelection, options, verticalContentMarkup };
     };
 
@@ -143,26 +146,37 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         setTimeout(() => setToastMessage(null), 3000); // Hide toast after 3 seconds
     };
 
-    const applyFilters = async () => {
-        // Construct the filters object
+    const normalizeId = (gid) => {
+        if (!gid) return "";
+        if (typeof gid === 'string' && gid.includes('gid://shopify/')) {
+            const parts = gid.split('/');
+            return parts[parts.length - 1];
+        }
+        return String(gid).replace(/\D/g, '');
+    };
+
+    const fetchFilteredProducts = async (loadMore = false) => {
         setFetchProductLoader(true);
-        const filters = {
-            ...(productStatus !== "all_products" && { productStatus }), // Add only if not "all_products"
-            vendors: vendorAutocomplete.selected,
-            productTypes: productTypeAutocomplete.selected,
-            productTags: productTagsAutocomplete.selected,
-            minPrice,
-            maxPrice,
-        };
+        if (loadMore) {
+            var filters = {
+                ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor })
+            };
+        }
+        else {
+            var filters = {
+                ...(productStatus !== "all_products" && { productStatus }),
+                vendors: vendorAutocomplete.selected,
+                productTypes: productTypeAutocomplete.selected,
+                productTags: productTagsAutocomplete.selected,
+                minPrice,
+                maxPrice,
+            };
+        }
 
-
-        // Remove keys with empty values
         const filteredFilters = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => {
-                if (Array.isArray(value)) {
-                    return value.length > 0; // Keep arrays with values
-                }
-                return value !== "" && value !== null; // Keep non-empty values
+                if (Array.isArray(value)) return value.length > 0;
+                return value !== "" && value !== null && value !== false;
             })
         );
 
@@ -177,27 +191,17 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
             console.log("Filtered products response:", response);
 
             if (response?.status === "success" && Array.isArray(response.products)) {
-                // Normalize ID function - handles both Shopify GID format and regular IDs
-                const normalizeId = (gid) => {
-                    if (!gid) return "";
-                    // For Shopify GID format: "gid://shopify/Product/1234567890"
-                    if (typeof gid === 'string' && gid.includes('gid://shopify/')) {
-                        const parts = gid.split('/');
-                        return parts[parts.length - 1];
-                    }
-                    // For numeric IDs or other formats
-                    return String(gid).replace(/\D/g, '');
-                };
+                setPaginationData({
+                    hasNextPage: response.hasNextPage || false,
+                    endCursor: response.endCursor || null,
+                    filters: filteredFilters
+                });
 
-                // Build lookup maps of existing products and variants using normalized IDs
                 const existingProductMap = {};
                 const existingVariantMap = {};
-
                 productData.forEach(item => {
-                    // Normalize IDs of existing data
                     const normProductId = normalizeId(item.productId);
                     if (normProductId) existingProductMap[normProductId] = true;
-
                     const normVariantId = normalizeId(item.variantId);
                     if (normVariantId) existingVariantMap[normVariantId] = true;
                 });
@@ -207,21 +211,12 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                     : 0;
 
                 let newProducts = [];
-
                 response.products.forEach((product, index) => {
                     const productNormalizedId = normalizeId(product.id);
-                    console.log(`Checking product: ${product.title}, ID: ${product.id}, Normalized ID: ${productNormalizedId}`);
-
-                    // Check if the product has variants
                     if (product.variants && product.variants.length > 0) {
                         product.variants.forEach(variant => {
                             const variantNormalizedId = normalizeId(variant.id);
-                            console.log(`  - Checking variant: ${variant.title || 'Default'}, ID: ${variant.id}, Normalized ID: ${variantNormalizedId}`);
-
-                            // Check if this variant is already in our data
                             if (!existingVariantMap[variantNormalizedId]) {
-                                console.log(`    - Adding new variant: ${variantNormalizedId}`);
-
                                 newProducts.push({
                                     id: variant.id,
                                     productId: product.id,
@@ -232,20 +227,13 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                                     priority: lastPriority + newProducts.length + 1,
                                     price: variant.price || "N/A",
                                     compareAtPrice: variant.compareAtPrice || "N/A",
-                                    currency: "USD" // Adjust if you have currency info
+                                    currency: "USD"
                                 });
-
-                                // Mark as existing to prevent duplicates within this batch
                                 existingVariantMap[variantNormalizedId] = true;
-                            } else {
-                                console.log(`    - Skipping existing variant: ${variantNormalizedId}`);
                             }
                         });
                     } else {
-                        // Handle products without variants
                         if (!existingProductMap[productNormalizedId]) {
-                            console.log(`  - Adding new product: ${productNormalizedId}`);
-
                             newProducts.push({
                                 id: product.id,
                                 productId: product.id,
@@ -254,20 +242,14 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                                 priority: lastPriority + newProducts.length + 1,
                                 price: product.variants?.[0]?.price || "N/A",
                                 compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
-                                currency: "USD" // Adjust if you have currency info
+                                currency: "USD"
                             });
-
-                            // Mark as existing
                             existingProductMap[productNormalizedId] = true;
-                        } else {
-                            console.log(`  - Skipping existing product: ${productNormalizedId}`);
                         }
                     }
                 });
 
                 console.log(`Adding ${newProducts.length} new products/variants from API`);
-
-                // Append new products while maintaining priority order
                 setProductData(prevData => [...prevData, ...newProducts]);
 
                 const count = newProducts.length || 0;
@@ -276,117 +258,143 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 } else {
                     showToast("No new products were added");
                 }
-            }
-            else {
+
+                onApplyFilters({
+                    source: 'filters',
+                    hasNextPage: response.hasNextPage,
+                    endCursor: response.endCursor,
+                    loadMore: () => fetchFilteredProducts(true)
+                });
+            } else {
                 showToast("Failed to fetch products");
             }
         } catch (error) {
             showToast("Failed to fetch products");
-        }
-        finally {
+            console.error("Error fetching filtered products:", error);
+        } finally {
             setFetchProductLoader(false);
-            onClose();
+            if (!loadMore) onClose();
         }
     };
 
-    return (<>
-        <Modal open={open} onClose={onClose} title="Filter Products">
-            <Modal.Section>
-                <Select label="Product Status" options={productStatusOptions} onChange={setProductStatus} value={productStatus} />
+    const applyFilters = () => fetchFilteredProducts(false);
 
-                {/* Vendor Autocomplete */}
-                <div style={{ marginTop: "15px" }}>
-                    <Autocomplete
-                        loading={vendorLoader}
-                        allowMultiple
-                        options={vendorAutocomplete.options}
-                        selected={vendorAutocomplete.selected}
-                        onSelect={vendorAutocomplete.updateSelection}
-                        textField={
-                            <Autocomplete.TextField
-                                label="Vendors"
-                                value={vendorAutocomplete.inputValue}
-                                onChange={vendorAutocomplete.updateText}
-                                prefix={<Icon source={SearchIcon} />}
-                                placeholder="Search Vendors"
-                                verticalContent={vendorAutocomplete.verticalContentMarkup}
-                                autoComplete="off"
-                                loading={vendorLoader}
-                            />
-                        }
+    return (
+        <>
+            <Modal open={open} onClose={onClose} title="Filter Products">
+                <Modal.Section>
+                    <Select
+                        label="Product Status"
+                        options={productStatusOptions}
+                        onChange={setProductStatus}
+                        value={productStatus}
                     />
-                </div>
 
-                {/* Product Type Autocomplete */}
-                <div style={{ marginTop: "15px" }}>
-                    <Autocomplete
-                        loading={productTypeLoader}
-                        allowMultiple
-                        options={productTypeAutocomplete.options}
-                        selected={productTypeAutocomplete.selected}
-                        onSelect={productTypeAutocomplete.updateSelection}
-                        textField={
-                            <Autocomplete.TextField
-                                label="Product Types"
-                                value={productTypeAutocomplete.inputValue}
-                                onChange={productTypeAutocomplete.updateText}
-                                prefix={<Icon source={SearchIcon} />}
-                                placeholder="Search Product Types"
-                                verticalContent={productTypeAutocomplete.verticalContentMarkup}
-                                autoComplete="off"
-                                loading={productTypeLoader}
-                            />
-                        }
-                    />
-                </div>
-
-                {/* Product Tags Autocomplete */}
-                <div style={{ marginTop: "15px" }}>
-                    <Autocomplete
-                        loading={productTagLoader}
-                        allowMultiple
-                        options={productTagsAutocomplete.options}
-                        selected={productTagsAutocomplete.selected}
-                        onSelect={productTagsAutocomplete.updateSelection}
-                        textField={
-                            <Autocomplete.TextField
-                                label="Product Tags"
-                                value={productTagsAutocomplete.inputValue}
-                                onChange={productTagsAutocomplete.updateText}
-                                prefix={<Icon source={SearchIcon} />}
-                                placeholder="Search Product Tags"
-                                verticalContent={productTagsAutocomplete.verticalContentMarkup}
-                                autoComplete="off"
-                                loading={productTagLoader}
-                            />
-                        }
-                    />
-                </div>
-
-                <div style={{ marginTop: "15px" }}>
-                    Filter products by price
-                </div>
-                <div style={{ display: "flex", gap: "20px" }}>
-                    <div style={{ width: "50%" }}>
-                        <TextField label="Min Price" type="number" value={minPrice} onChange={setMinPrice} autoComplete="off" placeholder="Start price" />
+                    {/* Vendor Autocomplete */}
+                    <div style={{ marginTop: "15px" }}>
+                        <Autocomplete
+                            loading={vendorLoader}
+                            allowMultiple
+                            options={vendorAutocomplete.options}
+                            selected={vendorAutocomplete.selected}
+                            onSelect={vendorAutocomplete.updateSelection}
+                            textField={
+                                <Autocomplete.TextField
+                                    label="Vendors"
+                                    value={vendorAutocomplete.inputValue}
+                                    onChange={vendorAutocomplete.updateText}
+                                    prefix={<Icon source={SearchIcon} />}
+                                    placeholder="Search Vendors"
+                                    verticalContent={vendorAutocomplete.verticalContentMarkup}
+                                    autoComplete="off"
+                                    loading={vendorLoader}
+                                />
+                            }
+                        />
                     </div>
-                    <div style={{ width: "50%" }}>
-                        <TextField label="Max Price" type="number" value={maxPrice} onChange={setMaxPrice} autoComplete="off" placeholder="End price" />
+
+                    {/* Product Type Autocomplete */}
+                    <div style={{ marginTop: "15px" }}>
+                        <Autocomplete
+                            loading={productTypeLoader}
+                            allowMultiple
+                            options={productTypeAutocomplete.options}
+                            selected={productTypeAutocomplete.selected}
+                            onSelect={productTypeAutocomplete.updateSelection}
+                            textField={
+                                <Autocomplete.TextField
+                                    label="Product Types"
+                                    value={productTypeAutocomplete.inputValue}
+                                    onChange={productTypeAutocomplete.updateText}
+                                    prefix={<Icon source={SearchIcon} />}
+                                    placeholder="Search Product Types"
+                                    verticalContent={productTypeAutocomplete.verticalContentMarkup}
+                                    autoComplete="off"
+                                    loading={productTypeLoader}
+                                />
+                            }
+                        />
                     </div>
-                </div>
 
+                    {/* Product Tags Autocomplete */}
+                    <div style={{ marginTop: "15px" }}>
+                        <Autocomplete
+                            loading={productTagLoader}
+                            allowMultiple
+                            options={productTagsAutocomplete.options}
+                            selected={productTagsAutocomplete.selected}
+                            onSelect={productTagsAutocomplete.updateSelection}
+                            textField={
+                                <Autocomplete.TextField
+                                    label="Product Tags"
+                                    value={productTagsAutocomplete.inputValue}
+                                    onChange={productTagsAutocomplete.updateText}
+                                    prefix={<Icon source={SearchIcon} />}
+                                    placeholder="Search Product Tags"
+                                    verticalContent={productTagsAutocomplete.verticalContentMarkup}
+                                    autoComplete="off"
+                                    loading={productTagLoader}
+                                />
+                            }
+                        />
+                    </div>
 
-            </Modal.Section>
+                    <div style={{ marginTop: "15px" }}>
+                        Filter products by price
+                    </div>
+                    <div style={{ display: "flex", gap: "20px" }}>
+                        <div style={{ width: "50%" }}>
+                            <TextField
+                                label="Min Price"
+                                type="number"
+                                value={minPrice}
+                                onChange={setMinPrice}
+                                autoComplete="off"
+                                placeholder="Start price"
+                            />
+                        </div>
+                        <div style={{ width: "50%" }}>
+                            <TextField
+                                label="Max Price"
+                                type="number"
+                                value={maxPrice}
+                                onChange={setMaxPrice}
+                                autoComplete="off"
+                                placeholder="End price"
+                            />
+                        </div>
+                    </div>
+                </Modal.Section>
 
-            <Modal.Section>
-                <div align="right" style={{ display: "flex", gap: "15px", justifyContent: "end" }}>
-                    <Button loading={fetchProductLoader} onClick={onClose}>Cancel</Button>
-                    <Button loading={fetchProductLoader} onClick={applyFilters} variant="primary">Apply Filters</Button>
-                </div>
-            </Modal.Section>
-        </Modal>
-        {toastMessage && <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />}
-    </>
+                <Modal.Section>
+                    <div align="right" style={{ display: "flex", gap: "15px", justifyContent: "end" }}>
+                        <Button loading={fetchProductLoader} onClick={onClose}>Cancel</Button>
+                        <Button loading={fetchProductLoader} onClick={applyFilters} variant="primary">Apply Filters</Button>
+                    </div>
+                </Modal.Section>
+            </Modal>
+            {toastMessage && <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />}
+        </>
     );
 };
 
