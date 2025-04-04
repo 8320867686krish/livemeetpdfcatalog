@@ -23,8 +23,8 @@ const DraggableTable = ({
             priority: item.priority || index + 1,
         }));
     });
-    const [loadingMore, setLoadingMore] = useState(false); // Local loading state
-    const loadMoreRef = useRef(null); // Ref for the Load More button
+    const [loadingMore, setLoadingMore] = useState(false);
+    const loadMoreRef = useRef(null); 
 
     console.log("product data ", productData);
 
