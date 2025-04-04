@@ -11,7 +11,8 @@ const DraggableTable = ({
     setSortOption,
     parentCurrency,
     hasNextPage,
-    loadMore
+    loadMore,
+    setPaginationData,
 }) => {
     const app = useAppBridge();
     const shopCurrency = app?.shop?.currencyCode;
@@ -62,12 +63,13 @@ const DraggableTable = ({
         console.log("All items deleted");
         setItems([]);
         setProductData([]);
+        setPaginationData((prevState) => ({ ...prevState, hasNextPage: false }))
     };
 
     // Modified to maintain scroll position
     const handleLoadMore = async () => {
         if (loadMoreRef.current) {
-            const scrollPosition = loadMoreRef.current.getBoundingClientRect().top + window.pageYOffset  + 1500;
+            const scrollPosition = loadMoreRef.current.getBoundingClientRect().top + window.pageYOffset + 1500;
 
             setLoadingMore(true);
             try {
