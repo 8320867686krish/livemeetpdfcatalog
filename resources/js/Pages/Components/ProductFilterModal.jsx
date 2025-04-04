@@ -159,7 +159,13 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         setFetchProductLoader(true);
         if (loadMore) {
             var filters = {
-                ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor })
+                ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor }),
+                ...(productStatus !== "all_products" && { productStatus }),
+                vendors: vendorAutocomplete.selected,
+                productTypes: productTypeAutocomplete.selected,
+                productTags: productTagsAutocomplete.selected,
+                minPrice,
+                maxPrice,
             };
         }
         else {
