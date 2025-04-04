@@ -1876,14 +1876,26 @@ class ApiController extends Controller
         $minPrice = floatval($request->input('minPrice', 0));
         $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
         $endCursor = $request->input('endCursor', '');
+        $priceFilter = '';
 
+        $priceFilter = "price:>{$minPrice} and price:<{$maxPrice}";
+
+        $queryParts = [];
+        if (!empty($priceFilter)) {
+            $queryParts[] = $priceFilter;
+        }
+        if (!empty($queryConditions)) {
+            $queryParts[] = implode(' AND ', $queryConditions);
+        }
+
+        $finalQuery = implode(' AND ', $queryParts);
         $products = [];
         $hasNextPage = true;
 
         try {
             //  while ($hasNextPage) {
             $query = '{
-                    products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+    products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . addslashes($finalQuery) . '") {
                         edges {
                             node {
                                 id
@@ -1918,7 +1930,6 @@ class ApiController extends Controller
             $response = Http::withHeaders($headers)->post($shopifyUrl, [
                 'query' => $query,
             ]);
-
             $data = $response->json();
             if (!isset($data['data']['products'])) {
                 return response()->json([
