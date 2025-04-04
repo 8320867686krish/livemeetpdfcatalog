@@ -291,7 +291,7 @@ const ProductSelection = ({ props }) => {
 
             setProductData(prevData => [...prevData, ...newProducts]);
 
-            showToast(newProducts.length > 0 ? `${newProducts.length} product(s) added` : "No new products found");
+            // showToast(newProducts.length > 0 ? `${newProducts.length} product(s) added` : "No new products found");
         } else {
             showToast("No products found for selected collections");
         }
