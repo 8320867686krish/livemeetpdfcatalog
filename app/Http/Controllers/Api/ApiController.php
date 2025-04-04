@@ -1883,7 +1883,7 @@ class ApiController extends Controller
                                 vendor
                                 productType
                                 tags
-                                variants(first: 10) {
+                                variants(first: 100) {
                                     edges {
                                         node {
                                             id
