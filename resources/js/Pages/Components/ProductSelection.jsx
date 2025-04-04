@@ -837,6 +837,7 @@ const ProductSelection = ({ props }) => {
                                                 parentCurrency={currency}
                                                 hasNextPage={paginationData.hasNextPage}
                                                 loadMore={loadMoreProducts}
+                                                setPaginationData={setPaginationData}
                                             />
                                         </>
                                     )}
