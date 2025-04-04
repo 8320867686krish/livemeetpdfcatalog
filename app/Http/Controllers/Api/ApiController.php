@@ -175,6 +175,16 @@ class ApiController extends Controller
 
             if (!empty($post['selectedProducts'])) {
                 CollectionProducts::where('settings_id', $saveData->id)->delete();
+                $userData = User::where('id', $post['shop_id'])->first();
+                $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
+                $selectedCount = count($post['selectedProducts']);
+
+                if ($checkPlan) {
+                    if ($selectedCount >= $checkPlan->catelog_product_limit) {
+                        return response()->json(['message' => 'Your Limit Has Been Reached', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+                    }
+                }
+
                 foreach ($post['selectedProducts'] as $value) {
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
@@ -1984,7 +1994,7 @@ class ApiController extends Controller
         }
     }
 
-    
+
     public function getProductsByCollections(Request $request)
     {
         $shop = base64_decode($request->header('token'));
@@ -2088,7 +2098,7 @@ class ApiController extends Controller
             $fetchedProducts = array_map(function ($productEdge) use ($headers, $shopifyUrl) {
                 $product = $productEdge['node'];
                 $variants = [];
-            
+
                 // Check if there are already fetched variants
                 if (!empty($product['variants']['edges'])) {
                     foreach ($product['variants']['edges'] as $variantEdge) {
@@ -2104,11 +2114,11 @@ class ApiController extends Controller
                         ];
                     }
                 }
-            
+
                 // If product has more than 30 variants, fetch all of them via GraphQL pagination
                 $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
                 $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
-            
+
                 while ($variantHasNextPage) {
                     $variantQuery = '{
                         product(id: "' . $product['id'] . '") {
@@ -2122,10 +2132,10 @@ class ApiController extends Controller
                             }
                         }
                     }';
-            
+
                     $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
                     $variantData = $variantResponse->json();
-            
+
                     foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
                         $variant = $variantEdge['node'];
                         $variants[] = [
@@ -2136,11 +2146,11 @@ class ApiController extends Controller
                             'compareAtPrice' => $variant['compareAtPrice'] ?? null
                         ];
                     }
-            
+
                     $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
                     $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
                 }
-            
+
                 return [
                     'id' => $product['id'],
                     'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id']),
@@ -2159,7 +2169,7 @@ class ApiController extends Controller
             } else {
                 getProductsByCollections::where('collection_id', $currentCollectionId)
                     ->update(['end_cursor' => $endCursor]);
-                    $hasNextPage = true;
+                $hasNextPage = true;
             }
 
             $products = array_merge($products, $fetchedProducts);

@@ -105,7 +105,7 @@ class PlanSeeder extends Seeder
             'on_install' => 1,
             'catelog_limit' => 'true',
             'catelog_page_limit' => 'true',
-            'catelog_product_limit' => 'true',
+            'catelog_product_limit' => 700,
             'layout_limit' => 'true',
             'font_limit' => 'true',
             'barcode' => 'true',
