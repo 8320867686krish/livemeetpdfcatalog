@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Modal, Button, Select, TextField, Autocomplete, Icon, LegacyStack, Tag, Toast, Frame } from "@shopify/polaris";
+import { Modal, Button, Select, TextField, Autocomplete, Icon, LegacyStack, Tag, Toast, Frame, Checkbox } from "@shopify/polaris";
 import { SearchIcon } from "@shopify/polaris-icons";
 import { fetchMethod } from "../helper";
 
-const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductData, productData }) => {
+const ProductFilterModal = ({ open, onClose, shopid, setProductData, productData, setActiveBannerError, setErrorBannerMessage }) => {
     const productStatusOptions = [
         { label: "All products", value: "all_products" },
         { label: "Active", value: "active" },
@@ -22,12 +22,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
     const [productTagLoader, setProductTagLoder] = useState(false);
     const [fetchProductLoader, setFetchProductLoader] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
-    // Pagination states
-    const [paginationData, setPaginationData] = useState({
-        hasNextPage: false,
-        endCursor: null,
-        filters: {}
-    });
+    const [isProductWithVariant, setIsProductWithVariant] = useState(false);
 
     // Fetch vendor list
     useEffect(() => {
@@ -155,29 +150,17 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
         return String(gid).replace(/\D/g, '');
     };
 
-    const fetchFilteredProducts = async (loadMore = false) => {
+    const fetchFilteredProducts = async () => {
         setFetchProductLoader(true);
-        if (loadMore) {
-            var filters = {
-                ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor }),
-                ...(productStatus !== "all_products" && { productStatus }),
-                vendors: vendorAutocomplete.selected,
-                productTypes: productTypeAutocomplete.selected,
-                productTags: productTagsAutocomplete.selected,
-                minPrice,
-                maxPrice,
-            };
-        }
-        else {
-            var filters = {
-                ...(productStatus !== "all_products" && { productStatus }),
-                vendors: vendorAutocomplete.selected,
-                productTypes: productTypeAutocomplete.selected,
-                productTags: productTagsAutocomplete.selected,
-                minPrice,
-                maxPrice,
-            };
-        }
+        const filters = {
+            ...(productStatus !== "all_products" && { productStatus }),
+            vendors: vendorAutocomplete.selected,
+            productTypes: productTypeAutocomplete.selected,
+            productTags: productTagsAutocomplete.selected,
+            minPrice,
+            maxPrice,
+            isProductWithVariant
+        };
 
         const filteredFilters = Object.fromEntries(
             Object.entries(filters).filter(([_, value]) => {
@@ -197,12 +180,6 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
             console.log("Filtered products response:", response);
 
             if (response?.status === "success" && Array.isArray(response.products)) {
-                setPaginationData({
-                    hasNextPage: response.hasNextPage || false,
-                    endCursor: response.endCursor || null,
-                    filters: filteredFilters
-                });
-
                 const existingProductMap = {};
                 const existingVariantMap = {};
                 productData.forEach(item => {
@@ -219,7 +196,7 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                 let newProducts = [];
                 response.products.forEach((product, index) => {
                     const productNormalizedId = normalizeId(product.id);
-                    if (product.variants && product.variants.length > 0) {
+                    if (product.variants && product.variants.length > 0 && isProductWithVariant) {
                         product.variants.forEach(variant => {
                             const variantNormalizedId = normalizeId(variant.id);
                             if (!existingVariantMap[variantNormalizedId]) {
@@ -265,12 +242,11 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                     showToast("No new products were added");
                 }
 
-                onApplyFilters({
-                    source: 'filters',
-                    hasNextPage: response.hasNextPage,
-                    endCursor: response.endCursor,
-                    loadMore: () => fetchFilteredProducts(true)
-                });
+                // Pass limit exceed info to parent component
+                if (response.isLimitExceed === true && response.productLimitMessage) {
+                    setErrorBannerMessage(response.productLimitMessage);
+                    setActiveBannerError(true);
+                }
             } else {
                 showToast("Failed to fetch products");
             }
@@ -279,11 +255,11 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
             console.error("Error fetching filtered products:", error);
         } finally {
             setFetchProductLoader(false);
-            if (!loadMore) onClose();
+            onClose();
         }
     };
 
-    const applyFilters = () => fetchFilteredProducts(false);
+    const applyFilters = () => fetchFilteredProducts();
 
     return (
         <>
@@ -389,6 +365,14 @@ const ProductFilterModal = ({ open, onClose, onApplyFilters, shopid, setProductD
                                 placeholder="End price"
                             />
                         </div>
+                    </div>
+
+                    <div style={{ marginTop: "15px" }}>
+                        <Checkbox
+                            label="Include product variants"
+                            checked={isProductWithVariant}
+                            onChange={(newValue) => setIsProductWithVariant(newValue)}
+                        />
                     </div>
                 </Modal.Section>
 
