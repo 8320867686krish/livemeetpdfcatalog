@@ -1,4 +1,4 @@
-import { Button, Card, Page, Text, TextField, LegacyCard, EmptyState, ButtonGroup, Spinner, Toast, Select, Icon, Autocomplete, Tag, LegacyStack, Checkbox, Tooltip, SkeletonBodyText } from "@shopify/polaris";
+import { Button, Card, Page, Text, TextField, LegacyCard, EmptyState, ButtonGroup, Spinner, Toast, Select, Icon, Autocomplete, Tag, LegacyStack, Checkbox, Tooltip, SkeletonBodyText, Modal, Banner } from "@shopify/polaris";
 import React, { useState, useEffect, useCallback } from "react";
 import DraggableTable from "./draggable";
 import createApp from '@shopify/app-bridge';
@@ -31,39 +31,25 @@ const ProductSelection = ({ props }) => {
     const [productData, setProductData] = useState([]);
     const [sortOption, setSortOption] = useState("default");
     const [filterModalOpen, setFilterModalOpen] = useState(false);
-    const [selectedCollections, setSelectedCollections] = useState([]); // Store selected collections`
+    const [selectedCollections, setSelectedCollections] = useState([]);
     const [fetchProductLoader, setFetchProductLoader] = useState(false);
     const [toastMessage, setToastMessage] = useState(null);
     const [collectionOptions, setCollectionOptions] = useState([]);
-    const [loadingCollections, setLoadingCollections] = useState(true); // Loader state
+    const [loadingCollections, setLoadingCollections] = useState(true);
     const [inputValue, setInputValue] = useState("");
-    const [allCollections, setAllCollections] = useState([]); // Store all collections
-    const [filteredOptions, setFilteredOptions] = useState([]); // Filtered
-    const [productEdit, setProductEdit] = useState([]); // Filtered
+    const [allCollections, setAllCollections] = useState([]);
+    const [filteredOptions, setFilteredOptions] = useState([]);
+    const [productEdit, setProductEdit] = useState([]);
     const [buttonLoader, setButtonLoader] = useState(false);
     const [excludeOutOfStock, setExcludeOutOfStock] = useState(false);
     const [excludeNotInStore, setExcludeNotInStore] = useState(false);
     const [showDataTableLoader, setShowDataTableLoader] = useState(false);
-    const [selectedCollection, setSelectedCollection] = useState([]); // Store selected collections`
+    const [selectedCollection, setSelectedCollection] = useState([]);
     const [currency, setCurrency] = useState('');
-    const [paginationData, setPaginationData] = useState({
-        hasNextPage: false,
-        endCursor: null,
-        collectionIds: [],
-        source: null,
-        loadMoreFunc: null // Store the loadMore function from filters
-    });
-
-    const handleFilterApply = (filterData) => {
-        setPaginationData({
-            hasNextPage: filterData.hasNextPage,
-            endCursor: filterData.endCursor,
-            collectionIds: [],
-            source: filterData.source,
-            loadMoreFunc: filterData.loadMore
-        });
-    };
-
+    const [variantModalOpen, setVariantModalOpen] = useState(false);
+    const [isProductWithVariant, setIsProductWithVariant] = useState(false);
+    const [activeBannerError, setActiveBannerError] = useState(false);
+    const [errorBannerMessage, setErrorBannerMessage] = useState("");
 
     useEffect(() => {
         console.log("ProductData updated:", productData);
@@ -90,29 +76,18 @@ const ProductSelection = ({ props }) => {
             }
         });
 
-        // Convert object to array for initialSelectionIds
         return Object.values(selectedProducts);
     };
 
-
-    /**
-     * Normalizes Shopify IDs to a consistent format for comparison
-     * Works with both GraphQL GIDs and regular IDs
-     */
     const normalizeId = (gid) => {
         if (!gid) return "";
-        // For Shopify GID format: "gid://shopify/Product/1234567890"
         if (typeof gid === 'string' && gid.includes('gid://shopify/')) {
             const parts = gid.split('/');
             return parts[parts.length - 1];
         }
-        // For numeric IDs or other formats
         return String(gid).replace(/\D/g, '');
     };
 
-    /**
-     * Builds maps of existing product and variant IDs for duplicate checking
-     */
     const buildExistingIdMaps = (productData) => {
         const productMap = {};
         const variantMap = {};
@@ -127,8 +102,6 @@ const ProductSelection = ({ props }) => {
 
         return { productMap, variantMap };
     };
-
-
 
     const handleAddProductClick = () => {
         console.log("Opening product picker...");
@@ -145,15 +118,12 @@ const ProductSelection = ({ props }) => {
             productPicker.subscribe(ResourcePicker.Action.SELECT, (selection) => {
                 console.log("Selection from picker:", selection);
 
-                // Get last priority for sorting
                 const lastPriority = productData.length > 0
                     ? Math.max(...productData.map(item => item.priority))
                     : 0;
 
-                // Get maps of existing product/variant IDs
                 const { productMap, variantMap } = buildExistingIdMaps(productData);
 
-                // Process new selections
                 let selectedProducts = [];
                 let newCount = 0;
 
@@ -162,12 +132,10 @@ const ProductSelection = ({ props }) => {
                     console.log(`Processing product: ${product.title}, ID: ${product.id}, Normalized: ${productNormalizedId}`);
 
                     if (product.variants && product.variants.length > 0) {
-                        // Process variants
                         product.variants.forEach(variant => {
                             const variantNormalizedId = normalizeId(variant.id);
                             console.log(`  - Variant: ${variant.title}, ID: ${variant.id}, Normalized: ${variantNormalizedId}`);
 
-                            // Check if this variant is already in our data
                             if (!variantMap[variantNormalizedId]) {
                                 console.log(`    Adding new variant: ${variantNormalizedId}`);
                                 newCount++;
@@ -185,14 +153,12 @@ const ProductSelection = ({ props }) => {
                                     currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
                                 });
 
-                                // Mark as existing to prevent duplicates within this selection
                                 variantMap[variantNormalizedId] = true;
                             } else {
                                 console.log(`    Skipping existing variant: ${variantNormalizedId}`);
                             }
                         });
                     } else {
-                        // Process product without variants
                         if (!productMap[productNormalizedId]) {
                             console.log(`  Adding new product: ${productNormalizedId}`);
                             newCount++;
@@ -208,7 +174,6 @@ const ProductSelection = ({ props }) => {
                                 currency: variant.presentmentPrices?.[0]?.price?.currencyCode || "USD"
                             });
 
-                            // Mark as existing
                             productMap[productNormalizedId] = true;
                         } else {
                             console.log(`  Skipping existing product: ${productNormalizedId}`);
@@ -219,9 +184,6 @@ const ProductSelection = ({ props }) => {
                 if (selectedProducts.length > 0) {
                     console.log(`Adding ${selectedProducts.length} new products/variants`);
                     setProductData(prevData => [...prevData, ...selectedProducts]);
-
-                    // Optional: Check for duplicates after adding
-                    // setTimeout(() => checkForDuplicates(productData), 500);
                 } else {
                     console.log("No new products or variants selected.");
                 }
@@ -242,7 +204,7 @@ const ProductSelection = ({ props }) => {
 
     const showToast = (message) => {
         setToastMessage(message);
-        setTimeout(() => setToastMessage(null), 3000); // Hide toast after 3 seconds
+        setTimeout(() => setToastMessage(null), 3000);
     };
 
     const handleProductResponse = (response) => {
@@ -250,7 +212,6 @@ const ProductSelection = ({ props }) => {
             const existingProductMap = new Map();
             const existingVariantMap = new Map();
 
-            // Store existing product and variant IDs to avoid duplicates
             productData.forEach(item => {
                 existingProductMap.set(normalizeId(item.productId), true);
                 existingVariantMap.set(normalizeId(item.variantId), true);
@@ -265,53 +226,72 @@ const ProductSelection = ({ props }) => {
             response.products.forEach(product => {
                 const productNormalizedId = normalizeId(product.id);
 
-                product.variants.forEach(variant => {
-                    const variantNormalizedId = normalizeId(variant.id);
-
-                    if (!existingVariantMap.has(variantNormalizedId)) {
+                if (isProductWithVariant && product.variants && product.variants.length > 0) {
+                    product.variants.forEach(variant => {
+                        const variantNormalizedId = normalizeId(variant.id);
+                        if (!existingVariantMap.has(variantNormalizedId)) {
+                            newProducts.push({
+                                id: variant.id,
+                                productId: product.id,
+                                variantId: variant.id,
+                                normalizedProductId: productNormalizedId,
+                                normalizedVariantId: variantNormalizedId,
+                                name: `${product.title} - ${variant.title || 'Default'}`,
+                                priority: lastPriority + newProducts.length + 1,
+                                price: variant.price || "N/A",
+                                compareAtPrice: variant.compareAtPrice || "N/A",
+                                currency: "USD"
+                            });
+                            existingVariantMap.set(variantNormalizedId, true);
+                        }
+                    });
+                } else {
+                    if (!existingProductMap.has(productNormalizedId)) {
                         newProducts.push({
-                            id: variant.id,
+                            id: product.id,
                             productId: product.id,
-                            variantId: variant.id,
                             normalizedProductId: productNormalizedId,
-                            normalizedVariantId: variantNormalizedId,
-                            name: `${product.title} - ${variant.title || 'Default'}`,
+                            name: product.title,
                             priority: lastPriority + newProducts.length + 1,
-                            price: variant.price || "N/A",
-                            compareAtPrice: variant.compareAtPrice || "N/A",
+                            price: product.variants?.[0]?.price || "N/A",
+                            compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
                             currency: "USD"
                         });
-
-                        existingVariantMap.set(variantNormalizedId, true);
+                        existingProductMap.set(productNormalizedId, true);
                     }
-                });
+                }
             });
 
             console.log(`Adding ${newProducts.length} new products from collections`);
-
             setProductData(prevData => [...prevData, ...newProducts]);
 
-            // showToast(newProducts.length > 0 ? `${newProducts.length} product(s) added` : "No new products found");
+            // Check for limit exceed and show banner
+            if (response.isLimitExceed === true && response.productLimitMessage) {
+                setErrorBannerMessage(response.productLimitMessage);
+                setActiveBannerError(true);
+            }
         } else {
             showToast("No products found for selected collections");
         }
     };
 
-
     const handleAddCollectionClick = () => {
-        console.log("Opening collection picker...");
+        console.log("Opening variant confirmation modal...");
+        setVariantModalOpen(true);
+    };
+
+    const handleVariantModalConfirm = () => {
+        setVariantModalOpen(false);
+        console.log("Opening collection picker with isProductWithVariant:", isProductWithVariant);
 
         const collectionPicker = ResourcePicker.create(app, {
             resourceType: ResourcePicker.ResourceType.Collection,
-            options: {
-                // initialSelectionIds: getSelectedCollectionIds(), // Maintain previously selected collections
-            },
+            options: {},
         });
 
         collectionPicker.subscribe(ResourcePicker.Action.SELECT, async (selection) => {
             console.log("Selected Collections:", selection.selection);
 
-            // Normalize selection and update state
             const newCollections = selection.selection.map(col => ({
                 id: col.id,
                 normalizedId: normalizeId(col.id),
@@ -319,28 +299,23 @@ const ProductSelection = ({ props }) => {
                 handle: col.handle,
             }));
 
-            // setSelectedCollections(newCollections);
             console.log("Selected Collections: ", newCollections);
             collectionPicker.dispatch(ResourcePicker.Action.CLOSE);
 
-            // Extract collection IDs
             const selectedCollectionIds = newCollections.map(col => col.id);
-            console.log("selectedCollectionIds ", selectedCollectionIds)
+            console.log("selectedCollectionIds ", selectedCollectionIds);
             if (selectedCollectionIds.length > 0) {
-                setFetchProductLoader(true); // Show loader while fetching products
+                setFetchProductLoader(true);
                 try {
                     const response = await fetchMethod(
                         postMethodType,
                         `getProductsByCollections`,
                         shopid,
-                        { collectionIds: selectedCollectionIds }
+                        {
+                            collectionIds: selectedCollectionIds,
+                            isProductWithVariant
+                        }
                     );
-                    setPaginationData({
-                        hasNextPage: response.hasNextPage,
-                        endCursor: response.endCursor,
-                        collectionIds: selectedCollectionIds,
-                        source: 'collections'
-                    });
 
                     console.log("Products from collections:", response);
                     handleProductResponse(response);
@@ -351,75 +326,32 @@ const ProductSelection = ({ props }) => {
                     setFetchProductLoader(false);
                 }
             }
-
         });
 
         collectionPicker.dispatch(ResourcePicker.Action.OPEN);
-
     };
 
-    const loadMoreProducts = async () => {
-        try {
-            if (paginationData.source === 'edit') {
-                await fetchProductEdit(true);
-            } else if (paginationData.source === 'collections' && paginationData.collectionIds.length > 0) {
-                let payload = {
-                    // collectionIds: paginationData.collectionIds,
-                    hasNextPage: true,
-                    endCursor: paginationData.endCursor
-                };
-                const response = await fetchMethod(
-                    postMethodType,
-                    `getProductsByCollections`,
-                    shopid,
-                    payload
-                );
-                setPaginationData(prev => ({
-                    ...prev,
-                    hasNextPage: response.hasNextPage,
-                    endCursor: response.endCursor,
-                    source: 'collections',
-                    loadMoreFunc: null
-                }));
-                handleProductResponse(response);
-            } else if (paginationData.source === 'filters' && paginationData.loadMoreFunc) {
-                await paginationData.loadMoreFunc();
-            }
-        } catch (error) {
-            console.error("Error loading more products:", error);
-            showToast("Failed to load more products");
-        }
+    const handleVariantModalCancel = () => {
+        setVariantModalOpen(false);
+        setIsProductWithVariant(false);
     };
 
-    const fetchProductEdit = async (loadMore = false, setShowDataTableLoaderInput = true) => {
+    const fetchProductEdit = async (setShowDataTableLoaderInput = true) => {
         if (pdfId && pdfId != null) {
             try {
                 setShowDataTableLoader(setShowDataTableLoaderInput);
                 const payload = {
-                    "setting_id": pdfId,
-                    ...(loadMore && { hasNextPage: true, endCursor: paginationData.endCursor })
+                    "setting_id": pdfId
                 };
                 const responseData = await fetchMethod(postMethodType, "product/edit", shopid, payload);
                 console.log("productEdit responseData ", responseData);
 
                 if (responseData?.errorCode == 0) {
-                    if (!loadMore) {
-                        // Only set these on initial load, not when loading more
-                        setCatelogName(responseData?.data?.settings?.catalog_name);
-                        setSortOption(responseData?.data?.settings?.sort_by);
-                        setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
-                        setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
-                        setSelectedCollections(responseData?.data?.settings?.collectionName?.split(',') || []);
-                    }
-
-                    // Update pagination data
-                    setPaginationData({
-                        hasNextPage: responseData.data.hasNextPage,
-                        endCursor: responseData.data.endCursor,
-                        collectionIds: responseData?.data?.settings?.collectionName?.split(',') || [],
-                        source: 'edit',
-                        loadMoreFunc: null
-                    });
+                    setCatelogName(responseData?.data?.settings?.catalog_name);
+                    setSortOption(responseData?.data?.settings?.sort_by);
+                    setExcludeOutOfStock(responseData?.data?.settings?.excludeOutOfStock);
+                    setExcludeNotInStore(responseData?.data?.settings?.excludeNotInStore);
+                    setSelectedCollections(responseData?.data?.settings?.collectionName?.split(',') || []);
 
                     const existingProductMap = {};
                     const existingVariantMap = {};
@@ -454,7 +386,7 @@ const ProductSelection = ({ props }) => {
                                         priority: lastPriority + newProducts.length + 1,
                                         price: variant.price || "N/A",
                                         compareAtPrice: variant.compareAtPrice || "N/A",
-                                        currency: "USD" // Adjust if you have currency info
+                                        currency: "USD"
                                     });
                                     existingVariantMap[variantNormalizedId] = true;
                                 } else {
@@ -472,7 +404,7 @@ const ProductSelection = ({ props }) => {
                                     priority: lastPriority + newProducts.length + 1,
                                     price: product.variants?.[0]?.price || "N/A",
                                     compareAtPrice: product.variants?.[0]?.compareAtPrice || "N/A",
-                                    currency: "USD" // Adjust if you have currency info
+                                    currency: "USD"
                                 });
                                 existingProductMap[productNormalizedId] = true;
                             } else {
@@ -480,8 +412,7 @@ const ProductSelection = ({ props }) => {
                             }
                         }
                     });
-                    // Changed to append instead of replace
-                    setProductData(prevData => loadMore ? [...prevData, ...newProducts] : newProducts);
+                    setProductData(newProducts);
                     return responseData.data;
                 } else {
                     console.error("Failed to fetch product edit:", responseData);
@@ -519,20 +450,14 @@ const ProductSelection = ({ props }) => {
         }
     };
 
-    // Fetch collections when component mounts
     useEffect(() => {
-
-
-
-
         const fetchData = async () => {
             setLoadingCollections(true);
             try {
                 const [collections, productEditData] = await Promise.all([fetchCollections(), fetchProductEdit()]);
-
                 setAllCollections(collections);
                 setFilteredOptions(collections);
-                setProductEdit(productEditData); // Assuming `setProductEdit` is your state setter
+                setProductEdit(productEditData);
             } catch (error) {
                 console.error("Error in fetching data:", error);
             } finally {
@@ -543,10 +468,8 @@ const ProductSelection = ({ props }) => {
         fetchData();
     }, [shopid]);
 
-
     useEffect(() => {
         const getEditData = async () => {
-
             try {
                 const responseData = await fetchMethod(getMethodType, `setting/${pdfId}`, shopid);
                 console.log("responseData getEditData", responseData);
@@ -555,7 +478,6 @@ const ProductSelection = ({ props }) => {
                 console.error("Error fetching collections:", error);
             }
         }
-
     }, [pdfId])
 
     const handleInputChange = useCallback(
@@ -575,7 +497,6 @@ const ProductSelection = ({ props }) => {
         [allCollections]
     );
 
-
     const removeTag = useCallback(
         (tagValue) => () => {
             setSelectedCollections(selectedCollections.filter((value) => value !== tagValue));
@@ -590,11 +511,10 @@ const ProductSelection = ({ props }) => {
         }
         try {
             setButtonLoader(true);
-            // Prepare the data for the API call
             const requestData = {
-                id: pdfId == null ? 0 : pdfId, // Assuming pdfId is the ID you want to send
+                id: pdfId == null ? 0 : pdfId,
                 catalog_name: catelogName,
-                sort_by: sortOption, // You can change this based on your requirements
+                sort_by: sortOption,
                 collectionName: selectedCollections.map(col => col).join(","),
                 selectedProducts: productData.map((product, index) => ({
                     product_id: product.id,
@@ -605,7 +525,6 @@ const ProductSelection = ({ props }) => {
             };
             console.log("productData from productSelection  ", productData);
             console.log("requestData ", requestData);
-            // Make the API call
             const response = await fetchMethod(
                 postMethodType,
                 `product/save`,
@@ -613,13 +532,9 @@ const ProductSelection = ({ props }) => {
                 requestData
             );
             console.log("response from product/save ", response);
-            // Handle the response
             if (response?.errorCode == 0) {
                 showToast("Data saved successfully!");
-                // setTimeout(() => {
                 navigate(`${URL_PREFIX}configrations?id=${response?.setting_id}`)
-                // }, 2000);
-                // You can add any additional logic here, such as redirecting the user
             } else {
                 showToast("Failed to save data.");
             }
@@ -645,7 +560,6 @@ const ProductSelection = ({ props }) => {
                 })}
             </LegacyStack>
         ) : null;
-
 
     const textField = (
         <Autocomplete.TextField
@@ -730,9 +644,23 @@ const ProductSelection = ({ props }) => {
                     </div>
                 </div>
 
-
                 <div style={{ marginTop: "20px" }}>
                     <Card>
+                        {activeBannerError && (
+                            <div style={{ marginBottom: "20px" }}>
+                                <Banner
+                                    title="Limitation of selected plan. If you remove this error please upgrade your plan."
+                                    action={{
+                                        content: "Upgrade Plan",
+                                        onAction: () => navigate(`${URL_PREFIX}plans`),
+                                    }}
+                                    onDismiss={() => setActiveBannerError(false)}
+                                    tone="critical"
+                                >
+                                    <p>{errorBannerMessage}</p>
+                                </Banner>
+                            </div>
+                        )}
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                             <div>
                                 <Text variant="headingMd" as="h6">
@@ -774,11 +702,9 @@ const ProductSelection = ({ props }) => {
                                             </div>
                                         </LegacyCard>
                                     </div>
-
                                 </> : <>
                                     {productData.length === 0 ? (
                                         <div style={{ marginTop: "20px" }}>
-
                                             <LegacyCard sectioned>
                                                 <EmptyState
                                                     heading="Which product do you want to include?"
@@ -835,28 +761,47 @@ const ProductSelection = ({ props }) => {
                                                 sortOption={sortOption}
                                                 setSortOption={setSortOption}
                                                 parentCurrency={currency}
-                                                hasNextPage={paginationData.hasNextPage}
-                                                loadMore={loadMoreProducts}
-                                                setPaginationData={setPaginationData}
                                             />
                                         </>
                                     )}
                                 </>}
                             </>
                         }
-
                     </Card>
                 </div>
             </Page>
-            {/* ====================================== Modal =========================================== */}
             <ProductFilterModal
                 open={filterModalOpen}
                 onClose={() => setFilterModalOpen(false)}
-                onApplyFilters={handleFilterApply}
                 shopid={shopid}
                 productData={productData}
                 setProductData={setProductData}
+                setActiveBannerError={setActiveBannerError}
+                setErrorBannerMessage={setErrorBannerMessage}
             />
+            <Modal
+                open={variantModalOpen}
+                onClose={handleVariantModalCancel}
+                title="Include Product Variants"
+                primaryAction={{
+                    content: 'Confirm',
+                    onAction: handleVariantModalConfirm,
+                }}
+                secondaryActions={[
+                    {
+                        content: 'Cancel',
+                        onAction: handleVariantModalCancel,
+                    },
+                ]}
+            >
+                <Modal.Section>
+                    <Checkbox
+                        label="Include product variants from selected collections"
+                        checked={isProductWithVariant}
+                        onChange={(newValue) => setIsProductWithVariant(newValue)}
+                    />
+                </Modal.Section>
+            </Modal>
             {toastMessage && <Toast content={toastMessage} onDismiss={() => setToastMessage(null)} />}
         </>
     );

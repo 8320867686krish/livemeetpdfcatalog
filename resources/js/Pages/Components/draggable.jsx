@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { Button, Icon, TextField, Select, InlineError } from "@shopify/polaris";
 import { DeleteIcon, DragHandleIcon } from "@shopify/polaris-icons";
@@ -10,9 +10,6 @@ const DraggableTable = ({
     sortOption,
     setSortOption,
     parentCurrency,
-    hasNextPage,
-    loadMore,
-    setPaginationData,
 }) => {
     const app = useAppBridge();
     const shopCurrency = app?.shop?.currencyCode;
@@ -23,8 +20,6 @@ const DraggableTable = ({
             priority: item.priority || index + 1,
         }));
     });
-    const [loadingMore, setLoadingMore] = useState(false);
-    const loadMoreRef = useRef(null); 
 
     console.log("product data ", productData);
 
@@ -63,30 +58,6 @@ const DraggableTable = ({
         console.log("All items deleted");
         setItems([]);
         setProductData([]);
-        setPaginationData((prevState) => ({ ...prevState, hasNextPage: false }))
-    };
-
-    // Modified to maintain scroll position
-    const handleLoadMore = async () => {
-        if (loadMoreRef.current) {
-            const scrollPosition = loadMoreRef.current.getBoundingClientRect().top + window.pageYOffset + 1500;
-
-            setLoadingMore(true);
-            try {
-                await loadMore();
-                // Scroll back to position after loading
-                setTimeout(() => {
-                    window.scrollTo({
-                        top: scrollPosition,
-                        behavior: 'smooth'
-                    });
-                }, 100);
-            } catch (error) {
-                console.error("Error loading more:", error);
-            } finally {
-                setLoadingMore(false);
-            }
-        }
     };
 
     // Filter and sort logic remains the same
@@ -241,25 +212,6 @@ const DraggableTable = ({
                     )}
                 </Droppable>
             </DragDropContext>
-
-            {hasNextPage && (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        padding: "20px"
-                    }}
-                    ref={loadMoreRef}
-                >
-                    <Button
-                        onClick={handleLoadMore}
-                        loading={loadingMore}
-                        variant="primary"
-                    >
-                        Load More
-                    </Button>
-                </div>
-            )}
         </div>
     );
 };
