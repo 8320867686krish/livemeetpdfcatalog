@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ChunkPdf;
 use App\Models\CollectionProducts;
+use App\Models\getProductsByCollections;
 use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -174,6 +175,16 @@ class ApiController extends Controller
 
             if (!empty($post['selectedProducts'])) {
                 CollectionProducts::where('settings_id', $saveData->id)->delete();
+                $userData = User::where('id', $post['shop_id'])->first();
+                $checkPlan = DB::table('plans')->where('id', $userData['plan_id'])->first();
+                $selectedCount = count($post['selectedProducts']);
+
+                if ($checkPlan) {
+                    if ($selectedCount >= $checkPlan->catelog_product_limit) {
+                        return response()->json(['message' => 'Your Limit Has Been Reached', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+                    }
+                }
+
                 foreach ($post['selectedProducts'] as $value) {
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
@@ -202,99 +213,122 @@ class ApiController extends Controller
     public function productEdit(Request $request)
     {
         $post = $request->input();
+        $currentPage = $request->get('endCursor', 1);
+        $perPage = $request->get('perPage', 35);
         $checkValidSettings = Settings::where([
             ['id', '=', $post['setting_id']],
             ['shop_id', '=', $post['shop_id']]
         ])->select('id', 'catalog_name', 'sort_by', 'collectionName', 'excludeNotInStore', 'excludeOutOfStock')->first();
 
-        if (!@$checkValidSettings) {
+        if (!$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
-
+        $totalItems = CollectionProducts::where('settings_id', $post['setting_id'])->count();
+        $totalPages = ceil($totalItems / $perPage);
+        // Get variant IDs with priority mapping
         $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
+            ->orderBy('priority', 'asc')  // Optional: Order by priority
+            ->offset(($currentPage - 1) * $perPage)
+            ->limit($perPage)
             ->pluck('priority', 'product_id') // Retrieve product_id and priority
             ->toArray();
 
-
-        // $variantIds = array_map(fn($product) => "\"{$product['product_id']}\"", $post['selectedProducts']);
         $accessToken = $post['password'];
 
-        $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
-        $results = [];
-        $priceFormat = null;
+        if (empty($variantIds)) {
+            return response()->json([
+                'responseCode' => 1,
+                'errorCode' => 0,
+                'message' => 'No Data Found',
+                'data' => [
+                    'settings' => $checkValidSettings,
+                    'selectedProducts' => [],
+                    'count' => $totalItems,
+                    'currentPage' => $currentPage,
+                    'totalPages' => $totalPages,
+                    'hasNextPage' => false,
+                    'endCursor' => 0,
+                ]
+            ], 200);
+        }
 
-        foreach ($chunkedVariantIds as $index => $ids) {
-            $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", $ids));
-            $shopQuery = $index === 0 ? "shop { currencyFormats { moneyInEmailsFormat } }" : "";
+        $variantIdsString = implode(",", array_map(fn($id) => "\"{$id}\"", array_keys($variantIds)));
 
-            // GraphQL query for bulk fetching
-            $query = <<<GQL
-            query {
-                nodes(ids: [$variantIdsString]) {
-                    ... on ProductVariant {
+        $query = <<<GQL
+        query {
+            nodes(ids: [$variantIdsString]) {
+                ... on ProductVariant {
+                    id
+                    price
+                    title
+                    compareAtPrice
+                    product {
                         id
-                        price,
-                        title
-                        compareAtPrice
-                        product{
-                        id,
                         title
                     }
-                    }
                 }
-                $shopQuery
-            }
-            GQL;
-
-            // Send request to Shopify GraphQL API
-            $response = Http::withHeaders([
-                'X-Shopify-Access-Token' => $accessToken,
-                'Content-Type' => 'application/json',
-            ])->post("https://{$post['shop']}/admin/api/2024-01/graphql.json", [
-                'query' => $query
-            ]);
-            if ($response->successful()) {
-                $nodes = $response->json('data.nodes', []);
-                if ($index === 0) {
-                    $shop = $response->json('data.shop', []);
-                    $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
-                }
-
-                $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
-                    ->filter() // Remove null values
-                    ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
-                    ->map(function ($variants, $productId) use ($priceFormat) {
-                        $firstVariant = $variants->first(); // Get product details from the first variant
-
-                        return [
-                            'id' => $productId,
-                            'normalizedId' => str_replace('gid://shopify/Product/', '', $productId),
-                            'title' => $firstVariant['product']['title'],
-                            'variants' => $variants->map(function ($variant) use ($priceFormat) {
-                                return [
-                                    'id' => $variant['id'],
-                                    'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
-                                    'title' => $variant['title'],
-                                    'price' => $variant['price'],
-                                    'compareAtPrice' => $variant['compareAtPrice'] ?? '',
-                                    'product' => $variant['product']['id'],
-                                    'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
-                                ];
-                            })->values()->toArray(),
-                        ];
-                    })
-                    ->values()->toArray(); // Reset array keys
-
-
-                $results = array_merge($results, $filteredNodes);
-            } else {
-                throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
             }
         }
-        $dataArray['settings'] =   $checkValidSettings;
-        $dataArray['selectedProducts'] = @$results ?? [];
-        return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Data Found', 'data' => $dataArray], 200);
+        GQL;
+
+        // Send request to Shopify GraphQL API
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken,
+            'Content-Type' => 'application/json',
+        ])->post("https://{$post['shop']}/admin/api/2024-01/graphql.json", [
+            'query' => $query
+        ]);
+
+        $results = [];
+
+        if ($response->successful()) {
+            $nodes = $response->json('data.nodes', []);
+
+            $filteredNodes = collect($nodes)
+                ->filter()
+                ->groupBy(fn($node) => $node['product']['id'])
+                ->map(function ($variants, $productId) {
+                    $firstVariant = $variants->first();
+                    return [
+                        'id' => $productId,
+                        'normalizedId' => str_replace('gid://shopify/Product/', '', $productId),
+                        'title' => $firstVariant['product']['title'],
+                        'variants' => $variants->map(function ($variant) {
+                            return [
+                                'id' => $variant['id'],
+                                'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
+                                'title' => $variant['title'],
+                                'price' => $variant['price'],
+                                'compareAtPrice' => $variant['compareAtPrice'] ?? '',
+                                'product' => $variant['product']['id'],
+                                'normalizedProductId' => str_replace('gid://shopify/Product/', '', $variant['product']['id']),
+                            ];
+                        })->values()->toArray(),
+                    ];
+                })
+                ->values()->toArray();
+
+            $results = $filteredNodes;
+        } else {
+            throw new \Exception("Shopify API request failed: " . json_encode($response->json()));
+        }
+
+        return response()->json([
+            'responseCode' => 1,
+            'errorCode' => 0,
+            'message' => 'Data Found',
+            'data' => [
+                'settings' => $checkValidSettings,
+                'selectedProducts' => $results,
+                'count' => $totalItems,
+                'totalPages' => $totalPages,
+                'hasNextPage' => $currentPage < $totalPages,
+                'endCursor' => $currentPage < $totalPages ? $currentPage + 1 : 0
+
+            ]
+        ], 200);
     }
+
     public function settingSave(Request $request)
     {
         $post = $request->input();
@@ -1796,6 +1830,8 @@ class ApiController extends Controller
     {
         $shop = base64_decode($request->header('token'));
         $token = User::where('name', $shop)->pluck('password')->first();
+        $endCursor = $request->input('endCursor', '');
+
         if (!$token) {
             return response()->json([
                 'status' => 'error',
@@ -1832,22 +1868,27 @@ class ApiController extends Controller
                 }
             }
         }
-
+          $minPrice = floatval($request->input('minPrice', 0));
+        $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
+          if($request->input('maxPrice')){
+             $queryConditions[] = "price:>{$minPrice} and price:<{$maxPrice}";
+          }
         if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
             $queryConditions[] = "status:{$filters['status']}";
         }
 
-        $minPrice = floatval($request->input('minPrice', 0));
-        $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
+      
+        $endCursor = $request->input('endCursor', '');
+        $priceFilter = '';
+       
 
         $products = [];
-        $endCursor = null;
-
+        $hasNextPage = true;
 
         try {
-            //   while ($hasNextPage) {
+            //  while ($hasNextPage) {
             $query = '{
-                    products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
+                products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ', query: "' . implode(' AND ', $queryConditions) . '") {
                         edges {
                             node {
                                 id
@@ -1857,7 +1898,7 @@ class ApiController extends Controller
                                 vendor
                                 productType
                                 tags
-                                variants(first: 10) {
+                                variants(first: 100) {
                                     edges {
                                         node {
                                             id
@@ -1882,7 +1923,6 @@ class ApiController extends Controller
             $response = Http::withHeaders($headers)->post($shopifyUrl, [
                 'query' => $query,
             ]);
-
             $data = $response->json();
             if (!isset($data['data']['products'])) {
                 return response()->json([
@@ -1944,8 +1984,9 @@ class ApiController extends Controller
                 'status' => 'success',
                 'message' => 'Products fetched successfully',
                 'products' => $products,
-                'hasNextPage' => $hasNextPage,
                 'count' => count($products),
+                'hasNextPage' => $hasNextPage,
+                'endCursor' => $endCursor
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -1957,12 +1998,13 @@ class ApiController extends Controller
         }
     }
 
+
     public function getProductsByCollections(Request $request)
     {
         $shop = base64_decode($request->header('token'));
+        $user = User::where('name', $shop)->select('id', 'password')->first();
 
-        $token = User::where('name', $shop)->pluck('password')->first();
-        if (!$token) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid shop or token',
@@ -1973,12 +2015,14 @@ class ApiController extends Controller
 
         $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
         $headers = [
-            'X-Shopify-Access-Token' => $token,
+            'X-Shopify-Access-Token' => $user->password,
             'Content-Type' => 'application/json',
         ];
 
-        $collectionIds = $request->input('collectionIds', []); // Array of Shopify GIDs
-        if (empty($collectionIds) || !is_array($collectionIds)) {
+        $collectionIds = $request->input('collectionIds', []);
+        $isRequest = $request->input('hasNextPage', '');
+
+        if (!$isRequest && (empty($collectionIds) || !is_array($collectionIds))) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid or empty collection IDs',
@@ -1989,119 +2033,168 @@ class ApiController extends Controller
 
         $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
 
-        $products = [];
-        $minPrice = floatval($request->input('minPrice', 0));
-        $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
-        $hasNextPage = true;
-        try {
-            foreach ($normalizedCollectionIds as $collectionId) {
-                $endCursor = null;
-                $hasNextPage = true;
+        if (!empty($collectionIds)) {
+            // Delete old records & Insert in batch for better performance
+            getProductsByCollections::where('shop_id', $user->id)->delete();
+            $insertData = array_map(fn($id) => ['shop_id' => $user->id, 'collection_id' => $id], $normalizedCollectionIds);
+            getProductsByCollections::insert($insertData);
+        }
 
-                while ($hasNextPage) {
-                    $query = '{
-                    collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-                        products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
-                            edges {
-                                node {
-                                    id
-                                    title
-                                    handle
-                                    status
-                                    vendor
-                                    productType
-                                    tags
-                                    variants(first: 10) {
-                                        edges {
-                                            node {
-                                                id
-                                                title
-                                                price
-                                                product {
-                                                    id
-                                                }
-                                            }
+        $products = [];
+        $hasNextPage = false;
+        $endCursor = null;
+
+        $products = [];
+        $hasNextPage = false;
+        $endCursor = null;
+        $totalFetched = 0;
+
+        while ($totalFetched < 25) { // Ensure exactly 25 products are fetched
+            $currentCollection = getProductsByCollections::where('shop_id', $user->id)
+                ->select('collection_id', 'end_cursor')
+                ->orderBy('id')
+                ->first();
+
+            if (!$currentCollection) {
+                break;
+            }
+
+            $currentCollectionId = $currentCollection->collection_id;
+            $endCursor = $currentCollection->end_cursor;
+
+            // Fetch only the remaining required products
+            $remaining = 25 - $totalFetched;
+
+            $query = '{
+                collection(id: "gid://shopify/Collection/' . $currentCollectionId . '") {
+                    products(first: ' . $remaining . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                        edges {
+                            node {
+                                id title totalVariants
+                                variants(first: 100) {
+                                    edges {
+                                        node {
+                                            id title price compareAtPrice product { id }
                                         }
                                     }
+                                    pageInfo { hasNextPage endCursor }
                                 }
-                            }
-                            pageInfo {
-                                hasNextPage
-                                endCursor
+                                 
                             }
                         }
+                        pageInfo { hasNextPage endCursor }
                     }
-                }';
-                    $response = Http::withHeaders($headers)->post($shopifyUrl, [
-                        'query' => $query,
-                    ]);
-
-                    $data = $response->json();
-                    if (!isset($data['data']['collection']['products'])) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'Failed to fetch products for collection ' . $collectionId,
-                            'products' => [],
-                            'count' => 0
-                        ], 500);
-                    }
-
-                    foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
-                        $product = $productEdge['node'];
-                        $productId = $product['id'];
-                        $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
-
-                        $productData = [
-                            'id'              => $productId,
-                            'normalizedId'    => $normalizedProductId,
-                            'title'           => $product['title'] ?? null,
-                            'vendor'          => $product['vendor'] ?? null,
-                            'productType'     => $product['productType'] ?? null,
-                            'tags'            => $product['tags'] ?? [],
-                            'status'          => $product['status'] ?? null,
-                            'variants'        => []
-                        ];
-
-                        if (isset($product['variants']['edges'])) {
-                            foreach ($product['variants']['edges'] as $variantEdge) {
-                                $variant = $variantEdge['node'];
-                                $variantId = $variant['id'];
-                                $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
-                                $price = floatval($variant['price']);
-                                if ($price >= $minPrice && $price <= $maxPrice) {
-                                    $productData['variants'][] = [
-                                        'id'                  => $variantId,
-                                        'normalizedId'        => $normalizedVariantId,
-                                        'title'               => $variant['title'] ?? null,
-                                        'price'               => $variant['price'] ?? null,
-                                        'product'             => $variant['product']['id'] ?? null,
-                                        'normalizedProductId' => $normalizedProductId
-                                    ];
-                                }
-                            }
-                        }
-                        if (!empty($productData['variants'])) {
-                            $products[] = $productData;
-                        }
-                    }
-                    $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
-                    $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
                 }
+            }';
+
+            $response = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $query]);
+            $data = $response->json();
+
+            if (!isset($data['data']['collection']['products'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to fetch products for collection ' . $currentCollectionId,
+                    'products' => [],
+                    'count' => 0
+                ], 500);
             }
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Products fetched successfully',
-                'products' => $products,
-                'count' => count($products),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage(),
-                'products' => [],
-                'count' => 0
-            ], 500);
+
+            $fetchedProducts = array_map(function ($productEdge) use ($headers, $shopifyUrl) {
+                $product = $productEdge['node'];
+                $variants = [];
+
+                // Check if there are already fetched variants
+                if (!empty($product['variants']['edges'])) {
+                    foreach ($product['variants']['edges'] as $variantEdge) {
+                        $variant = $variantEdge['node'];
+                        $variants[] = [
+                            'id' => $variant['id'],
+                            'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                            'title' => $variant['title'] ?? null,
+                            'price' => $variant['price'] ?? null,
+                            'compareAtPrice' => $variant['compareAtPrice'] ?? null,
+                            'product' => $variant['product']['id'] ?? null,
+                            'normalizedProductId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id'])
+                        ];
+                    }
+                }
+
+                // If product has more than 30 variants, fetch all of them via GraphQL pagination
+                $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
+                $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
+
+                while ($variantHasNextPage) {
+                    $variantQuery = '{
+                        product(id: "' . $product['id'] . '") {
+                            variants(first: 100' . ($variantEndCursor ? ', after: "' . $variantEndCursor . '"' : '') . ') {
+                                edges {
+                                    node {
+                                        id title price compareAtPrice
+                                    }
+                                }
+                                pageInfo { hasNextPage endCursor }
+                            }
+                        }
+                    }';
+
+                    $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
+                    $variantData = $variantResponse->json();
+
+                    foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+                        $variant = $variantEdge['node'];
+                        $variants[] = [
+                            'id' => $variant['id'],
+                            'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                            'title' => $variant['title'] ?? null,
+                            'price' => $variant['price'] ?? null,
+                            'compareAtPrice' => $variant['compareAtPrice'] ?? null
+                        ];
+                    }
+
+                    $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
+                    $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
+                }
+
+                return [
+                    'id' => $product['id'],
+                    'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id']),
+                    'title' => $product['title'] ?? null,
+                    'totalVariants' => $product['totalVariants'],
+                    'variants' => $variants
+                ];
+            }, $data['data']['collection']['products']['edges'] ?? []);
+
+            $shopifyhasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'] ?? false;
+            $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'] ?? null;
+
+            if ($shopifyhasNextPage == false) {
+                getProductsByCollections::where('collection_id', $currentCollectionId)->delete();
+                $hasNextPage = false;
+            } else {
+                getProductsByCollections::where('collection_id', $currentCollectionId)
+                    ->update(['end_cursor' => $endCursor]);
+                $hasNextPage = true;
+            }
+
+            $products = array_merge($products, $fetchedProducts);
+            $totalFetched = count($products); // Keep track of the count
+
+            if ($totalFetched >= 25) {
+                break;
+            }
         }
+
+        $exist = getProductsByCollections::where('shop_id', $user->id)->first();
+        if (!$exist) {
+            $hasNextPage = false; // No more collections to process
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Products fetched successfully',
+            'products' => array_slice($products, 0, 25), // Ensure exactly 25 are returned
+            'count' => count($products),
+            'hasNextPage' => $hasNextPage,
+        ]);
     }
-    
 }
