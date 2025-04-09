@@ -383,8 +383,32 @@ return [
     | https://shopify.dev/api/admin/graphql/reference/events/webhooksubscriptiontopic
     |
     */
-
+    
     'webhooks' => [
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'app/uninstalled'),
+            'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/app/uninstalled')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'customers/update'),
+            'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/customers/update')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'customers/delete'),
+            'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/customers/delete')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_4_TOPIC', 'shop/update'),
+            'address' => env('SHOPIFY_WEBHOOK_4_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/shop/update')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_5_TOPIC', 'products/update'),
+            'address' => env('SHOPIFY_WEBHOOK_5_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/products/update')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_6_TOPIC', 'themes/publish'),
+            'address' => env('SHOPIFY_WEBHOOK_6_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/themes/publish')
+        ]
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),

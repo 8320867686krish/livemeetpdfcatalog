@@ -32,6 +32,7 @@ class HomeController extends Controller
    
     public function Index(Request $request)
     {
+        echo "calll";
         $post = $request->input();
         $shop = $request->input('shop');
         $host = $request->input('host');
@@ -65,11 +66,9 @@ class HomeController extends Controller
     public function mendatoryWebhook($shopDetail)
     {
         $topics = [
-            'customers/update',
-            'customers/delete',
             'shop/update',
             'products/update',
-                'themes/publish'
+            'themes/publish'
         ];
         $url = "https://" . $shopDetail['name'] . "/admin/api/2023-07/webhooks.json";
         foreach ($topics as $topic) {

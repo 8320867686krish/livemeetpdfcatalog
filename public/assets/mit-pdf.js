@@ -112,7 +112,7 @@ loadScript('https://code.jquery.com/jquery-3.6.0.min.js', function () {
     $("#myButton").click(function () {
         if (flipstatus === true) {
             window.open(flipUrl, '_blank');
-            download();
+            //download();
         }
         if (designMode === "false" || flipstatus === false) {
             console.log("Starting download...");

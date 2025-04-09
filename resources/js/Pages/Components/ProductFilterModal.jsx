@@ -207,7 +207,7 @@ const ProductFilterModal = ({ open, onClose, shopid, setProductData, productData
                                     normalizedProductId: productNormalizedId,
                                     productVariant : product.productVariant || "filter null",
                                     normalizedVariantId: variantNormalizedId,
-                                    name: variant.title === "Default Title" ? product.title : `${product.title} - ${variant.title || 'Default'}`,
+                                    name: variant.title && variant.title !== "Default Title" ? `${product.title} - ${variant.title}` : product.title,
                                     priority: lastPriority + newProducts.length + 1,
                                     price: variant.price || "N/A",
                                     compareAtPrice: variant.compareAtPrice || "N/A",

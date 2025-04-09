@@ -20,7 +20,8 @@ class CollectionProducts extends Model
         'store_url',
         'barcode',
         'compareAtPrice',
-        'priority'
+        'priority',
+        'isProductWithVariant'
     ];
     public function setTitleAttribute($value)
     {

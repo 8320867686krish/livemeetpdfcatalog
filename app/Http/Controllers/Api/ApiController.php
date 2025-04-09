@@ -195,6 +195,7 @@ class ApiController extends Controller
                         'priority'    => $value['priority'],
                         'product_id'  => $value['productVariant'] ?? $value['product_id'],
                         'shop_id'     => $post['shop_id'],
+                        'isProductWithVariant' => isset($value['productVariant']) ? 1 : 0,
                         'settings_id' => $saveData->id
                     ]);
                 }
@@ -333,7 +334,7 @@ class ApiController extends Controller
         if (!@$checkValidSettings) {
             return response()->json(['message' => 'Invalid Catalog ID', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
         }
-
+        $isProductWithVariant = CollectionProducts::where('settings_id', $post['setting_id'])->first();
         $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
             ->pluck('priority', 'product_id') // Retrieve product_id and priority
             ->toArray();
@@ -378,26 +379,25 @@ class ApiController extends Controller
             ]);
             if ($response->successful()) {
                 $nodes = $response->json('data.nodes', []);
-                if ($index === 0) {
-                    $shop = $response->json('data.shop', []);
-                    $priceFormat = $shop['currencyFormats']['moneyInEmailsFormat'] ?? null;
-                }
+               
 
                 $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
                     ->groupBy(fn($node) => $node['product']['id']) // Group by Product ID
-                    ->map(function ($variants, $productId) use ($priceFormat) {
+                    ->map(function ($variants, $productId) use ($isProductWithVariant) {
                         $firstVariant = $variants->first(); // Get product details from the first variant
 
                         return [
                             'id' => $productId,
                             'normalizedId' => str_replace('gid://shopify/Product/', '', $productId),
                             'title' => $firstVariant['product']['title'],
-                            'variants' => $variants->map(function ($variant) use ($priceFormat) {
+                            'productVariant' => $isProductWithVariant ? $firstVariant['id'] : null,
+                            
+                            'variants' => $variants->map(function ($variant) use ($isProductWithVariant) {
                                 return [
                                     'id' => $variant['id'],
                                     'normalizedId' => str_replace('gid://shopify/ProductVariant/', '', $variant['id']),
-                                    'title' => $variant['title'],
+                                    'title' => isset($isProductWithVariant) && $isProductWithVariant ? '' : $variant['title'],
                                     'price' => $variant['price'],
                                     'compareAtPrice' => $variant['compareAtPrice'] ?? '',
                                     'product' => $variant['product']['id'],
@@ -405,6 +405,7 @@ class ApiController extends Controller
                                 ];
                             })->values()->toArray(),
                         ];
+                       
                     })
                     ->values()->toArray(); // Reset array keys
 
@@ -593,6 +594,7 @@ class ApiController extends Controller
         }
 
         $isOldUser = collect($data->products)->contains('priority', 0);
+        $isProductWithVariant = collect($data->products)->contains('isProductWithVariant', 1);
 
         if ($isOldUser) {
             $products = $data->products->map(fn($product) => [
@@ -648,6 +650,7 @@ class ApiController extends Controller
                             description
                             onlineStorePreviewUrl
                             status
+                            title
                             vendor
                             tags
                             tracksInventory
@@ -698,8 +701,7 @@ class ApiController extends Controller
                         return isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0;
                     });
                 })
-                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user) {
-
+                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user,$isProductWithVariant) {
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
@@ -708,7 +710,8 @@ class ApiController extends Controller
                         'weight' => $node['weight'],
                         'weight_unit' => $node['weightUnit'],
                         'stock_quantity' => $node['product']['tracksInventory'] ? $node['inventoryQuantity'] : false,
-                        'title' => $node['displayName'],
+                        'title' => isset($isProductWithVariant) && $isProductWithVariant ? $node['product']['title']  : $node['displayName'],
+
                         'price' => isset($node['price']) && !is_null($node['price'])
                             ? $this->formatMoney($node['price'], $priceFormat)
                             : "",
