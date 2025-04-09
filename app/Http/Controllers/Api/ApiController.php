@@ -189,11 +189,11 @@ class ApiController extends Controller
                 foreach ($post['selectedProducts'] as $value) {
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
-                        'product_id'  => $value['product_id'],
+                        'product_id'  => $value['productVariant'] ?? $value['product_id'],
                     ], [
                         "title"       => "", // Ensuring title is set to avoid SQL error
                         'priority'    => $value['priority'],
-                        'product_id'  => $value['product_id'],
+                        'product_id'  => $value['productVariant'] ?? $value['product_id'],
                         'shop_id'     => $post['shop_id'],
                         'settings_id' => $saveData->id
                     ]);
@@ -2052,7 +2052,8 @@ class ApiController extends Controller
                             }else{
                                 $variantEdge = $product['variants']['edges'][0];
                                 $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-                                $productId = $variant['id'];
+                                $productVariant = $variant['id'];
+
                                 $variants[] = [
                                     'id'                  => $variant['id'],
                                     'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
@@ -2121,6 +2122,7 @@ class ApiController extends Controller
                             'id'           => $productId,
                             'normalizedId' => $normalizedProductId,
                             'title'        => $product['title'] ?? null,
+                            'productVariant' => $productVariant ?? null,
                             'variants'     => $variants
                         ];
                     }
@@ -2497,7 +2499,7 @@ class ApiController extends Controller
                         } else {
                             $variantEdge = $product['variants']['edges'][0];
                             $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-                            $productId = $variant['id'];
+                            $productVariant = $variant['id'];
                             $variants[] = [
                                 'id'                  => $variant['id'],
                                 'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
@@ -2566,7 +2568,8 @@ class ApiController extends Controller
                             'id'           => $productId,
                             'normalizedId' => $normalizedProductId,
                             'title'        => $product['title'] ?? null,
-                            'variants'     => $variants
+                            'variants'     => $variants,
+                            'productVariant' => $productVariant ?? null,
                         ];
                     }
 
