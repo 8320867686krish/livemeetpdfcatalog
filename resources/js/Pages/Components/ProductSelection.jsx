@@ -619,7 +619,7 @@ const ProductSelection = ({ props }) => {
                         </Button>
                     </div>
                     {productData.length != 0 ? <div>
-                        <Button variant="primary" onClick={handleSaveAndContinue} loading={buttonLoader} disabled={activeBannerError}>
+                        <Button variant="primary" onClick={handleSaveAndContinue} loading={buttonLoader} disabled={productCountExceed}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     Save & continue
