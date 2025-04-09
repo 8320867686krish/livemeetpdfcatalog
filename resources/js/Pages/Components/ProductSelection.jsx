@@ -48,11 +48,22 @@ const ProductSelection = ({ props }) => {
     const [currency, setCurrency] = useState('');
     const [variantModalOpen, setVariantModalOpen] = useState(false);
     const [isProductWithVariant, setIsProductWithVariant] = useState(false);
-    const [activeBannerError, setActiveBannerError] = useState(false);
     const [errorBannerMessage, setErrorBannerMessage] = useState("");
+    const [activeBannerError, setActiveBannerError] = useState(false);
+    const [productCountExceed, setProductCountExceed] = useState(false);
 
     useEffect(() => {
         console.log("ProductData updated:", productData);
+        let catelog_product_limit = localStorage.getItem("catelog_product_limit");
+        console.log("ProductData catelog_product_limit:", catelog_product_limit);
+        console.log("ProductData productData.length > catelog_product_limit:", productData.length > catelog_product_limit);
+        if (productData.length > catelog_product_limit) {
+            setProductCountExceed(true);
+            setErrorBannerMessage("")
+        }
+        else {
+            setProductCountExceed(false);
+        }
     }, [productData]);
     const app = createApp(config);
 
@@ -266,7 +277,7 @@ const ProductSelection = ({ props }) => {
             setProductData(prevData => [...prevData, ...newProducts]);
 
             // Check for limit exceed and show banner
-            if (response.isLimitExceed === true && response.productLimitMessage) {
+            if (response.isLimitExceed == true && response.productLimitMessage) {
                 setErrorBannerMessage(response.productLimitMessage);
                 setActiveBannerError(true);
             }
@@ -518,6 +529,7 @@ const ProductSelection = ({ props }) => {
                 collectionName: selectedCollections.map(col => col).join(","),
                 selectedProducts: productData.map((product, index) => ({
                     product_id: product.id,
+                    productVariant: product.productVariant || null,
                     priority: product.priority
                 })),
                 excludeNotInStore: excludeNotInStore,
@@ -604,7 +616,7 @@ const ProductSelection = ({ props }) => {
                         </Button>
                     </div>
                     {productData.length != 0 ? <div>
-                        <Button variant="primary" onClick={handleSaveAndContinue} loading={buttonLoader}>
+                        <Button variant="primary" onClick={handleSaveAndContinue} loading={buttonLoader} disabled={activeBannerError}>
                             <div style={{ display: "flex", gap: "5px", alignItems: "center", justifyContent: "center" }}>
                                 <div>
                                     Save & continue
@@ -619,7 +631,23 @@ const ProductSelection = ({ props }) => {
                         </Button>
                     </div> : <></>
                     }
+
                 </div>
+                {(activeBannerError || productCountExceed) && (
+                    <div style={{ marginBottom: "20px" }}>
+                        <Banner
+                            title="Limitation of selected plan. If you want to proceed further please upgrade your plan."
+                            action={{
+                                content: "Upgrade Plan",
+                                onAction: () => navigate(`${URL_PREFIX}plans`),
+                            }}
+                            onDismiss={() => navigate(`${URL_PREFIX}plans`)}
+                            tone="critical"
+                        >
+                            <p>{errorBannerMessage}</p>
+                        </Banner>
+                    </div>
+                )}
                 <div style={{ display: "flex", gap: "30px", alignItems: "end" }}>
                     <div style={{ width: "50%" }}>
                         <TextField
@@ -646,21 +674,7 @@ const ProductSelection = ({ props }) => {
 
                 <div style={{ marginTop: "20px" }}>
                     <Card>
-                        {activeBannerError && (
-                            <div style={{ marginBottom: "20px" }}>
-                                <Banner
-                                    title="Limitation of selected plan. If you remove this error please upgrade your plan."
-                                    action={{
-                                        content: "Upgrade Plan",
-                                        onAction: () => navigate(`${URL_PREFIX}plans`),
-                                    }}
-                                    onDismiss={() => setActiveBannerError(false)}
-                                    tone="critical"
-                                >
-                                    <p>{errorBannerMessage}</p>
-                                </Banner>
-                            </div>
-                        )}
+
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                             <div>
                                 <Text variant="headingMd" as="h6">

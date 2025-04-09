@@ -1,7 +1,7 @@
 
 import { useMemo, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {  Spinner, Toast } from '@shopify/polaris';
+import { Spinner, Toast } from '@shopify/polaris';
 import { Provider } from '@shopify/app-bridge-react';
 import Routes from '../Routing/Routes'
 import { fetchMethod } from './helper';
@@ -56,6 +56,9 @@ export default function Main(props = {}) {
             // alert(`domain4 + ${domain}`);
             // console.log("domain", responseData);
             localStorage.setItem("domain", domain);
+            localStorage.setItem("catelog_product_limit", responseData.data.usersPlan.catelog_product_limit)
+            console.log("data from check plan ", responseData.data.usersPlan.catelog_product_limit);
+            // localStorage.setItem("domain", domain);
             // const { catelog_limit = 'false', name = '' } = usersPlan;
             usersPlan.totalCatelog = totalCatelog;
             /* if (responseCode === 0 && errorCode === 101 && pathname !== '/plans') {

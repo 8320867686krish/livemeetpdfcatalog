@@ -10,14 +10,14 @@ window.axios = require('axios');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-//window.API_PREFIX = 'api/';
- window.API_PREFIX = 'livemeetpdfcatalog/api/';
+window.API_PREFIX = 'api/';
+//  window.API_PREFIX = 'livemeetpdfcatalog/api/';
 
-//window.URL_PREFIX = '/';
-  window.URL_PREFIX = '/livemeetpdfcatalog/';//staging
+window.URL_PREFIX = '/';
+// window.URL_PREFIX = '/livemeetpdfcatalog/';//staging
 
-  //window.IMAGE_PREFIX = `${window.location.origin}/`;
-    window.IMAGE_PREFIX = `${window.location.origin}/livemeetpdfcatalog/public/`;
+  window.IMAGE_PREFIX = `${window.location.origin}/`;
+// window.IMAGE_PREFIX = `${window.location.origin}/livemeetpdfcatalog/public/`;
 
 
 
@@ -36,7 +36,7 @@ window.getMethodType = 'GET';
 window.putMethodType = 'PUT';
 window.deleteMethodType = 'DELETE';
 
-  window.shopifyApiKey = 'e303b553ce803b8110423472a72abab8';
+  window.shopifyApiKey = '67c6b06a5ed3454e8ce7ef18faed64ee';
 //window.shopifyApiKey = 'a9d802912175e6e9468ba898af4a3416';
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
