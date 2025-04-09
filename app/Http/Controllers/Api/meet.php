@@ -1963,7 +1963,9 @@ class ApiController extends Controller
         }
         $minPrice = floatval($request->input('minPrice', 0));
         $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
-       
+        if ($request->input('maxPrice')) {
+            $queryConditions[] = "price:>{$minPrice} and price:<{$maxPrice}";
+        }
         if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
             $queryConditions[] = "status:{$filters['status']}";
         }
@@ -1974,9 +1976,37 @@ class ApiController extends Controller
 
         $products = [];
         $hasNextPage = true;
-
+        if ($isProductWithVariant) {
+            $variantQuery = '
+                variants(first: 10) {
+                 pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+                    edges {
+                        node {
+                            id
+                            title
+                            price
+                            compareAtPrice
+                        }
+                    }
+                }';
+        } else {
+            $variantQuery = '
+            variants(first: 1) {
+                edges {
+                    node {
+                        id
+                        title
+                        price
+                        compareAtPrice
+                    }
+                }
+            }';
+        }
         $totalCount = 0;
-        $isLimitExceed = false;
+
         try {
             while ($hasNextPage) {
                 $query = '{
@@ -1984,21 +2014,7 @@ class ApiController extends Controller
                         edges {
                             node {
                                 id
-                                title
-                                variants(first: ' . ($isProductWithVariant ? 100 : 1) . ') {
-                                    edges {
-                                        node {
-                                            id
-                                            title
-                                            price
-                                        }
-                                    }' .
-                                    ($isProductWithVariant ? '
-                                    pageInfo {
-                                        hasNextPage
-                                        endCursor
-                                    }' : '') . '
-                                }
+                                title' . $variantQuery . '
                             }
                         }
                         pageInfo {
@@ -2026,108 +2042,44 @@ class ApiController extends Controller
                     $productId = $product['id'];
                     $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
+                    $productData = [
+                        'id'              => $productId,
+                        'normalizedId'    => $normalizedProductId,
+                        'title'           => $product['title'] ?? null,
+                        'variants'        => []
+                    ];
+                    $itemCount = 1;
+                    $variantList = [];
 
-
-                    foreach ($product['variants']['edges'] as $variantEdge) {
-                        $variant = $variantEdge['node'];
-                        $price = floatval($variant['price']);
-                        if ($price >= $minPrice && $price <= $maxPrice) {
+                    if (isset($product['variants']['edges'])) {
+                        foreach ($product['variants']['edges'] as $variantEdge) {
                             $variant = $variantEdge['node'];
-
-
-                            if ($isProductWithVariant) {
-                                $variants[] = [
-                                    'id'                  => $variant['id'],
-                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                    'title'               => $variant['title'] ?? null,
-                                    'price'               => $variant['price'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
-                                ];
-                                $totalCount++;
-                                if ($totalCount >= $plan_limit) {
-                                    $isLimitExceed = true;
-                                    break;
-                                }
-                            }else{
-                                $variantEdge = $product['variants']['edges'][0];
-                                $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-                                $productId = $variant['id'];
-                                $variants[] = [
-                                    'id'                  => $variant['id'],
-                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                    'title'               => $variant['title'] ?? null,
-                                    'price'               => $variant['price'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
-                                ];
-                                $totalCount++;
-                            }
-                        }
-                    }
-                    if ($isProductWithVariant && ($product['variants']['pageInfo']['hasNextPage'] ?? false)) {
-                        $variantEndCursor = $product['variants']['pageInfo']['endCursor'];
-
-                        while ($variantEndCursor) {
-                            $variantQuery = '{
-                                    product(id: "' . $productId . '") {
-                                        variants(first: 100, after: "' . $variantEndCursor . '") {
-                                            edges {
-                                                node {
-                                                    id
-                                                    title
-                                                    price
-                                                    compareAtPrice
-                                                }
-                                            }
-                                            pageInfo {
-                                                hasNextPage
-                                                endCursor
-                                            }
-                                        }
-                                    }
-                                }';
-
-                            $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
-                            $variantData = $variantResponse->json();
-
-                            foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
-                                $variant = $variantEdge['node'];
-
-
-                                $variants[] = [
-                                    'id'                  => $variant['id'],
-                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                            $variantId = $variant['id'];
+                            $normalizedVariantId = preg_replace('/.*\/(\d+)$/', '$1', $variantId);
+                            $price = floatval($variant['price']);
+                            $variantList[] = $variantEdge['node'];
+                            if ($price >= $minPrice && $price <= $maxPrice) {
+                                $productData['variants'][] = [
+                                    'id'                  => $variantId,
+                                    'normalizedId'        => $normalizedVariantId,
                                     'title'               => $variant['title'] ?? null,
                                     'price'               => $variant['price'] ?? null,
                                     'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
+                                    'product'             => $productId,
+                                    'normalizedProductId' => $normalizedProductId
                                 ];
-                                $totalCount++;
-                                if ($totalCount >= $plan_limit) {
-                                    $isLimitExceed = true;
-                                    break;
-                                }
                             }
-
-                            $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
-                            if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
                         }
+                        $itemCount = count($variantList);
                     }
 
-                    if (!empty($variants)) {
-                        $products[] = [
-                            'id'           => $productId,
-                            'normalizedId' => $normalizedProductId,
-                            'title'        => $product['title'] ?? null,
-                            'variants'     => $variants
-                        ];
+                    if (!empty($productData['variants'])) {
+                        $products[] = $productData;
                     }
-                    if ($totalCount >= $plan_limit) {
-                        $isLimitExceed = true;
+                    if ($totalCount + $itemCount >= $plan_limit) {
                         break 2;
                     }
+                    $totalCount += $itemCount;
                 }
 
                 $hasNextPage = $data['data']['products']['pageInfo']['hasNextPage'];
@@ -2155,6 +2107,8 @@ class ApiController extends Controller
     //     $shop = base64_decode($request->header('token'));
     //     $isProductWithVariant = $request->input('isProductWithVariant');
     //     $user = User::where('name', $shop)->select('password', 'plan_id')->first();
+    //     $plan = DB::table('plans')->where('id', $user['plan_id'])->first();
+    //     $plan_limit = $plan->catelog_product_limit;
 
     //     if (!$user) {
     //         return response()->json([
@@ -2165,8 +2119,11 @@ class ApiController extends Controller
     //         ], 400);
     //     }
 
-    //     $plan = DB::table('plans')->where('id', $user->plan_id)->first();
-    //     $plan_limit = $plan->catelog_product_limit;
+    //     $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+    //     $headers = [
+    //         'X-Shopify-Access-Token' => $user['password'],
+    //         'Content-Type' => 'application/json',
+    //     ];
 
     //     $collectionIds = $request->input('collectionIds', []);
     //     if (empty($collectionIds) || !is_array($collectionIds)) {
@@ -2178,268 +2135,343 @@ class ApiController extends Controller
     //         ], 400);
     //     }
 
-
     //     $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
-    //     $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
-    //     $headers = [
-    //         'X-Shopify-Access-Token' => $user->password,
-    //         'Content-Type' => 'application/json',
-    //     ];
 
     //     $products = [];
-    //     $totalCount = 0;
-    //     $seenProductIds = [];
-
-    //     $isLimitExceed = false;
-        
-    //     try {
-    //         foreach ($normalizedCollectionIds as $collectionId) {
-    //             $endCursor = null;
-    //             $hasNextPage = true;
-    //             $variantPageInfo = $isProductWithVariant ? '
-    //             pageInfo {
+    //     $variantQuery = '';
+    //     if ($isProductWithVariant) {
+    //         $variantQuery = '
+    //             variants(first: 10) {
+    //              pageInfo {
     //                 hasNextPage
     //                 endCursor
-    //             }' : '';
-    //             while ($hasNextPage) {
-                    
-                   
-    //             $query = '{
-    //                 collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-    //                     products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
-    //                         edges {
-    //                             node {
-    //                                 id
-    //                                 title
-    //                                 handle
-    //                                 variants(first: ' . ($isProductWithVariant ? 100 : 1) . ') {
-    //                                     edges {
-    //                                         node {
-    //                                             id
-    //                                             title
-    //                                             price
-    //                                         }
-    //                                     }
-    //                                     ' . $variantPageInfo . '
-    //                                 }
-    //                             }
-    //                         }
-    //                         pageInfo {
-    //                             hasNextPage
-    //                             endCursor
-    //                         }
+    //             }
+    //                 edges {
+    //                     node {
+    //                         id
+    //                         title
+    //                         price
+    //                         compareAtPrice
     //                     }
     //                 }
     //             }';
-    //                 $response = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $query]);
-    //                 $data = $response->json();
+    //     } else {
+    //         $variantQuery = '
+    //                 variants(first: 1) {
+    //                     edges {
+    //                         node {
+    //                             id
+    //                             title
+    //                             price
+    //                             compareAtPrice
+    //                         }
+    //                     }
+    //                 }';
+    //     }
 
-    //                 if (!isset($data['data']['collection']['products'])) {
-    //                     return response()->json([
-    //                         'status' => 'error',
-    //                         'message' => 'Failed to fetch products for collection ' . $collectionId,
-    //                         'products' => [],
-    //                         'count' => 0
-    //                     ], 500);
-    //                 }
+    //     $client = new Client();
+    //     $collectionCursors = [];
+    //     $addedProductIds = [];
+    //     $totalCount = 0;
+    //     while (count($products) < $plan_limit) {
+    //         $responses = Http::pool(fn($pool) => collect($normalizedCollectionIds)->map(function ($collectionId) use ($pool, $collectionCursors, $variantQuery, $shopifyUrl, $headers) {
+    //             $cursor = $collectionCursors[$collectionId] ?? null;
+    //             $query = $this->buildProductQuery($collectionId, $cursor, $variantQuery);
+    //             return $pool
+    //                 ->as($collectionId)
+    //                 ->withHeaders($headers)
+    //                 ->async()
+    //                 ->post($shopifyUrl, ['query' => $query]);
+    //         })->all());
 
-    //                 foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
+    //         $collectionCursors = [];
+
+    //         foreach ($responses as $collectionId => $response) {
+
+    //             if ($response->successful()) {
+    //                 $responseData = $response->json();
+    //                 $productsData = $responseData['data']['collection']['products'];
+    //                 $fetchedProducts = array_map(function ($productEdge) use ($headers, $shopifyUrl) {
     //                     $product = $productEdge['node'];
-    //                     $productId = $product['id'];
-    //                     $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
     //                     $variants = [];
 
-    //                     foreach ($product['variants']['edges'] ?? [] as $variantEdge) {
-    //                         $variant = $variantEdge['node'];
-
-
-    //                         if ($isProductWithVariant) {
+    //                     // Check if there are already fetched variants
+    //                     if (!empty($product['variants']['edges'])) {
+    //                         foreach ($product['variants']['edges'] as $variantEdge) {
+    //                             $variant = $variantEdge['node'];
     //                             $variants[] = [
-    //                                 'id'                  => $variant['id'],
-    //                                 'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-    //                                 'title'               => $variant['title'] ?? null,
-    //                                 'price'               => $variant['price'] ?? null,
-    //                                 'product'             => $variant['product']['id'] ?? null,
-    //                                 'normalizedProductId' => $normalizedProductId,
+    //                                 'id' => $variant['id'],
+    //                                 'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+    //                                 'title' => $variant['title'] ?? null,
+    //                                 'price' => $variant['price'] ?? null,
+    //                                 'compareAtPrice' => $variant['compareAtPrice'] ?? null,
+    //                                 'product' => $variant['product']['id'] ?? null,
+    //                                 'normalizedProductId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id'])
     //                             ];
-    //                             $totalCount++;
-    //                             if ($totalCount >= $plan_limit) {
-    //                                 $isLimitExceed = true;
-    //                                 break;
-    //                             }
-    //                         } else {
-    //                             $variantEdge = $product['variants']['edges'][0];
-    //                             $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-    //                             $productId = $variant['id'];
-    //                             $variants[] = [
-    //                                 'id'                  => $variant['id'],
-    //                                 'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-    //                                 'title'               => $variant['title'] ?? null,
-    //                                 'price'               => $variant['price'] ?? null,
-    //                                 'product'             => $productId ?? null,
-    //                                 'normalizedProductId' => $normalizedProductId,
-    //                             ];
-    //                             $totalCount++;
     //                         }
     //                     }
 
-    //                     // If more variants are needed and allowed by plan
-    //                     if ($isProductWithVariant && ($product['variants']['pageInfo']['hasNextPage'] ?? false)) {
-    //                         $variantEndCursor = $product['variants']['pageInfo']['endCursor'];
+    //                     // If product has more than 30 variants, fetch all of them via GraphQL pagination
+    //                     $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
+    //                     $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
 
-    //                         while ($variantEndCursor) {
-    //                             $variantQuery = '{
-    //                                 product(id: "' . $productId . '") {
-    //                                     variants(first: 100, after: "' . $variantEndCursor . '") {
-    //                                         edges {
-    //                                             node {
-    //                                                 id
-    //                                                 title
-    //                                                 price
-    //                                                 compareAtPrice
-    //                                             }
-    //                                         }
-    //                                         pageInfo {
-    //                                             hasNextPage
-    //                                             endCursor
+    //                     while ($variantHasNextPage) {
+    //                         $variantQuery = '{
+    //                             product(id: "' . $product['id'] . '") {
+    //                                 variants(first: 100' . ($variantEndCursor ? ', after: "' . $variantEndCursor . '"' : '') . ') {
+    //                                     edges {
+    //                                         node {
+    //                                             id title price compareAtPrice
     //                                         }
     //                                     }
-    //                                 }
-    //                             }';
-
-    //                             $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
-    //                             $variantData = $variantResponse->json();
-
-    //                             foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
-    //                                 $variant = $variantEdge['node'];
-
-
-    //                                 $variants[] = [
-    //                                     'id'                  => $variant['id'],
-    //                                     'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-    //                                     'title'               => $variant['title'] ?? null,
-    //                                     'price'               => $variant['price'] ?? null,
-    //                                     'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
-    //                                     'product'             => $productId ?? null,
-    //                                     'normalizedProductId' => $normalizedProductId,
-    //                                 ];
-    //                                 $totalCount++;
-    //                                 if ($totalCount >= $plan_limit) {
-    //                                     $isLimitExceed = true;
-    //                                     break;
+    //                                     pageInfo { hasNextPage endCursor }
     //                                 }
     //                             }
+    //                         }';
 
-    //                             $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
-    //                             if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
+    //                         $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
+    //                         $variantData = $variantResponse->json();
+
+    //                         foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+    //                             $variant = $variantEdge['node'];
+    //                             $variants[] = [
+    //                                 'id' => $variant['id'],
+    //                                 'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+    //                                 'title' => $variant['title'] ?? null,
+    //                                 'price' => $variant['price'] ?? null,
+    //                                 'compareAtPrice' => $variant['compareAtPrice'] ?? null
+    //                             ];
     //                         }
+
+    //                         $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
+    //                         $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
     //                     }
 
-    //                     if (!empty($variants)) {
-    //                         $products[] = [
-    //                             'id'           => $productId,
-    //                             'normalizedId' => $normalizedProductId,
-    //                             'title'        => $product['title'] ?? null,
-    //                             'variants'     => $variants
-    //                         ];
-    //                     }
+    //                     return [
+    //                         'id' => $product['id'],
+    //                         'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id']),
+    //                         'title' => $product['title'] ?? null,
+    //                         'totalVariants' => $product['totalVariants'],
+    //                         'variants' => $variants
+    //                     ];
+    //                 }, $data['data']['collection']['products']['edges'] ?? []);
 
-    //                     if ($totalCount >= $plan_limit) {
-    //                         $isLimitExceed = true;
-    //                         break 2;
-    //                     }
-    //                 }
+    //                 // foreach ($productsData['edges'] as $productEdge) {
+    //                 //     $variants = [];
+    //                 //     if (count($products) >= $plan_limit) break 2;
+    //                 //     $productNode = $productEdge['node'];
+    //                 //     $productId = $productNode['id'];
+    //                 //     if (in_array($productId, $addedProductIds)) {
+    //                 //         continue;
+    //                 //     }
+    //                 //     $itemCount = 1;
+    //                 //     $variantList = [];
 
-    //                 $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
-    //                 $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
+    //                 //     if ($isProductWithVariant && $productNode['variants']['edges']) {
+
+
+    //                 //         foreach ($productNode['variants']['edges'] as $variantEdge) {
+    //                 //             $variantList[] = $variantEdge['node'];
+    //                 //             $variants[] = [
+    //                 //                 'id' => $variantEdge['id'],
+    //                 //                 'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variantEdge['id']),
+    //                 //                 'title' => $variant['title'] ?? null,
+    //                 //                 'price' => $variant['price'] ?? null,
+    //                 //                 'compareAtPrice' => $variant['compareAtPrice'] ?? null,
+    //                 //                 'product' => $variant['product']['id'] ?? null,
+    //                 //                 'normalizedProductId' => preg_replace('/.*\/(\d+)$/', '$1', $variantEdge['id'])
+    //                 //             ];
+    //                 //         }
+    //                 //         $itemCount = count($variantList);
+    //                 //     }
+    //                 //     $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
+    //                 //     $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
+    //                 //     while ($variantHasNextPage) {
+    //                 //         $variantQuery = '{
+    //                 //             product(id: "' . $product['id'] . '") {
+    //                 //                 variants(first: 100' . ($variantEndCursor ? ', after: "' . $variantEndCursor . '"' : '') . ') {
+    //                 //                     edges {
+    //                 //                         node {
+    //                 //                             id title price compareAtPrice
+    //                 //                         }
+    //                 //                     }
+    //                 //                     pageInfo { hasNextPage endCursor }
+    //                 //                 }
+    //                 //             }
+    //                 //         }';
+
+    //                 //         $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
+    //                 //         $variantData = $variantResponse->json();
+
+    //                 //         foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+    //                 //             $variant = $variantEdge['node'];
+    //                 //             $variants[] = [
+    //                 //                 'id' => $variant['id'],
+    //                 //                 'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+    //                 //                 'title' => $variant['title'] ?? null,
+    //                 //                 'price' => $variant['price'] ?? null,
+    //                 //                 'compareAtPrice' => $variant['compareAtPrice'] ?? null
+    //                 //             ];
+    //                 //         }
+
+    //                 //         $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
+    //                 //         $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
+    //                 //     }
+    //                 //     if ($totalCount + $itemCount > $plan_limit) {
+    //                 //         break 2;
+    //                 //     }
+    //                 //     $fetchedProducts = array_map(function ($productEdge) use ($headers, $shopifyUrl) {
+    //                 //         $product = $productEdge['node'];
+    //                 //         $variants = [];
+
+    //                 //         // Check if there are already fetched variants
+    //                 //         if (!empty($product['variants']['edges'])) {
+    //                 //             foreach ($product['variants']['edges'] as $variantEdge) {
+    //                 //                 $variant = $variantEdge['node'];
+    //                 //                 $variants[] = [
+    //                 //                     'id' => $variant['id'],
+    //                 //                     'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+    //                 //                     'title' => $variant['title'] ?? null,
+    //                 //                     'price' => $variant['price'] ?? null,
+    //                 //                     'compareAtPrice' => $variant['compareAtPrice'] ?? null,
+    //                 //                     'product' => $variant['product']['id'] ?? null,
+    //                 //                     'normalizedProductId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id'])
+    //                 //                 ];
+    //                 //             }
+    //                 //         }
+
+    //                 //         // If product has more than 30 variants, fetch all of them via GraphQL pagination
+    //                 //         $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
+    //                 //         $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
+
+    //                 //         while ($variantHasNextPage) {
+    //                 //             $variantQuery = '{
+    //                 //                 product(id: "' . $product['id'] . '") {
+    //                 //                     variants(first: 100' . ($variantEndCursor ? ', after: "' . $variantEndCursor . '"' : '') . ') {
+    //                 //                         edges {
+    //                 //                             node {
+    //                 //                                 id title price compareAtPrice
+    //                 //                             }
+    //                 //                         }
+    //                 //                         pageInfo { hasNextPage endCursor }
+    //                 //                     }
+    //                 //                 }
+    //                 //             }';
+
+    //                 //             $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
+    //                 //             $variantData = $variantResponse->json();
+
+    //                 //             foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+    //                 //                 $variant = $variantEdge['node'];
+    //                 //                 $variants[] = [
+    //                 //                     'id' => $variant['id'],
+    //                 //                     'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+    //                 //                     'title' => $variant['title'] ?? null,
+    //                 //                     'price' => $variant['price'] ?? null,
+    //                 //                     'compareAtPrice' => $variant['compareAtPrice'] ?? null
+    //                 //                 ];
+    //                 //             }
+
+    //                 //             $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
+    //                 //             $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
+    //                 //         }
+
+    //                 //         return [
+    //                 //             'id' => $product['id'],
+    //                 //             'normalizedId' => preg_replace('/.*\/(\d+)$/', '$1', $product['id']),
+    //                 //             'title' => $product['title'] ?? null,
+    //                 //             'totalVariants' => $product['totalVariants'],
+    //                 //             'variants' => $variants
+    //                 //         ];
+    //                 //     }, $data['data']['collection']['products']['edges'] ?? []);
+    //                 //     // Add transformed product
+    //                 //    // $products[] = $this->transformProduct($productNode, $isProductWithVariant);
+    //                 //     $addedProductIds[] = $productId;
+    //                 //     $totalCount += $itemCount;
+    //                 // }
+
+    //                 // if ($productsData['pageInfo']['hasNextPage'] && count($products) < $plan_limit) {
+    //                 //     $collectionCursors[$collectionId] = $productsData['pageInfo']['endCursor'];
+    //                 // }
     //             }
     //         }
 
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Products fetched successfully',
-    //             'products' => $products,
-    //             'count' => count($products),
-    //             'isLimitExceed' => $isLimitExceed,
-    //             'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'An error occurred: ' . $e->getMessage(),
-    //             'products' => [],
-    //             'count' => 0
-    //         ], 500);
+    //         if (empty($collectionCursors)) {
+    //             break; // no more pages to fetch
+    //         }
     //     }
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'products' => $products,
+    //         'count' => count($products)
+    //     ]);
     // }
     public function getProductsByCollections(Request $request)
-{
-    $shop = base64_decode($request->header('token'));
-    $isProductWithVariant = $request->input('isProductWithVariant');
-    $user = User::where('name', $shop)->select('password', 'plan_id')->first();
+    {
+        $shop = base64_decode($request->header('token'));
 
-    if (!$user) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid shop or token',
-            'products' => [],
-            'count' => 0
-        ], 400);
-    }
+        $token = User::where('name', $shop)->pluck('password')->first();
+        if (!$token) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'products' => [],
+                'count' => 0
+            ], 400);
+        }
 
-    $plan = DB::table('plans')->where('id', $user->plan_id)->first();
-    $plan_limit = $plan->catelog_product_limit;
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $token,
+            'Content-Type' => 'application/json',
+        ];
 
-    $collectionIds = $request->input('collectionIds', []);
-    if (empty($collectionIds) || !is_array($collectionIds)) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid or empty collection IDs',
-            'products' => [],
-            'count' => 0
-        ], 400);
-    }
+        $collectionIds = $request->input('collectionIds', []); // Array of Shopify GIDs
+        if (empty($collectionIds) || !is_array($collectionIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid or empty collection IDs',
+                'products' => [],
+                'count' => 0
+            ], 400);
+        }
 
-    $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
-    $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
-    $headers = [
-        'X-Shopify-Access-Token' => $user->password,
-        'Content-Type' => 'application/json',
-    ];
+        $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
 
-    $products = [];
-    $totalCount = 0;
-    $isLimitExceed = false;
-    $seenProductIds = []; // ✅ Track already added product IDs
+        $products = [];
+        $minPrice = floatval($request->input('minPrice', 0));
+        $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
+        $hasNextPage = true;
+        try {
+            foreach ($normalizedCollectionIds as $collectionId) {
+                $endCursor = null;
+                $hasNextPage = true;
 
-    try {
-        foreach ($normalizedCollectionIds as $collectionId) {
-            $endCursor = null;
-            $hasNextPage = true;
-            $variantPageInfo = $isProductWithVariant ? '
-                pageInfo {
-                    hasNextPage
-                    endCursor
-                }' : '';
-            
-            while ($hasNextPage) {
-                $query = '{
+                while ($hasNextPage) {
+                    $query = '{
                     collection(id: "gid://shopify/Collection/' . $collectionId . '") {
-                        products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
+                        products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                             edges {
                                 node {
                                     id
                                     title
                                     handle
-                                    variants(first: ' . ($isProductWithVariant ? 100 : 1) . ') {
+                                 
+                                    variants(first: 100) {
                                         edges {
                                             node {
                                                 id
                                                 title
                                                 price
+                                                product {
+                                                    id
+                                                }
                                             }
                                         }
-                                        ' . $variantPageInfo . '
+                                             pageInfo {
+                     hasNextPage
+                     endCursor
+                 }
                                     }
                                 }
                             }
@@ -2450,78 +2482,67 @@ class ApiController extends Controller
                         }
                     }
                 }';
-                $response = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $query]);
-                $data = $response->json();
+                    $response = Http::withHeaders($headers)->post($shopifyUrl, [
+                        'query' => $query,
+                    ]);
 
-                if (!isset($data['data']['collection']['products'])) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Failed to fetch products for collection ' . $collectionId,
-                        'products' => [],
-                        'count' => 0
-                    ], 500);
-                }
-
-                foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
-                    $product = $productEdge['node'];
-                    $productId = $product['id'];
-                    $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
-
-                    // ✅ Skip duplicate products
-                    if (isset($seenProductIds[$normalizedProductId])) {
-                        continue;
+                    $data = $response->json();
+                    if (!isset($data['data']['collection']['products'])) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Failed to fetch products for collection ' . $collectionId,
+                            'products' => [],
+                            'count' => 0
+                        ], 500);
                     }
-                    $seenProductIds[$normalizedProductId] = true;
 
-                    $variants = [];
+                    foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
+                        $product = $productEdge['node'];
+                        $productId = $product['id'];
+                        $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
-                    foreach ($product['variants']['edges'] ?? [] as $variantEdge) {
-                        $variant = $variantEdge['node'];
+                        $productData = [
+                            'id'              => $productId,
+                            'normalizedId'    => $normalizedProductId,
+                            'title'           => $product['title'] ?? null,
+                            
+                            'variants'        => []
+                        ];
 
-                        if ($isProductWithVariant) {
-                            $variants[] = [
-                                'id'                  => $variant['id'],
-                                'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                'title'               => $variant['title'] ?? null,
-                                'price'               => $variant['price'] ?? null,
-                                'product'             => $variant['product']['id'] ?? null,
-                                'normalizedProductId' => $normalizedProductId,
-                            ];
-                            $totalCount++;
-                            if ($totalCount >= $plan_limit) {
-                                $isLimitExceed = true;
-                                break;
+                        $variants = [];
+
+                        // Add first 2 variants from the initial product response
+                        if (isset($product['variants']['edges'])) {
+                            foreach ($product['variants']['edges'] as $variantEdge) {
+                                $variant = $variantEdge['node'];
+                                $price = floatval($variant['price']);
+                                $variants[] = [
+                                    'id'                  => $variant['id'],
+                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                                    'title'               => $variant['title'] ?? null,
+                                    'price'               => $variant['price'] ?? null,
+                                    'product'             => $variant['product']['id'] ?? null,
+                                    'normalizedProductId' => $normalizedProductId
+                                ];
                             }
-                        } else {
-                            $variantEdge = $product['variants']['edges'][0];
-                            $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-                            $productId = $variant['id'];
-                            $variants[] = [
-                                'id'                  => $variant['id'],
-                                'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                'title'               => $variant['title'] ?? null,
-                                'price'               => $variant['price'] ?? null,
-                                'product'             => $productId ?? null,
-                                'normalizedProductId' => $normalizedProductId,
-                            ];
-                            $totalCount++;
                         }
-                    }
 
-                    // If more variants are needed
-                    if ($isProductWithVariant && ($product['variants']['pageInfo']['hasNextPage'] ?? false)) {
-                        $variantEndCursor = $product['variants']['pageInfo']['endCursor'];
-
-                        while ($variantEndCursor) {
+                        // Handle variant pagination
+                        $variantEndCursor = $product['variants']['pageInfo']['endCursor'] ?? null;
+                        $variantHasNextPage = $product['variants']['pageInfo']['hasNextPage'] ?? false;
+                        while ($variantHasNextPage) {
                             $variantQuery = '{
                                 product(id: "' . $productId . '") {
-                                    variants(first: 100, after: "' . $variantEndCursor . '") {
+                                    variants(first: 100' . ($variantEndCursor ? ', after: "' . $variantEndCursor . '"' : '') . ') {
                                         edges {
                                             node {
                                                 id
                                                 title
                                                 price
                                                 compareAtPrice
+                                                product {
+                                                    id
+                                                }
                                             }
                                         }
                                         pageInfo {
@@ -2537,64 +2558,47 @@ class ApiController extends Controller
 
                             foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
                                 $variant = $variantEdge['node'];
-
+                                $price = floatval($variant['price']);
                                 $variants[] = [
                                     'id'                  => $variant['id'],
                                     'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
                                     'title'               => $variant['title'] ?? null,
                                     'price'               => $variant['price'] ?? null,
                                     'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
+                                    'product'             => $variant['product']['id'] ?? null,
+                                    'normalizedProductId' => $normalizedProductId
                                 ];
-                                $totalCount++;
-                                if ($totalCount >= $plan_limit) {
-                                    $isLimitExceed = true;
-                                    break;
-                                }
                             }
 
                             $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
-                            if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
+                            $variantHasNextPage = $variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false;
+                        }
+
+                        $productData['variants'] = $variants;
+
+
+                        // Add product only if it has at least one variant in price range
+                        if (!empty($productData['variants'])) {
+                            $products[] = $productData;
                         }
                     }
-
-                    if (!empty($variants)) {
-                        $products[] = [
-                            'id'           => $productId,
-                            'normalizedId' => $normalizedProductId,
-                            'title'        => $product['title'] ?? null,
-                            'variants'     => $variants
-                        ];
-                    }
-
-                    if ($totalCount >= $plan_limit) {
-                        $isLimitExceed = true;
-                        break 2;
-                    }
+                    $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
+                    $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
                 }
-
-                $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
-                $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
             }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Products fetched successfully',
+                'products' => $products,
+                'count' => count($products),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'products' => [],
+                'count' => 0
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Products fetched successfully',
-            'products' => $products,
-            'count' => count($products),
-            'isLimitExceed' => $isLimitExceed,
-            'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'An error occurred: ' . $e->getMessage(),
-            'products' => [],
-            'count' => 0
-        ], 500);
     }
-}
-
 }
