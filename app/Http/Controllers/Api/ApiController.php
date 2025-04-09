@@ -2138,7 +2138,9 @@ class ApiController extends Controller
                 'status' => 'success',
                 'message' => 'Products fetched successfully',
                 'products' => $products,
-                'count' => count($products)
+                'count' => count($products),
+                 'isLimitExceed' => $isLimitExceed,
+                'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
             ]);
         } catch (\Exception $e) {
             return response()->json([
