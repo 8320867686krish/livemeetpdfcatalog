@@ -166,8 +166,13 @@ const Home = (props = {}) => {
     useEffect(() => {
         if (catalogList.length >= Number(catelog_limit) ||
             catelog_limit === "false") {
+                
             // setActiveBannerWarning(true)
             setActiveBannerError(true)
+        }
+        else
+        {
+            setActiveBannerError(false)
         }
     }, [catalogList])
 
