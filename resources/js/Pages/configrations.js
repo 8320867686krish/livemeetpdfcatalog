@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import html2PDF from "jspdf-html2canvas";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas"; 
+import html2canvas from "html2canvas";
 import Parser from "html-react-parser";
 import html2pdf from "html2pdf.js";
 import { encode, decode } from "uint8-to-base64";
@@ -1295,12 +1295,14 @@ const Configrations = (props = {}) => {
                     size="large"
                 />
             )}
-            <Page
+            <Page   
                 fullWidth
-                backAction={{
-                    content: "Products",
-                    onAction: () => navigate(`${URL_PREFIX}add-product?id=${settingId}`),
-                }}
+                {...(!btnSpinner && {
+                    backAction: {
+                        content: "Products",
+                        onAction: () => navigate(`${URL_PREFIX}add-product?id=${settingId}`),
+                    },
+                })}
                 title={settingId > 0 ? "Edit Catalog" : "Create a New Catalog"}
                 primaryAction={
                     <Button
