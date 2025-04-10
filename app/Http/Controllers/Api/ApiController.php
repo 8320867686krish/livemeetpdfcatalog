@@ -182,7 +182,10 @@ class ApiController extends Controller
 
                 if ($checkPlan) {
                     if ($selectedCount >= $checkPlan->catelog_product_limit) {
-                        return response()->json(['message' => 'Your Limit Has Been Reached', 'responseCode' => 0, 'errorCode' => 0, 'data' => []]);
+                        $message = 'you can only use '.$checkPlan->catelog_product_limit.' product for this plan';
+                        
+                        return response()->json(['productLimitMessage' => $message, 'responseCode' => 0, 'errorCode' => 0, 'data' => [],'isLimitExceed'=>true]);
+                       
                     }
                 }
 
