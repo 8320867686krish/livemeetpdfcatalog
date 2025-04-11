@@ -2554,7 +2554,7 @@ class ApiController extends Controller
 
                                 $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
                                 $variantData = $variantResponse->json();
-
+                                $variants = [];
                                 foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
                                     $variant = $variantEdge['node'];
 
