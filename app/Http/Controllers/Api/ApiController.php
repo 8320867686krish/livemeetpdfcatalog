@@ -2105,10 +2105,11 @@ class ApiController extends Controller
 
                             $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
                             $variantData = $variantResponse->json();
-
+                            $variants = [];
                             foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
                                 $variant = $variantEdge['node'];
-
+                                $price = floatval($variant['price']);
+                                if ($price >= $minPrice && $price <= $maxPrice) {
 
                                 $variants[] = [
                                     'id'                  => $variant['id'],
@@ -2124,6 +2125,7 @@ class ApiController extends Controller
                                     $isLimitExceed = true;
                                     break;
                                 }
+                            }
                             }
 
                             $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
