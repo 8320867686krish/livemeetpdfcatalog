@@ -182,18 +182,17 @@ class ApiController extends Controller
 
                 if ($checkPlan) {
                     if ($selectedCount > $checkPlan->catelog_product_limit) {
-                        $message = 'you can only use '.$checkPlan->catelog_product_limit.' product for this plan';
-                        
-                        return response()->json(['productLimitMessage' => $message, 'responseCode' => 0, 'errorCode' => 0, 'data' => [],'isLimitExceed'=>true]);
-                       
+                        $message = 'you can only use ' . $checkPlan->catelog_product_limit . ' product for this plan';
+
+                        return response()->json(['productLimitMessage' => $message, 'responseCode' => 0, 'errorCode' => 0, 'data' => [], 'isLimitExceed' => true]);
                     }
                 }
 
                 foreach ($post['selectedProducts'] as $value) {
                     if (!empty($value['productVariant']) && $value['productVariant'] !== 'null') {
                         $productId = $value['productVariant'];
-                    }else{
-                       $productId = $value['product_id'];
+                    } else {
+                        $productId = $value['product_id'];
                     }
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
@@ -344,6 +343,7 @@ class ApiController extends Controller
         }
         $isProductWithVariant = CollectionProducts::where('settings_id', $post['setting_id'])->first();
         $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
+            ->orderBy('priority','asc')
             ->pluck('priority', 'product_id') // Retrieve product_id and priority
             ->toArray();
 
@@ -387,7 +387,7 @@ class ApiController extends Controller
             ]);
             if ($response->successful()) {
                 $nodes = $response->json('data.nodes', []);
-               
+
 
                 $filteredNodes = collect($nodes ?? []) // Ensure 'nodes' exists
                     ->filter() // Remove null values
@@ -400,7 +400,7 @@ class ApiController extends Controller
                             'normalizedId' => str_replace('gid://shopify/Product/', '', $productId),
                             'title' => $firstVariant['product']['title'],
                             'productVariant' => $isProductWithVariant ? $firstVariant['id'] : null,
-                            
+
                             'variants' => $variants->map(function ($variant) use ($isProductWithVariant) {
                                 return [
                                     'id' => $variant['id'],
@@ -413,7 +413,6 @@ class ApiController extends Controller
                                 ];
                             })->values()->toArray(),
                         ];
-                       
                     })
                     ->values()->toArray(); // Reset array keys
 
@@ -626,7 +625,11 @@ class ApiController extends Controller
         }
 
         // ✅ New User: Fetch from Shopify API
-        $variantIds = collect($data->products)->pluck('priority', 'product_id')->toArray();
+        // $variantIds = collect($data->products)->pluck('priority', 'product_id')->toArray();
+        $variantIds = collect($data->products)
+            ->sortBy('priority')
+            ->pluck('priority', 'product_id')
+            ->toArray();
         $chunkedVariantIds = array_chunk(array_keys($variantIds), 250);
         $results = [];
         $priceFormat = null;
@@ -709,7 +712,7 @@ class ApiController extends Controller
                         return isset($node['inventoryQuantity']) && $node['inventoryQuantity'] > 0;
                     });
                 })
-                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user,$isProductWithVariant) {
+                ->map(function ($node) use ($variantIds, $priceFormat, $utm_source, $redirectValue, $user, $isProductWithVariant) {
                     return [
                         'id' => $node['id'],
                         'priority' => $variantIds[$node['id']] ?? null,
@@ -1974,7 +1977,7 @@ class ApiController extends Controller
         }
         $minPrice = floatval($request->input('minPrice', 0));
         $maxPrice = floatval($request->input('maxPrice', PHP_INT_MAX));
-       
+
         if (!empty($filters['status']) && $filters['status'] !== 'ALL_PRODUCTS') {
             $queryConditions[] = "status:{$filters['status']}";
         }
@@ -2004,7 +2007,7 @@ class ApiController extends Controller
                                             price
                                         }
                                     }' .
-                                    ($isProductWithVariant ? '
+                    ($isProductWithVariant ? '
                                     pageInfo {
                                         hasNextPage
                                         endCursor
@@ -2060,7 +2063,7 @@ class ApiController extends Controller
                                     $isLimitExceed = true;
                                     break;
                                 }
-                            }else{
+                            } else {
                                 $variantEdge = $product['variants']['edges'][0];
                                 $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
                                 $productVariant = $variant['id'];
@@ -2152,7 +2155,7 @@ class ApiController extends Controller
                 'message' => 'Products fetched successfully',
                 'products' => $products,
                 'count' => count($products),
-                 'isLimitExceed' => $isLimitExceed,
+                'isLimitExceed' => $isLimitExceed,
                 'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
             ]);
         } catch (\Exception $e) {
@@ -2206,7 +2209,7 @@ class ApiController extends Controller
     //     $seenProductIds = [];
 
     //     $isLimitExceed = false;
-        
+
     //     try {
     //         foreach ($normalizedCollectionIds as $collectionId) {
     //             $endCursor = null;
@@ -2217,8 +2220,8 @@ class ApiController extends Controller
     //                 endCursor
     //             }' : '';
     //             while ($hasNextPage) {
-                    
-                   
+
+
     //             $query = '{
     //                 collection(id: "gid://shopify/Collection/' . $collectionId . '") {
     //                     products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
@@ -2388,57 +2391,57 @@ class ApiController extends Controller
     //     }
     // }
     public function getProductsByCollections(Request $request)
-{
-    $shop = base64_decode($request->header('token'));
-    $isProductWithVariant = $request->input('isProductWithVariant');
-    $user = User::where('name', $shop)->select('password', 'plan_id')->first();
+    {
+        $shop = base64_decode($request->header('token'));
+        $isProductWithVariant = $request->input('isProductWithVariant');
+        $user = User::where('name', $shop)->select('password', 'plan_id')->first();
 
-    if (!$user) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid shop or token',
-            'products' => [],
-            'count' => 0
-        ], 400);
-    }
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid shop or token',
+                'products' => [],
+                'count' => 0
+            ], 400);
+        }
 
-    $plan = DB::table('plans')->where('id', $user->plan_id)->first();
-    $plan_limit = $plan->catelog_product_limit;
+        $plan = DB::table('plans')->where('id', $user->plan_id)->first();
+        $plan_limit = $plan->catelog_product_limit;
 
-    $collectionIds = $request->input('collectionIds', []);
-    if (empty($collectionIds) || !is_array($collectionIds)) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid or empty collection IDs',
-            'products' => [],
-            'count' => 0
-        ], 400);
-    }
+        $collectionIds = $request->input('collectionIds', []);
+        if (empty($collectionIds) || !is_array($collectionIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid or empty collection IDs',
+                'products' => [],
+                'count' => 0
+            ], 400);
+        }
 
-    $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
-    $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
-    $headers = [
-        'X-Shopify-Access-Token' => $user->password,
-        'Content-Type' => 'application/json',
-    ];
+        $normalizedCollectionIds = array_map(fn($gid) => preg_replace('/.*\/(\d+)$/', '$1', $gid), $collectionIds);
+        $shopifyUrl = "https://$shop/admin/api/2025-01/graphql.json";
+        $headers = [
+            'X-Shopify-Access-Token' => $user->password,
+            'Content-Type' => 'application/json',
+        ];
 
-    $products = [];
-    $totalCount = 0;
-    $isLimitExceed = false;
-    $seenProductIds = []; // ✅ Track already added product IDs
+        $products = [];
+        $totalCount = 0;
+        $isLimitExceed = false;
+        $seenProductIds = []; // ✅ Track already added product IDs
 
-    try {
-        foreach ($normalizedCollectionIds as $collectionId) {
-            $endCursor = null;
-            $hasNextPage = true;
-            $variantPageInfo = $isProductWithVariant ? '
+        try {
+            foreach ($normalizedCollectionIds as $collectionId) {
+                $endCursor = null;
+                $hasNextPage = true;
+                $variantPageInfo = $isProductWithVariant ? '
                 pageInfo {
                     hasNextPage
                     endCursor
                 }' : '';
-            
-            while ($hasNextPage) {
-                $query = '{
+
+                while ($hasNextPage) {
+                    $query = '{
                     collection(id: "gid://shopify/Collection/' . $collectionId . '") {
                         products(first: 100' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                             edges {
@@ -2465,70 +2468,70 @@ class ApiController extends Controller
                         }
                     }
                 }';
-                $response = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $query]);
-                $data = $response->json();
+                    $response = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $query]);
+                    $data = $response->json();
 
-                if (!isset($data['data']['collection']['products'])) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Failed to fetch products for collection ' . $collectionId,
-                        'products' => [],
-                        'count' => 0
-                    ], 500);
-                }
-
-                foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
-                    $product = $productEdge['node'];
-                    $productId = $product['id'];
-                    $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
-
-                    // ✅ Skip duplicate products
-                    if (isset($seenProductIds[$normalizedProductId])) {
-                        continue;
+                    if (!isset($data['data']['collection']['products'])) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Failed to fetch products for collection ' . $collectionId,
+                            'products' => [],
+                            'count' => 0
+                        ], 500);
                     }
-                    $seenProductIds[$normalizedProductId] = true;
 
-                    $variants = [];
+                    foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
+                        $product = $productEdge['node'];
+                        $productId = $product['id'];
+                        $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
-                    foreach ($product['variants']['edges'] ?? [] as $variantEdge) {
-                        $variant = $variantEdge['node'];
-
-                        if ($isProductWithVariant) {
-                            $variants[] = [
-                                'id'                  => $variant['id'],
-                                'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                'title'               => $variant['title'] ?? null,
-                                'price'               => $variant['price'] ?? null,
-                                'product'             => $variant['product']['id'] ?? null,
-                                'normalizedProductId' => $normalizedProductId,
-                            ];
-                            $totalCount++;
-                            if ($totalCount >= $plan_limit) {
-                                $isLimitExceed = true;
-                                break;
-                            }
-                        } else {
-                            $variantEdge = $product['variants']['edges'][0];
-                            $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
-                            $productVariant = $variant['id'];
-                            $variants[] = [
-                                'id'                  => $variant['id'],
-                                'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                'title'               => $variant['title'] ?? null,
-                                'price'               => $variant['price'] ?? null,
-                                'product'             => $productId ?? null,
-                                'normalizedProductId' => $normalizedProductId,
-                            ];
-                            $totalCount++;
+                        // ✅ Skip duplicate products
+                        if (isset($seenProductIds[$normalizedProductId])) {
+                            continue;
                         }
-                    }
+                        $seenProductIds[$normalizedProductId] = true;
 
-                    // If more variants are needed
-                    if ($isProductWithVariant && ($product['variants']['pageInfo']['hasNextPage'] ?? false)) {
-                        $variantEndCursor = $product['variants']['pageInfo']['endCursor'];
+                        $variants = [];
 
-                        while ($variantEndCursor) {
-                            $variantQuery = '{
+                        foreach ($product['variants']['edges'] ?? [] as $variantEdge) {
+                            $variant = $variantEdge['node'];
+
+                            if ($isProductWithVariant) {
+                                $variants[] = [
+                                    'id'                  => $variant['id'],
+                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                                    'title'               => $variant['title'] ?? null,
+                                    'price'               => $variant['price'] ?? null,
+                                    'product'             => $variant['product']['id'] ?? null,
+                                    'normalizedProductId' => $normalizedProductId,
+                                ];
+                                $totalCount++;
+                                if ($totalCount >= $plan_limit) {
+                                    $isLimitExceed = true;
+                                    break;
+                                }
+                            } else {
+                                $variantEdge = $product['variants']['edges'][0];
+                                $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
+                                $productVariant = $variant['id'];
+                                $variants[] = [
+                                    'id'                  => $variant['id'],
+                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                                    'title'               => $variant['title'] ?? null,
+                                    'price'               => $variant['price'] ?? null,
+                                    'product'             => $productId ?? null,
+                                    'normalizedProductId' => $normalizedProductId,
+                                ];
+                                $totalCount++;
+                            }
+                        }
+
+                        // If more variants are needed
+                        if ($isProductWithVariant && ($product['variants']['pageInfo']['hasNextPage'] ?? false)) {
+                            $variantEndCursor = $product['variants']['pageInfo']['endCursor'];
+
+                            while ($variantEndCursor) {
+                                $variantQuery = '{
                                 product(id: "' . $productId . '") {
                                     variants(first: 100, after: "' . $variantEndCursor . '") {
                                         edges {
@@ -2547,70 +2550,69 @@ class ApiController extends Controller
                                 }
                             }';
 
-                            $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
-                            $variantData = $variantResponse->json();
+                                $variantResponse = Http::withHeaders($headers)->post($shopifyUrl, ['query' => $variantQuery]);
+                                $variantData = $variantResponse->json();
 
-                            foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
-                                $variant = $variantEdge['node'];
+                                foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+                                    $variant = $variantEdge['node'];
 
-                                $variants[] = [
-                                    'id'                  => $variant['id'],
-                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                    'title'               => $variant['title'] ?? null,
-                                    'price'               => $variant['price'] ?? null,
-                                    'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
-                                ];
-                                $totalCount++;
-                                if ($totalCount >= $plan_limit) {
-                                    $isLimitExceed = true;
-                                    break;
+                                    $variants[] = [
+                                        'id'                  => $variant['id'],
+                                        'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                                        'title'               => $variant['title'] ?? null,
+                                        'price'               => $variant['price'] ?? null,
+                                        'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
+                                        'product'             => $productId ?? null,
+                                        'normalizedProductId' => $normalizedProductId,
+                                    ];
+                                    $totalCount++;
+                                    if ($totalCount >= $plan_limit) {
+                                        $isLimitExceed = true;
+                                        break;
+                                    }
                                 }
-                            }
 
-                            $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
-                            if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
+                                $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
+                                if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
+                            }
+                        }
+
+                        if (!empty($variants)) {
+                            $products[] = [
+                                'id'           => $productId,
+                                'normalizedId' => $normalizedProductId,
+                                'title'        => $product['title'] ?? null,
+                                'variants'     => $variants,
+                                'productVariant' => $productVariant ?? null,
+                            ];
+                        }
+
+                        if ($totalCount >= $plan_limit) {
+                            $isLimitExceed = true;
+                            break 2;
                         }
                     }
 
-                    if (!empty($variants)) {
-                        $products[] = [
-                            'id'           => $productId,
-                            'normalizedId' => $normalizedProductId,
-                            'title'        => $product['title'] ?? null,
-                            'variants'     => $variants,
-                            'productVariant' => $productVariant ?? null,
-                        ];
-                    }
-
-                    if ($totalCount >= $plan_limit) {
-                        $isLimitExceed = true;
-                        break 2;
-                    }
+                    $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
+                    $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
                 }
-
-                $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
-                $endCursor = $data['data']['collection']['products']['pageInfo']['endCursor'];
             }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Products fetched successfully',
+                'products' => $products,
+                'count' => count($products),
+                'isLimitExceed' => $isLimitExceed,
+                'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+                'products' => [],
+                'count' => 0
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Products fetched successfully',
-            'products' => $products,
-            'count' => count($products),
-            'isLimitExceed' => $isLimitExceed,
-            'productLimitMessage' => ($isLimitExceed ?? false) ? 'You can only use ' . $plan_limit . ' products for this plan' : ''
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'An error occurred: ' . $e->getMessage(),
-            'products' => [],
-            'count' => 0
-        ], 500);
     }
-}
-
 }

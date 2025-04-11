@@ -19,7 +19,10 @@ export default function Routing(props) {
                 <Link to={`${URL_PREFIX}help-center`} >Help center </Link>
             </ui-nav-menu>
             <Routes>
+
                 <Route exact path={URL_PREFIX} element={<Home {...props} />} />
+                <Route exact path={`${URL_PREFIX}home`} element={<Home {...props} />} />
+
                 <Route exact path={`${URL_PREFIX}plans`} element={<Plans {...props} />} />
                 <Route exact path={`${URL_PREFIX}dashboard`} element={<Dashboard {...props} />} />
                 <Route exact path={`${URL_PREFIX}pdf-flip`} element={<PDFFlip1 {...props} />} />

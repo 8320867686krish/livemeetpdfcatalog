@@ -33,6 +33,18 @@ class HomeController extends Controller
       
         return view('welcome', compact('shop','shop_exist','host'));
     }
+    public function dashboard(Request $request)
+    {
+            $post = $request->input();
+        $shop = $request->input('shop');
+        $host = $request->input('host');
+        $shopDetail = User::where('name', $shop)->first();
+        $shop_exist = $shopDetail;
+                  InstallAppProcess::dispatch($shop);
+        return view('welcome', compact('shop','shop_exist','host'));
+
+    }
+   
    
     public function common(Request $request)
     {
