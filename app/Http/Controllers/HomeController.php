@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\InstallAppProcess;
 use App\Models\Settings;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -17,103 +18,22 @@ use Symfony\Component\Mailer\Exception\TransportException;
 class HomeController extends Controller
 {   
 
-    // function index(){
-    //     $shop_exist = $shopDetail;
-    //     return view('welcome', compact('shop','shop_exist'));
-    // }
-
-
-    // public function common(Request $request)
-    // {
-    //     $shop = $request->input('shop');
-    //     $shop_exist = User::where('name', $shop)->first();
-    //     return view('welcome', compact('shop','shop_exist'));
-    // }
-   
+    
     public function Index(Request $request)
     {
-        echo "calll";
         $post = $request->input();
         $shop = $request->input('shop');
         $host = $request->input('host');
-        $plan = DB::table('plans')->where('name', 'Free')->first();
         $shopDetail = User::where('name', $shop)->first();
         $shop_exist = $shopDetail;
-        $shopDetail['plan_id'] = $plan->id;
-       // $startDate = Carbon::now();
-     //   $endDate = $startDate->addDays('7');
-        DB::table('charges')->insert([
-            'charge_id' => 0,
-            'test' => true,
-            'price' => $plan->price,
-            'type' => $plan->type,
-            'user_id' => $shopDetail['id'],
-            'interval' => $plan->interval,
-            'plan_id' => $plan->id,
-            'trial_days' => $plan->trial_days,
-            'billing_on' =>  date('Y-m-d H:i:s'),
-            'activated_on' => date('Y-m-d H:i:s'),
-          //  'trial_ends_on' =>  $endDate,
-            'status' => 'ACTIVE'
-        ]);
-        
-       $theam_id = $this->mendatoryWebhook($shopDetail);
-       $shopDetail['theam_id'] =  $theam_id;
-       $shopDetail->save();
-        $this->getStoreOwnerEmail($shop, $shopDetail['password']);
+     
+      
+     InstallAppProcess::dispatch($shop);
+
+      
         return view('welcome', compact('shop','shop_exist','host'));
     }
-    public function mendatoryWebhook($shopDetail)
-    {
-        $topics = [
-            'shop/update',
-            'products/update',
-            'themes/publish'
-        ];
-        $url = "https://" . $shopDetail['name'] . "/admin/api/2023-07/webhooks.json";
-        foreach ($topics as $topic) {
-            // Create a dynamic webhook address for each topic
-            $webhookAddress = "https://".env('APP_URL')."/".$topic;
-
-            // Create HTTP request for each topic
-            $body = [
-                'webhook' => [
-                    'address' => $webhookAddress,
-                    'topic' => $topic,
-                    'format' => 'json'
-                ]
-            ];
-
-            // Make the HTTP request (you can use Laravel's HTTP client or other libraries)
-            $customHeaders = [
-                'X-Shopify-Access-Token' => $shopDetail['password'], // Replace with your actual authorization token
-            ];
-
-            // Send a cURL request to the GraphQL endpoint
-            $response = Http::withHeaders($customHeaders)->post($url, $body);
-            $jsonResponse = $response->json();
-            // Perform additional logic based on the response...
-        }
-           $customHeaders = [
-                'X-Shopify-Access-Token' => $shopDetail['password'], // Replace with your actual authorization token
-            ];
-            $url = "https://" . $shopDetail['name'] . "/admin/api/2023-07/themes.json";
-            // Send a cURL request to the GraphQL endpoint
-            $response = Http::withHeaders($customHeaders)->get($url);
-           $themes = $response->json() ;
-           $active_theme_id = 0;
- 
-        //      foreach($themes['themes'] as $theme)
-        //     {
-             
-        //         if($theme['role']=="main")
-        //      {
-        //          $active_theme_id=$theme['id'];
-        //      }
-        //   }
-      
-        return   $active_theme_id;
-    }
+   
     public function common(Request $request)
     {
         $shop = $request->input('shop');
@@ -190,12 +110,6 @@ class HomeController extends Controller
                 'updated_at' => now()
             ]);
         $userup = User::where('id', $shop)->update(['plan_id' => $plan_id,'isPayment'=>1]);
-
-
-        // Print the generated SQL query for debugging
-
-        // If you want to see the bindings as well
-
         $redirect_url = "https://" . $user['name'] . "/admin/apps/".env('SHOPIFY_APP');
 
         return redirect($redirect_url)->header('customvalue1', 5);

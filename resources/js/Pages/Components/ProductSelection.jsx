@@ -237,6 +237,7 @@ const ProductSelection = ({ props }) => {
             response.products.forEach(product => {
                 const productNormalizedId = normalizeId(product.id);
 
+                
                 if (isProductWithVariant && product.variants && product.variants.length > 0) {
                     product.variants.forEach(variant => {
                         console.log("handleProductResponse ", product);
@@ -247,7 +248,7 @@ const ProductSelection = ({ props }) => {
                                 productId: product.id,
                                 variantId: variant.id,
                                 normalizedProductId: productNormalizedId,
-                                productVariant: product.productVariant || "collection null",
+                                productVariant: product.productVariant ||  null,
                                 normalizedVariantId: variantNormalizedId,
                                 name: variant.title && variant.title !== "Default Title" ? `${product.title} - ${variant.title}` : product.title,
                                 priority: lastPriority + newProducts.length + 1,
@@ -264,7 +265,7 @@ const ProductSelection = ({ props }) => {
                             id: product.id,
                             productId: product.id,
                             normalizedProductId: productNormalizedId,
-                            productVariant: product.productVariant || "collection null",
+                            productVariant: product.productVariant || null,
                             name: product.title,
                             priority: lastPriority + newProducts.length + 1,
                             price: product.variants?.[0]?.price || "N/A",

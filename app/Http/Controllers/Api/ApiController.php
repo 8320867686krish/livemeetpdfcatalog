@@ -181,7 +181,7 @@ class ApiController extends Controller
                 $selectedCount = count($post['selectedProducts']);
 
                 if ($checkPlan) {
-                    if ($selectedCount >= $checkPlan->catelog_product_limit) {
+                    if ($selectedCount > $checkPlan->catelog_product_limit) {
                         $message = 'you can only use '.$checkPlan->catelog_product_limit.' product for this plan';
                         
                         return response()->json(['productLimitMessage' => $message, 'responseCode' => 0, 'errorCode' => 0, 'data' => [],'isLimitExceed'=>true]);
@@ -190,15 +190,20 @@ class ApiController extends Controller
                 }
 
                 foreach ($post['selectedProducts'] as $value) {
+                    if (!empty($value['productVariant']) && $value['productVariant'] !== 'null') {
+                        $productId = $value['productVariant'];
+                    }else{
+                       $productId = $value['product_id'];
+                    }
                     $saveProducts = CollectionProducts::updateOrCreate([
                         'settings_id' => $saveData->id,
-                        'product_id'  => $value['productVariant'] ?? $value['product_id'],
+                        'product_id'  => $productId,
                     ], [
                         "title"       => "", // Ensuring title is set to avoid SQL error
                         'priority'    => $value['priority'],
-                        'product_id'  => $value['productVariant'] ?? $value['product_id'],
+                        'product_id'  => $productId,
                         'shop_id'     => $post['shop_id'],
-                        'isProductWithVariant' => isset($value['productVariant']) ? 1 : 0,
+                        'isProductWithVariant' => @$productId ? 0 : 1,
                         'settings_id' => $saveData->id
                     ]);
                 }

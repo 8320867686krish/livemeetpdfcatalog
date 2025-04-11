@@ -4,16 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\CollectionProducts;
+use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class webhookController extends Controller
 {
     //
-        const CLIENT_SECRET = 'c55cda342604686659f8117ab310791e';
+        // const CLIENT_SECRET = 'c55cda342604686659f8117ab310791e';
+     const CLIENT_SECRET = '320f5ddb9b002da70cf384152633a4d3';
+
 
     public function customersUpdate(Request $request)
     {
@@ -95,6 +99,72 @@ class webhookController extends Controller
             return response()->json(['status' => 'error'], 401);
         }
     }
+    public function appUninstalled(Request $request)
+    {
+        $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
+        $data = $request->getContent();
+
+        $verified = $this->verifyWebhookInternal($data, $hmacHeader);
+
+        if ($verified) {
+            $data = file_get_contents('php://input');
+            $data_json = json_decode($data, true);
+            $to = $data_json['email'];
+            $name = $data_json['shop_owner'];
+            $shopDomain = $data_json['myshopify_domain'];
+            $user = User::where('name', $shopDomain)->first();
+            $user->password  = "";
+            $user->plan_id = NULL;
+            $user->isPayment = 0;
+            DB::table('charges')->where('user_id', $user['id'])->delete();
+            CollectionProducts::where('shop_id', $user['id'])->delete();
+            Settings::where('shop_id', $user->id)->delete();
+            $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $user['id'];
+            $user->save();
+            if (\File::exists($shopFolder)) \File::deleteDirectory($shopFolder);
+
+            // try {
+            //     Mail::to($to)->send(new Uninstall($name));
+            // } catch (TransportException $e) {
+            //     return true; // Return false if mail fails
+            // }
+
+            Log::info("appUninstalled request");
+            return response()->json(['status' => 'success'], 200);
+        } else {
+            Log::info("appUninstalled fail request");
+            return response()->json(['status' => 'error'], 401);
+        }
+    }
+    public function appsubscriptions(Request $request){
+         $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
+        $data = $request->getContent();
+$shop = $request->header('X-Shopify-Shop-Domain');
+        $verified = $this->verifyWebhookInternal($data, $hmacHeader);
+           if ($verified) {
+            $data = file_get_contents('php://input');
+            $data_json = json_decode($data, true);
+           $plan = DB::table('plans')->where('name', 'Free')->first();
+        $shop_id = User::where('name', $shop)->pluck('id')->first();
+        $latestRecords = Settings::where('shop_id', $shop_id)
+            ->orderByDesc('created_at')
+            ->take($plan->catelog_limit)
+            ->pluck('id')
+            ->toArray();
+        if (!empty($data_json['app_subscription'])) {
+            $data = $data_json['app_subscription'];
+
+            $status = $data['status'];
+            $charge_id = str_replace('gid://shopify/AppSubscription/', '', $data['admin_graphql_api_id']);
+            DB::table('charges')->where('charge_id', $charge_id)->update(['status' => $status]);
+            $chargesData = DB::table('charges')->where('user_id', $shop_id)->first();
+   return response()->json(['status' => 'success'], 200);
+        }
+           }else{
+                Log::info("appUninstalled fail request");
+            return response()->json(['status' => 'error'], 401);
+           }
+    }
     public function productUpdate(Request $request)
     {
          $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
@@ -115,7 +185,7 @@ class webhookController extends Controller
         
             $priceFormat = $user['money_format'];
             if(@$variants){
-                \Log::info("Product varient avileble",['shop'=>$shopDomain]);
+                Log::info("Product varient avileble",['shop'=>$shopDomain]);
 
                   foreach($variants as $value){
                    $priceValue = $value['price'];
@@ -136,14 +206,14 @@ class webhookController extends Controller
 
             }
             else{
-                \Log::info("product varients not avilable",['shop'=>$shopDomain]);
+                Log::info("product varients not avilable",['shop'=>$shopDomain]);
                 return response()->json(['status' => 'success'], 200);
 
                 
             }
           
          }else{
-                \Log::info("product not verified",['shop'=>$shopDomain]);
+                Log::info("product not verified",['shop'=>$shopDomain]);
                return response()->json(['status' => 'error'], 401);
          }
     

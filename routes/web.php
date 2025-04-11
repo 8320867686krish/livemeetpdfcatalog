@@ -39,7 +39,8 @@ Route::post('customers/delete', [webhookController::class, 'customersDelete']);
 Route::post('shop/update', [webhookController::class, 'shopUpdate']);
 Route::post('products/update', [webhookController::class, 'productUpdate']);
 Route::post('themes/publish', [webhookController::class, 'themsPublish']);
-
+Route::post('webhook/appsubscriptions-update', [webhookController::class, 'appsubscriptions']);
+Route::post('webhooks/appsubscriptions-update', [webhookController::class, 'appsubscriptions']);
 Route::get('/plan/process/{shop}/{plan_id}', [HomeController::class, 'billingProcess']);
 Route::get('/flipBook/{flipId}', [HomeController::class, 'flipBook']);
 

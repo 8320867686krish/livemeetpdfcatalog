@@ -387,28 +387,33 @@ return [
     'webhooks' => [
         [
             'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'app/uninstalled'),
-            'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/app/uninstalled')
+            'address' => env('SHOPIFY_WEBHOOK_1_ADDRESS',  env('APP_URL') .'/app/uninstalled')
         ],
         [
             'topic' => env('SHOPIFY_WEBHOOK_2_TOPIC', 'customers/update'),
-            'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/customers/update')
+            'address' => env('SHOPIFY_WEBHOOK_2_ADDRESS',  env('APP_URL') .'/customers/update')
         ],
         [
             'topic' => env('SHOPIFY_WEBHOOK_3_TOPIC', 'customers/delete'),
-            'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/customers/delete')
+            'address' => env('SHOPIFY_WEBHOOK_3_ADDRESS',  env('APP_URL') .'/customers/delete')
         ],
         [
             'topic' => env('SHOPIFY_WEBHOOK_4_TOPIC', 'shop/update'),
-            'address' => env('SHOPIFY_WEBHOOK_4_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/shop/update')
+            'address' => env('SHOPIFY_WEBHOOK_4_ADDRESS',  env('APP_URL') .'/shop/update')
         ],
         [
             'topic' => env('SHOPIFY_WEBHOOK_5_TOPIC', 'products/update'),
-            'address' => env('SHOPIFY_WEBHOOK_5_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/products/update')
+            'address' => env('SHOPIFY_WEBHOOK_5_ADDRESS',  env('APP_URL').'/products/update')
         ],
         [
             'topic' => env('SHOPIFY_WEBHOOK_6_TOPIC', 'themes/publish'),
-            'address' => env('SHOPIFY_WEBHOOK_6_ADDRESS', 'https://252f-103-56-183-234.ngrok-free.app/themes/publish')
-        ]
+            'address' => env('SHOPIFY_WEBHOOK_6_ADDRESS',  env('APP_URL') .'/themes/publish')
+        ],
+        [
+            'topic' => env('SHOPIFY_WEBHOOK_7_TOPIC', 'app_subscriptions/update'),
+            'address' => env('SHOPIFY_WEBHOOK_7_ADDRESS',  env('APP_URL') .'/webhooks/appsubscriptions-update')
+        ],
+        
         /*
             [
                 'topic' => env('SHOPIFY_WEBHOOK_1_TOPIC', 'ORDERS_CREATE'),
