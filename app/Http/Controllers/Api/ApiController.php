@@ -2041,7 +2041,7 @@ class ApiController extends Controller
                     $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
 
 
-
+                    $variants = [];
                     foreach ($product['variants']['edges'] as $variantEdge) {
                         $variant = $variantEdge['node'];
                         $price = floatval($variant['price']);

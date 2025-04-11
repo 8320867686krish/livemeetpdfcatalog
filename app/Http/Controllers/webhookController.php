@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\DB;
 class webhookController extends Controller
 {
     //
-        // const CLIENT_SECRET = 'c55cda342604686659f8117ab310791e';
-     const CLIENT_SECRET = '320f5ddb9b002da70cf384152633a4d3';
-
+   
 
     public function customersUpdate(Request $request)
     {
@@ -39,7 +37,8 @@ class webhookController extends Controller
     }
     private function verifyWebhookInternal($data, $hmacHeader)
     {
-        $calculatedHmac = base64_encode(hash_hmac('sha256', $data, self::CLIENT_SECRET, true));
+        $secrete = config('shopify-app.api_secret');
+        $calculatedHmac = base64_encode(hash_hmac('sha256', $data, $secrete, true));
         return hash_equals($calculatedHmac, $hmacHeader);
     }
     public function customersDelete(Request $request)

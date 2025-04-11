@@ -35,6 +35,7 @@ Route::get('demo', function () {
 });
 Route::get('/', [HomeController::class, 'index'])->middleware(['verify.shop', 'verify.shopify'])->name('home');
 Route::get('/home', [HomeController::class, 'dashboard'])->name('dashboard');
+Route::post('app/uninstalled', [webhookController::class, 'appUninstalled']);
 
 Route::post('customers/update', [webhookController::class, 'customersUpdate']);
 Route::post('customers/delete', [webhookController::class, 'customersDelete']);

@@ -56,7 +56,7 @@ class AppUninstallJob implements ShouldQueue
        if (\File::exists($shopFolder)) \File::deleteDirectory($shopFolder);
 
 
-        Mail::to($to)->send(new Uninstall($name));
+     //   Mail::to($to)->send(new Uninstall($name));
 
         $user->save();                
     }

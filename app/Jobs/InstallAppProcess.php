@@ -42,7 +42,7 @@ class InstallAppProcess implements ShouldQueue
             'test' => true,
             'price' => $plan->price,
             'type' => $plan->type,
-            'user_id' =>$plan->id,
+            'user_id' =>$this->user->id,
             'interval' => $plan->interval,
             'plan_id' => $plan->id,
             'trial_days' => $plan->trial_days,
