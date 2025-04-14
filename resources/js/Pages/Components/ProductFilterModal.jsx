@@ -199,13 +199,17 @@ const ProductFilterModal = ({ open, onClose, shopid, setProductData, productData
                     if (product.variants && product.variants.length > 0 && isProductWithVariant) {
                         product.variants.forEach(variant => {
                             const variantNormalizedId = normalizeId(variant.id);
+                            console.log("variantNormalizedId ",variantNormalizedId)
+                            console.log("ouuter check ");
                             if (!existingVariantMap[variantNormalizedId]) {
+                                console.log("check herer if")
+                                console.log("new products check", newProducts)
                                 newProducts.push({
                                     id: variant.id,
                                     productId: product.id,
                                     variantId: variant.id,
                                     normalizedProductId: productNormalizedId,
-                                    productVariant : product.productVariant ||null,
+                                    productVariant: product.productVariant || null,
                                     normalizedVariantId: variantNormalizedId,
                                     name: variant.title && variant.title !== "Default Title" ? `${product.title} - ${variant.title}` : product.title,
                                     priority: lastPriority + newProducts.length + 1,
@@ -214,15 +218,17 @@ const ProductFilterModal = ({ open, onClose, shopid, setProductData, productData
                                     currency: "USD"
                                 });
                                 existingVariantMap[variantNormalizedId] = true;
+                                console.log("new products check", newProducts)
                             }
                         });
                     } else {
                         if (!existingProductMap[productNormalizedId]) {
+                            console.log("check herer else ")
                             newProducts.push({
                                 id: product.id,
                                 productId: product.id,
                                 normalizedProductId: productNormalizedId,
-                                productVariant : product.productVariant || null,
+                                productVariant: product.productVariant || null,
                                 name: product.title,
                                 priority: lastPriority + newProducts.length + 1,
                                 price: product.variants?.[0]?.price || "N/A",
@@ -233,7 +239,7 @@ const ProductFilterModal = ({ open, onClose, shopid, setProductData, productData
                         }
                     }
                 });
-
+                console.log("new product are this ", newProducts);
                 console.log(`Adding ${newProducts.length} new products/variants from API`);
                 setProductData(prevData => [...prevData, ...newProducts]);
 

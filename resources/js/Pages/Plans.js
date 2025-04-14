@@ -13,7 +13,7 @@ import {
     Toast,
     ButtonGroup
 } from '@shopify/polaris';
-import { TickMinor, CancelMajor, StarFilledMinor } from '@shopify/polaris-icons';
+import { TickMinor, CancelMajor, StarFilledIcon } from '@shopify/polaris-icons';
 import TableNoRecord from './Components/TableNoRecord';
 import { fetchMethod, optionsPlan } from './helper';
 
@@ -132,7 +132,7 @@ const Plans = (props = {}) => {
                                             return (
                                                 <Grid.Cell key={`plan_key_${id}`} columnSpan={{ xs: 12, sm: 12, md: 4, lg: 4, xl: 4 }}>
                                                     <div className={`box_card${id === plan_id ? ' active' : ''}`}>
-                                                        {(id === plan_id) && <div className="active_plan"><Icon source={StarFilledMinor} tone="base" /></div>}
+                                                        {(id === plan_id) && <div className="active_plan"><Icon source={StarFilledIcon} tone="base" /></div>}
                                                         <Card>
                                                             <div className="free plan_card">
                                                                 <h3 className="plan_title">{name}</h3>
@@ -150,7 +150,7 @@ const Plans = (props = {}) => {
                                                                     <List.Item><DisplayIcon param={isAddFrontBack} />{isAddFrontBack === 'false' ? 'No front/back covers' : 'Custom front/back covers'}</List.Item>
                                                                 </List>
                                                                 {/* <p>If you don't want to add transfer. You can import your inventory from <Link url="setting">settings</Link></p> */}
-                                                                <Button size="large" disabled={id === plan_id /* || isFree */} onClick={(e) => handlePlan(e, pItem)}>Subscribe</Button>
+                                                                <Button size="large" disabled={id === plan_id /* || isFree */} onClick={(e) => handlePlan(e, pItem)}> {id === plan_id ? "Current plan" : "Subscribe"}</Button>
                                                             </div>
                                                         </Card>
                                                     </div>
