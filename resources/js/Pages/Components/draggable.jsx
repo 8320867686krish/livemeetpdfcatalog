@@ -60,7 +60,6 @@ const DraggableTable = ({
         setProductData([]);
     };
 
-    // Filter and sort logic remains the same
     let filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -89,6 +88,17 @@ const DraggableTable = ({
             }
         });
     }
+
+    useEffect(() => {
+        if (sortOption !== "default") {
+            const updatedItems = sortedItems.map((item, index) => ({
+                ...item,
+                priority: index + 1,
+            }));
+            setItems(updatedItems);
+            setProductData(updatedItems);
+        }
+    }, [sortOption, searchQuery]);
 
     useEffect(() => {
         setItems([...productData].map((item, index) => ({
@@ -133,7 +143,7 @@ const DraggableTable = ({
                         ]}
                         value={sortOption}
                         onChange={setSortOption}
-                        helpText={sortOption != "default" ? "Custom sorting won't work when a filter is applied." : ""}
+                        helpText={sortOption !== "default" ? "Custom sorting won't work when a filter is applied." : ""}
                     />
                 </div>
             </div>
