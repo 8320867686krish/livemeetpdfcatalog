@@ -2213,6 +2213,8 @@ class ApiController extends Controller
 
         try {
             foreach ($normalizedCollectionIds as $collectionId) {
+                if ($isLimitExceed) break;
+
                 $endCursor = null;
                 $hasNextPage = true;
                 $variantPageInfo = $isProductWithVariant ? '
@@ -2221,13 +2223,14 @@ class ApiController extends Controller
                     endCursor
                 }' : '';
 
-                while ($hasNextPage) {
+                while ($hasNextPage && !$isLimitExceed) {
+
                     $query = '{
                     collection(id: "gid://shopify/Collection/' . $collectionId . '") {
                         products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                             edges {
                                 node {
-                                    id
+                                    idx
                                     title
                                     handle
                                     variants(first: ' . ($isProductWithVariant ? 100 : 1) . ') {
@@ -2262,6 +2265,7 @@ class ApiController extends Controller
                     }
 
                     foreach ($data['data']['collection']['products']['edges'] as $productEdge) {
+                        if ($isLimitExceed) break;
                         $product = $productEdge['node'];
                         $productId = $product['id'];
                         $normalizedProductId = preg_replace('/.*\/(\d+)$/', '$1', $productId);
@@ -2275,6 +2279,7 @@ class ApiController extends Controller
                         $variants = [];
 
                         foreach ($product['variants']['edges'] ?? [] as $variantEdge) {
+                            if ($isLimitExceed) break;
                             $variant = $variantEdge['node'];
 
                             if ($isProductWithVariant) {
@@ -2286,11 +2291,12 @@ class ApiController extends Controller
                                     'product'             => $variant['product']['id'] ?? null,
                                     'normalizedProductId' => $normalizedProductId,
                                 ];
-                                $totalCount++;
+                               
                                 if ($totalCount >= $plan_limit) {
                                     $isLimitExceed = true;
                                     break;
                                 }
+                                $totalCount++;
                             } else {
                                 $variantEdge = $product['variants']['edges'][0];
                                 $variant = $variantEdge['node'] ?? ($variantEdge[0]['node'] ?? null);
@@ -2303,6 +2309,10 @@ class ApiController extends Controller
                                     'product'             => $productId ?? null,
                                     'normalizedProductId' => $normalizedProductId,
                                 ];
+                                if ($totalCount >= $plan_limit) {
+                                    $isLimitExceed = true;
+                                    break;
+                                }
                                 $totalCount++;
                             }
                         }
@@ -2335,6 +2345,7 @@ class ApiController extends Controller
                                 $variantData = $variantResponse->json();
                                 $variants = [];
                                 foreach ($variantData['data']['product']['variants']['edges'] ?? [] as $variantEdge) {
+                                    if ($isLimitExceed) break;
                                     $variant = $variantEdge['node'];
 
                                     $variants[] = [
@@ -2346,18 +2357,19 @@ class ApiController extends Controller
                                         'product'             => $productId ?? null,
                                         'normalizedProductId' => $normalizedProductId,
                                     ];
-                                    $totalCount++;
+                                   
                                     if ($totalCount >= $plan_limit) {
                                         $isLimitExceed = true;
                                         break;
                                     }
+                                    $totalCount++;
                                 }
 
                                 $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
                                 if (!($variantData['data']['product']['variants']['pageInfo']['hasNextPage'] ?? false)) break;
                             }
                         }
-
+                        if ($isLimitExceed) break;
                         if (!empty($variants)) {
                             $products[] = [
                                 'id'           => $productId,
@@ -2368,10 +2380,8 @@ class ApiController extends Controller
                             ];
                         }
 
-                        if ($totalCount >= $plan_limit) {
-                            $isLimitExceed = true;
-                            break 2;
-                        }
+                        if ($isLimitExceed) break;
+
                     }
 
                     $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];
