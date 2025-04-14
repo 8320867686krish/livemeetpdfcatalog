@@ -2230,7 +2230,7 @@ class ApiController extends Controller
                         products(first: 250' . ($endCursor ? ', after: "' . $endCursor . '"' : '') . ') {
                             edges {
                                 node {
-                                    idx
+                                    id
                                     title
                                     handle
                                     variants(first: ' . ($isProductWithVariant ? 100 : 1) . ') {
