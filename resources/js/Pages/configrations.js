@@ -1258,7 +1258,7 @@ const Configrations = (props = {}) => {
 
     const generatePDF = async (e) => {
         e.preventDefault();
-        setBtnSpinner(true); 
+        setBtnSpinner(true);
 
         const {
             pdfLayout = "portrait",
@@ -1266,7 +1266,7 @@ const Configrations = (props = {}) => {
             frontImage,
             backImage,
             printQuality = 0,
-            ...requestData 
+            ...requestData
         } = configData;
 
         const pageArray = [];
@@ -1322,7 +1322,7 @@ const Configrations = (props = {}) => {
 
         try {
             requestData["pdfUrl"] = null;
-            requestData["isUpload"] = 0; 
+            requestData["isUpload"] = 0;
 
             console.log("Sending initial config data:", requestData);
             const initialResponseData = await fetchMethod(
@@ -1344,7 +1344,7 @@ const Configrations = (props = {}) => {
                 console.log("Initial settings saved, setting_id:", setting_id);
                 console.log(`Starting chunked PDF generation & upload for ${pageArray.length} pages...`);
 
-                const chunkSize = 20;
+                const chunkSize = 10;
                 const totalChunks = Math.ceil(pageArray.length / chunkSize);
                 let overallSuccess = true;
                 let lastFlipId = null;
@@ -1358,7 +1358,7 @@ const Configrations = (props = {}) => {
 
                     try {
                         const tempContainer = document.createElement('div');
-                        pagesToProcess.forEach(page => tempContainer.appendChild(page.cloneNode(true))); 
+                        pagesToProcess.forEach(page => tempContainer.appendChild(page.cloneNode(true)));
 
                         const pdfBytes = await html2pdf()
                             .set(options)
@@ -1370,30 +1370,30 @@ const Configrations = (props = {}) => {
                         console.log(`Chunk ${chunkNumber} generated, Base64 size: ${base64ChunkData.length} chars`);
 
                         const payload = {
-                            uploadRequest: base64ChunkData, 
+                            uploadRequest: i == 0 ? "data:application/pdf;base64," + base64ChunkData : base64ChunkData,
                             chunkNumber: chunkNumber,
                             totalChunks: totalChunks,
                             settings_id: setting_id,
                             shop_id: shopid,
-                            isLastRequest: isLastChunk, 
-                            current_page: i + 1, 
+                            isLastRequest: isLastChunk,
+                            current_page: i + 1,
                             total_page: pageArray.length,
-                            page: i, 
+                            page: i,
                             collection_id: configData?.collectionId,
                             collection_name: configData?.collectionName,
                         };
-
+                        console.log("payload uploaded ", payload);
                         console.log(`Uploading chunk ${chunkNumber}/${totalChunks}...`);
                         const uploadResponse = fetchMethod(
                             postMethodType,
-                            `flipPdfGenrate/${setting_id}`, 
+                            `flipPdfGenrate/${setting_id}`,
                             shopid,
-                            payload 
+                            payload
                         );
 
                         const uploadSuccess = uploadResponse?.responseCode == 1;
                         const currentFlipId = uploadResponse?.data?.flipId;
-                        alert("response from uploadResponse ", JSON.stringify(uploadResponse))
+                        localStorage
                         if (true) {
                             console.log(`Chunk ${chunkNumber} uploaded successfully.`);
                             if (currentFlipId && isLastChunk) {
@@ -1407,16 +1407,16 @@ const Configrations = (props = {}) => {
                             break;
                         }
 
-                        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+                        // await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
 
                     } catch (error) {
                         console.error(`Error processing chunk ${chunkNumber}: `, error);
-                        alert("error processing chunk ");
+                        // alert("error processing chunk ");
                         localStorage.setItem("error_processing_chunk", error);
                         overallSuccess = false;
                         break;
                     }
-                } 
+                }
 
                 setBtnSpinner(false);
 
@@ -1447,7 +1447,6 @@ const Configrations = (props = {}) => {
 
         } catch (error) {
             console.error("Error during PDF generation process: ", error);
-            alert("An unexpected error occurred: ", JSON.stringify(error.message));
             localStorage.setItem("error_from_catch", error);
             setErrorMessage(`An unexpected error occurred: ${error.message}`);
             setActiveToastError(true);
@@ -2673,3 +2672,4 @@ const Configrations = (props = {}) => {
 };
 
 export default Configrations;
+//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

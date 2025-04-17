@@ -484,7 +484,7 @@ const Home = (props = {}) => {
             </LegacyCard>
         </Page>
         <Page>
-            <div className='apps'>
+            <div className='apps' style={{ display : "flex" , gap : "10px"}}>
                 <div className='appLeft'>
                     <Card style={{ height: "100%" }}>
                         <div style={{ marginBottom: "15px" }}>
@@ -496,7 +496,7 @@ const Home = (props = {}) => {
                                 :
                                 <>
                                     <Text variant="headingLg" as="h5">
-                                        Suggested  apps for {storeName && storeName}
+                                        Suggested  apps for 
                                     </Text></>
                             }
 
