@@ -1607,35 +1607,40 @@ class ApiController extends Controller
     public function flipPdfGenrate(Request $request, $settings_id)
     {
         $post = $request->input();
-
+        $path = public_path('uploads/pdfFile/final.pdf');
         $user_id = User::where('name', $post['shop_id'])->pluck('id')->first();
         $post['shop_id'] = $user_id;
         ChunkPdf::create($post);
 
-        $getAllRequest = ChunkPdf::where('shop_id', $user_id)->where('settings_id', $post['settings_id'])->get()->toArray();
+        $getAllRequest = ChunkPdf::where('shop_id', $user_id)->where('settings_id', $post['settings_id'])->orderBy('current_page','asc')->get()->toArray();
         $settingsData = Settings::find($settings_id);
-        if ($post['current_page'] == $post['total_page']) {
-
+       
+        if ($post['chunkNumber'] == $post['totalChunks']) {
 
             if (!@$settingsData['flipId']) {
                 $flipId = Str::random(10);
-
+    
                 $settingsData->flipId = $flipId;
             } else {
                 $flipId =  $settingsData['flipId'];
             }
-            $settingsData->isLarge = $post['isLarge'];
+          
+        //    $settingsData->isLarge = $post['isLarge'];
             $settingsData->save();
-            ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
+       //     ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
 
             $concatRequest = [];
             foreach ($getAllRequest as $key => $value) {
-                if ($value['pdfRequest'] != NULL) {
-                    $concatRequest[] = $value['pdfRequest'];
+                if ($value['uploadRequest'] != NULL) {
+                    $concatRequest[] = $value['uploadRequest'];
                 }
             }
-            $commaSeparatedString = implode('', $concatRequest);
+            $commaSeparatedString = implode('',$concatRequest);
+            $base64 = substr($commaSeparatedString, strpos($commaSeparatedString, ',') + 1);
 
+           
+            $pdfBinary = base64_decode($base64);
+            
 
             $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $post['shop_id'];
             if (!file_exists($shopFolder)) {
@@ -1645,12 +1650,14 @@ class ApiController extends Controller
             if (!file_exists($collectionFolder)) {
                 mkdir($collectionFolder, 0777, true);
             }
-            $png_url = "PDF-" . $settingsData['catalog_name'] . time() . ".pdf";
+            $png_url = "PDF-" . 'te' . time() . ".pdf";
             $path = $collectionFolder . "/" . $png_url;
             $img = $commaSeparatedString;
             $img = substr($img, strpos($img, ",") + 1);
             $logo = base64_decode($img);
-            $success = file_put_contents($path, $logo);
+            $success = file_put_contents($path,$logo);
+         
+
             $post['pdfUrl'] = $png_url;
             if (@$settingsData['pdfUrl']) {
                 $image_path = $collectionFolder . "/" . $settingsData['pdfUrl'];

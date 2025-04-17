@@ -496,7 +496,7 @@ const Home = (props = {}) => {
                                 :
                                 <>
                                     <Text variant="headingLg" as="h5">
-                                        Suggested  apps for {storeName}
+                                        Suggested  apps for {storeName && storeName}
                                     </Text></>
                             }
 
