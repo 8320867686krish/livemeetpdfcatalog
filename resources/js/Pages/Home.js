@@ -32,6 +32,7 @@ const Home = (props = {}) => {
         shopid = "",
         activePlan: { catelog_limit = "2", planExpired = false } = {},
     } = props;
+    const storeName = localStorage.getItem("domain");
     const [loader, setLoader] = useState(true);
     const [catalogList, setCatalogList] = useState([]);
     const [themeUrl, setThemeUrl] = useState("");
@@ -166,12 +167,11 @@ const Home = (props = {}) => {
     useEffect(() => {
         if (catalogList.length >= Number(catelog_limit) ||
             catelog_limit === "false") {
-                
+
             // setActiveBannerWarning(true)
             setActiveBannerError(true)
         }
-        else
-        {
+        else {
             setActiveBannerError(false)
         }
     }, [catalogList])
@@ -484,7 +484,7 @@ const Home = (props = {}) => {
             </LegacyCard>
         </Page>
         <Page>
-            <div className='apps' style={{ display : "flex" , gap : "10px"}}>
+            <div className='apps' style={{ display: "flex", gap: "10px" }}>
                 <div className='appLeft'>
                     <Card style={{ height: "100%" }}>
                         <div style={{ marginBottom: "15px" }}>
@@ -496,10 +496,9 @@ const Home = (props = {}) => {
                                 :
                                 <>
                                     <Text variant="headingLg" as="h5">
-                                        Suggested  apps for 
+                                        Suggested  apps for {storeName}
                                     </Text></>
                             }
-
                         </div>
                         <InlineGrid gap="400" columns={2}>
                             {data?.map((app) => (

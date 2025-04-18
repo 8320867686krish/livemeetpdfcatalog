@@ -186,7 +186,7 @@ const SixItemGrid = (props) => {
                             position: "relative",
                             // marginBottom: "30px",
                             width: pdfWidth,
-                            height:
+                            height: 
                                 paperLayout === "legal"
                                     ? legalPaperSize
                                     : paperLayout === "a5"
