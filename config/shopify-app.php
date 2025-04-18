@@ -193,7 +193,7 @@ return [
     |
     */
 
-    'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products,unauthenticated_read_content,unauthenticated_read_customer_tags,unauthenticated_read_product_tags,unauthenticated_read_product_listings,unauthenticated_write_checkouts,unauthenticated_read_checkouts,unauthenticated_write_customers,unauthenticated_read_customers,read_orders,write_checkouts,read_content,read_online_store_pages,write_content,write_customers,read_themes'),
+    'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products,unauthenticated_read_content,unauthenticated_read_customer_tags,unauthenticated_read_product_tags,unauthenticated_read_product_listings,unauthenticated_write_checkouts,unauthenticated_read_checkouts,unauthenticated_write_customers,unauthenticated_read_customers,read_orders,write_checkouts,read_content,read_online_store_pages,write_content,write_customers,read_themes,write_themes'),
 
     /*
     |--------------------------------------------------------------------------

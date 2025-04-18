@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\ThemeFileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,3 +44,6 @@ Route::get('/getAllProductTags', [ApiController::class, 'getAllProductTags']);
 Route::get('/getAllProductTypes', [ApiController::class, 'getAllProductTypes']);
 Route::post('/getProductsUsingFilter', [ApiController::class, 'getProductsUsingFilter']);
 Route::post('/getProductsByCollections', [ApiController::class, 'getProductsByCollections']);
+
+Route::post('update-theme-file', [ThemeFileController::class, 'updateThemeFile']);
+

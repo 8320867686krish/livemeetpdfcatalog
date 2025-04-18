@@ -1255,8 +1255,241 @@ const Configrations = (props = {}) => {
         }
     }
 
+    // const generatePDF = async (e) => {
+    //     e.preventDefault();
+    //     setBtnSpinner(true);
 
-    const generatePDF = async (e) => {
+    //     const {
+    //         pdfLayout = "portrait",
+    //         paperLayout = "a4",
+    //         frontImage,
+    //         backImage,
+    //         printQuality = 0,
+    //         ...requestData
+    //     } = configData;
+
+    //     const pageArray = [];
+    //     const totalPagesElements = document.querySelectorAll('div[id*="page_id_"]');
+    //     console.log("Total page elements found: ", totalPagesElements.length);
+
+    //     if (frontImage !== "") {
+    //         const frontPageElement = document.getElementById("front_page");
+    //         if (frontPageElement) pageArray.push(frontPageElement);
+    //         else console.warn("Front page element 'front_page' not found.");
+    //     }
+    //     for (let i = 0; i < totalPagesElements.length; i++) {
+    //         const pageElement = document.getElementById(`page_id_${i}`);
+    //         if (pageElement) pageArray.push(pageElement);
+    //         else console.warn(`Content page element 'page_id_${i}' not found.`);
+    //     }
+    //     if (backImage !== "") {
+    //         const backPageElement = document.getElementById("back_page");
+    //         if (backPageElement) pageArray.push(backPageElement);
+    //         else console.warn("Back page element 'back_page' not found.");
+    //     }
+    //     console.log("Total pages to process (including front/back): ", pageArray.length);
+
+    //     if (pageArray.length === 0) {
+    //         console.error("No pages found to generate PDF.");
+    //         setErrorMessage("No content pages found to generate PDF.");
+    //         setActiveToastError(true);
+    //         setLoader(false);
+    //         setBtnSpinner(false);
+    //         return;
+    //     }
+
+    //     const options = {
+    //         jsPDF: { orientation: "p", unit: "mm", format: paperLayout, precision: 0 },
+    //         html2canvas: {
+    //             imageTimeout: 0,
+    //             allowTaint: false,
+    //             useCORS: true,
+    //             scrollX: -window.scrollX,
+    //             scrollY: -window.scrollY,
+    //             windowWidth: document.documentElement.offsetWidth,
+    //             windowHeight: document.documentElement.offsetHeight,
+    //             scale: printQuality == 0 ? 1 : 2,
+    //             dpi: printQuality == 0 ? 100 : 300,
+    //             letterRendering: false,
+    //             logging: true,
+    //             onclone: (clonedDoc) => {
+    //                 const imgs = clonedDoc.querySelectorAll("img");
+    //                 imgs.forEach((img) => {
+    //                     if (!img.complete) img.onload = () => { };
+    //                     img.style.imageRendering = "crisp-edges";
+    //                 });
+    //                 const elements = clonedDoc.querySelectorAll('*');
+    //                 elements.forEach((el) => {
+    //                     el.style.pageBreakBefore = 'avoid';
+    //                     el.style.pageBreakAfter = 'avoid';
+    //                 });
+    //                 console.log("Cloned document dimensions:", {
+    //                     width: clonedDoc.documentElement.offsetWidth,
+    //                     height: clonedDoc.documentElement.offsetHeight,
+    //                 });
+    //             },
+    //         },
+    //         image: { type: 'jpeg', quality: 0.95 },
+    //         margin: 0,
+    //         autoResize: true,
+    //         applyImageFit: true,
+    //         enableLinks: true,
+    //         autoPagination: false, // Disable to prevent unintended page breaks
+    //         pagebreak: { mode: ['avoid-all', 'css'], avoid: ['div'] }, // Avoid breaks inside divs
+    //     };
+
+    //     try {
+    //         requestData["pdfUrl"] = null;
+    //         requestData["isUpload"] = 0;
+
+    //         console.log("Sending initial config data:", requestData);
+    //         const initialResponseData = await fetchMethod(
+    //             postMethodType,
+    //             "setting/edit",
+    //             shopid,
+    //             requestData
+    //         );
+
+    //         const {
+    //             setting_id = "",
+    //             message = "An error occurred.",
+    //             responseCode = 0,
+    //         } = initialResponseData || {};
+
+    //         if (responseCode === 0) {
+    //             setErrorMessage(message || "Failed to save initial settings.");
+    //             setActiveToastError(true);
+    //             setLoader(false);
+    //             setBtnSpinner(false);
+    //         } else {
+    //             console.log("Initial settings saved, setting_id:", setting_id);
+    //             console.log(`Starting chunked PDF generation & upload for ${pageArray.length} pages...`);
+
+    //             const chunkSize = 8;
+    //             const totalChunks = Math.ceil(pageArray.length / chunkSize);
+    //             let overallSuccess = true;
+    //             let lastFlipId = null;
+
+    //             for (let i = 0; i < pageArray.length; i += chunkSize) {
+    //                 const chunkNumber = Math.floor(i / chunkSize) + 1;
+    //                 const pagesToProcess = pageArray.slice(i, i + chunkSize);
+    //                 const isLastChunk = chunkNumber === totalChunks;
+
+    //                 console.log(`Processing chunk ${chunkNumber}/${totalChunks} (pages ${i + 1}-${Math.min(i + chunkSize, pageArray.length)})...`);
+
+    //                 try {
+    //                     const mergedPdf = await PDFDocument.create();
+    //                     for (const page of pagesToProcess) {
+    //                         const tempContainer = document.createElement('div');
+    //                         tempContainer.style.pageBreakAfter = 'avoid';
+    //                         tempContainer.style.pageBreakBefore = 'avoid';
+    //                         tempContainer.style.boxSizing = 'border-box';
+    //                         tempContainer.style.display = 'block';
+
+    //                         const clonedPage = page.cloneNode(true);
+    //                         tempContainer.appendChild(clonedPage);
+
+    //                         const pdfBytes = await html2pdf()
+    //                             .set(options)
+    //                             .from(tempContainer)
+    //                             .toPdf()
+    //                             .output("arraybuffer");
+
+    //                         const pdfDoc = await PDFDocument.load(pdfBytes);
+    //                         const [copiedPage] = await mergedPdf.copyPages(pdfDoc, [0]);
+    //                         mergedPdf.addPage(copiedPage);
+    //                     }
+
+    //                     const pdfBytes = await mergedPdf.save();
+    //                     const base64ChunkData = arrayBufferToBase64(pdfBytes);
+    //                     console.log(`Chunk ${chunkNumber} generated, Base64 size: ${base64ChunkData.length} chars`);
+
+    //                     const payload = {
+    //                         uploadRequest: i == 0 ? "data:application/pdf;base64," + base64ChunkData : base64ChunkData,
+    //                         chunkNumber: chunkNumber,
+    //                         totalChunks: totalChunks,
+    //                         settings_id: setting_id,
+    //                         shop_id: shopid,
+    //                         isLastRequest: isLastChunk,
+    //                         current_page: i + 1,
+    //                         total_page: pageArray.length,
+    //                         page: i,
+    //                         collection_id: configData?.collectionId,
+    //                         collection_name: configData?.collectionName,
+    //                     };
+    //                     console.log("payload uploaded ", payload);
+    //                     console.log(`Uploading chunk ${chunkNumber}/${totalChunks}...`);
+    //                     const uploadResponse = await fetchMethod(
+    //                         postMethodType,
+    //                         `flipPdfGenrate/${setting_id}`,
+    //                         shopid,
+    //                         payload
+    //                     );
+
+    //                     // const uploadSuccess = uploadResponse?.responseCode === 1;
+    //                     const currentFlipId = uploadResponse?.data?.flipId;
+
+    //                     if (true) {
+    //                         console.log(`Chunk ${chunkNumber} uploaded successfully.`);
+    //                         if (currentFlipId && isLastChunk) {
+    //                             lastFlipId = currentFlipId;
+    //                             console.log("Last chunk uploaded. Final Flip ID:", lastFlipId);
+    //                         }
+    //                     } else {
+    //                         console.error(`Failed to upload chunk ${chunkNumber}:`, uploadResponse);
+    //                         const errorMessageFromUpload = uploadResponse?.message || `Failed to upload chunk ${chunkNumber}.`;
+    //                         setErrorMessage(errorMessageFromUpload);
+    //                         overallSuccess = false;
+    //                         break;
+    //                     }
+
+    //                 } catch (error) {
+    //                     console.error(`Error processing chunk ${chunkNumber}: `, error);
+    //                     localStorage.setItem("error_processing_chunk", error.message);
+    //                     setErrorMessage(`Error processing chunk ${chunkNumber}: ${error.message}`);
+    //                     overallSuccess = false;
+    //                     break;
+    //                 }
+    //             }
+
+    //             setBtnSpinner(false);
+
+    //             if (overallSuccess && lastFlipId) {
+    //                 console.log("All PDF chunks processed and uploaded successfully.");
+    //                 const successMessage = initialResponseData?.message || "Settings and PDF updated successfully.";
+
+    //                 setConfigData((prevState) => ({
+    //                     ...prevState,
+    //                     id: setting_id,
+    //                     logo: initialResponseData?.logo ?? prevState.logo ?? "",
+    //                     backImage: initialResponseData?.backImage ?? prevState.backImage ?? "",
+    //                     frontImage: initialResponseData?.frontImage ?? prevState.frontImage ?? "",
+    //                 }));
+    //                 setSuccessMessage(successMessage);
+    //                 setActiveToastSuccess(true);
+    //                 navigate(URL_PREFIX, {
+    //                     state: {
+    //                         responseFlipPdfGenrate: lastFlipId,
+    //                         flipBack: true,
+    //                     },
+    //                 });
+    //             } else {
+    //                 console.error("PDF chunk generation/upload failed.");
+    //                 setErrorMessage("PDF generation or upload failed. Please try again.");
+    //                 setActiveToastError(true);
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error("Error during PDF generation process: ", error);
+    //         localStorage.setItem("error_from_catch", error.message);
+    //         setErrorMessage(`An unexpected error occurred: ${error.message}`);
+    //         setActiveToastError(true);
+    //         setLoader(false);
+    //         setBtnSpinner(false);
+    //     }
+    // };
+
+    const generatePDF = async (e) =>  {
         e.preventDefault();
         setBtnSpinner(true);
 
@@ -1302,22 +1535,37 @@ const Configrations = (props = {}) => {
         const options = {
             jsPDF: { orientation: "p", unit: "mm", format: paperLayout, precision: 0 },
             html2canvas: {
-                imageTimeout: 0, allowTaint: false, useCORS: true,
-                scrollX: -window.scrollX, scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth, windowHeight: document.documentElement.offsetHeight,
-                scale: printQuality == 0 ? 1 : 2, dpi: printQuality == 0 ? 100 : 300,
-                letterRendering: false, logging: true,
+                imageTimeout: 0,
+                allowTaint: false,
+                useCORS: true,
+                scrollX: -window.scrollX,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.offsetHeight,
+                scale: printQuality == 0 ? 1 : 2,
+                dpi: printQuality == 0 ? 100 : 300,
+                letterRendering: false,
+                logging: true,
                 onclone: (clonedDoc) => {
                     const imgs = clonedDoc.querySelectorAll("img");
                     imgs.forEach((img) => {
                         if (!img.complete) img.onload = () => { };
                         img.style.imageRendering = "crisp-edges";
                     });
+                    // No changes to element styling related to page breaks
+                    console.log("Cloned document dimensions:", {
+                        width: clonedDoc.documentElement.offsetWidth,
+                        height: clonedDoc.documentElement.offsetHeight,
+                    });
                 },
             },
             image: { type: 'jpeg', quality: 0.95 },
             margin: 0,
+            autoResize: true,
+            applyImageFit: true,
             enableLinks: true,
+            autoPagination: false, // Disable to prevent unintended page breaks
+            pagebreak: { mode: ['avoid-all', 'css'], avoid: ['div'] }, // Avoid breaks inside divs
         };
 
         try {
@@ -1326,7 +1574,10 @@ const Configrations = (props = {}) => {
 
             console.log("Sending initial config data:", requestData);
             const initialResponseData = await fetchMethod(
-                postMethodType, "setting/edit", shopid, requestData
+                postMethodType,
+                "setting/edit",
+                shopid,
+                requestData
             );
 
             const {
@@ -1344,7 +1595,7 @@ const Configrations = (props = {}) => {
                 console.log("Initial settings saved, setting_id:", setting_id);
                 console.log(`Starting chunked PDF generation & upload for ${pageArray.length} pages...`);
 
-                const chunkSize = 10;
+                const chunkSize = 8;
                 const totalChunks = Math.ceil(pageArray.length / chunkSize);
                 let overallSuccess = true;
                 let lastFlipId = null;
@@ -1357,15 +1608,31 @@ const Configrations = (props = {}) => {
                     console.log(`Processing chunk ${chunkNumber}/${totalChunks} (pages ${i + 1}-${Math.min(i + chunkSize, pageArray.length)})...`);
 
                     try {
-                        const tempContainer = document.createElement('div');
-                        pagesToProcess.forEach(page => tempContainer.appendChild(page.cloneNode(true)));
+                        const mergedPdf = await PDFDocument.create();
+                        for (const page of pagesToProcess) {
+                            const tempContainer = document.createElement('div');
+                            // Removed styling that might affect layout or page breaks
+                            // tempContainer.style.pageBreakAfter = 'avoid';
+                            // tempContainer.style.pageBreakBefore = 'avoid';
+                            tempContainer.style.boxSizing = 'border-box';
+                            tempContainer.style.display = 'block';
 
-                        const pdfBytes = await html2pdf()
-                            .set(options)
-                            .from(tempContainer)
-                            .toPdf()
-                            .output("arraybuffer");
+                            const clonedPage = page.cloneNode(true);
 
+                            tempContainer.appendChild(clonedPage);
+
+                            const pdfBytes = await html2pdf()
+                                .set(options)
+                                .from(tempContainer)
+                                .toPdf()
+                                .output("arraybuffer");
+
+                            const pdfDoc = await PDFDocument.load(pdfBytes);
+                            const [copiedPage] = await mergedPdf.copyPages(pdfDoc, [0]);
+                            mergedPdf.addPage(copiedPage);
+                        }
+
+                        const pdfBytes = await mergedPdf.save();
                         const base64ChunkData = arrayBufferToBase64(pdfBytes);
                         console.log(`Chunk ${chunkNumber} generated, Base64 size: ${base64ChunkData.length} chars`);
 
@@ -1384,35 +1651,34 @@ const Configrations = (props = {}) => {
                         };
                         console.log("payload uploaded ", payload);
                         console.log(`Uploading chunk ${chunkNumber}/${totalChunks}...`);
-                        const uploadResponse = fetchMethod(
+                        const uploadResponse = await fetchMethod(
                             postMethodType,
                             `flipPdfGenrate/${setting_id}`,
                             shopid,
                             payload
                         );
 
-                        const uploadSuccess = uploadResponse?.responseCode == 1;
+                        // const uploadSuccess = uploadResponse?.responseCode === 1;
                         const currentFlipId = uploadResponse?.data?.flipId;
-                        localStorage
+
                         if (true) {
                             console.log(`Chunk ${chunkNumber} uploaded successfully.`);
                             if (currentFlipId && isLastChunk) {
-                                lastFlipId = true;
+                                lastFlipId = currentFlipId;
                                 console.log("Last chunk uploaded. Final Flip ID:", lastFlipId);
                             }
                         } else {
                             console.error(`Failed to upload chunk ${chunkNumber}:`, uploadResponse);
-                            errorMessageFromUpload = uploadResponse?.message || `Failed to upload chunk ${chunkNumber}.`;
+                            const errorMessageFromUpload = uploadResponse?.message || `Failed to upload chunk ${chunkNumber}.`;
+                            setErrorMessage(errorMessageFromUpload);
                             overallSuccess = false;
                             break;
                         }
 
-                        // await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
-
                     } catch (error) {
                         console.error(`Error processing chunk ${chunkNumber}: `, error);
-                        // alert("error processing chunk ");
-                        localStorage.setItem("error_processing_chunk", error);
+                        localStorage.setItem("error_processing_chunk", error.message);
+                        setErrorMessage(`Error processing chunk ${chunkNumber}: ${error.message}`);
                         overallSuccess = false;
                         break;
                     }
@@ -1441,13 +1707,13 @@ const Configrations = (props = {}) => {
                     });
                 } else {
                     console.error("PDF chunk generation/upload failed.");
+                    setErrorMessage("PDF generation or upload failed. Please try again.");
                     setActiveToastError(true);
                 }
             }
-
         } catch (error) {
             console.error("Error during PDF generation process: ", error);
-            localStorage.setItem("error_from_catch", error);
+            localStorage.setItem("error_from_catch", error.message);
             setErrorMessage(`An unexpected error occurred: ${error.message}`);
             setActiveToastError(true);
             setLoader(false);
@@ -1455,7 +1721,6 @@ const Configrations = (props = {}) => {
         }
     };
 
-    //Destructring the configuration object...
     const {
         id: settingId = "",
         enabled = 1,

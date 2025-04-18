@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use setasign\Fpdf\Fpdf\Fpdf;
 use setasign\Fpdi\Fpdi;
 
+use setasign\Fpdi\PdfParser\StreamReader;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChunkPdf;
@@ -1657,19 +1658,24 @@ class ApiController extends Controller
             ->pluck('uploadRequest')
             ->toArray();
             $finalPdf = new Fpdi();
+            $pdf = new \Clegginabox\PDFMerger\PDFMerger;
 
+            $pdf->addPDF('samplepdfs/one.pdf', '1, 3, 4');
+            $pdf->addPDF('samplepdfs/two.pdf', '1-2');
+            $pdf->addPDF('samplepdfs/three.pdf', 'all');
             foreach ($allchunk as $value) {
                 $chunkFile = "{$collectionFolder}/{$value}";
 
                 if (file_exists($chunkFile)) {
-                    $pageCount = $finalPdf->setSourceFile($chunkFile);
-                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                        $tpl = $finalPdf->importPage($pageNo);
-                        $size = $finalPdf->getTemplateSize($tpl);
-                        $finalPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-                        $finalPdf->useTemplate($tpl);
-                    }
-                    @unlink($chunkFile);
+                   // $pdf->addPDF($chunkFile, 'all');
+                    // $pageCount = $finalPdf->setSourceFile($chunkFile);
+                    // for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                    //     $tpl = $finalPdf->importPage($pageNo);
+                    //     $size = $finalPdf->getTemplateSize($tpl);
+                    //     $finalPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                    //     $finalPdf->useTemplate($tpl);
+                    // }
+                    // @unlink($chunkFile);
                 }
             }
 
