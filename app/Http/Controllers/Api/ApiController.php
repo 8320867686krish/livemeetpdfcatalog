@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Support\Str;
+use setasign\Fpdf\Fpdf\Fpdf;
+use setasign\Fpdi\Fpdi;
+
+
 use App\Http\Controllers\Controller;
 use App\Models\ChunkPdf;
 use App\Models\CollectionProducts;
@@ -12,7 +17,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 
@@ -343,7 +347,7 @@ class ApiController extends Controller
         }
         $isProductWithVariant = CollectionProducts::where('settings_id', $post['setting_id'])->first();
         $variantIds = CollectionProducts::where('settings_id', $post['setting_id'])
-            ->orderBy('priority','asc')
+            ->orderBy('priority', 'asc')
             ->pluck('priority', 'product_id') // Retrieve product_id and priority
             ->toArray();
 
@@ -1604,74 +1608,100 @@ class ApiController extends Controller
             return response()->json(['responseCode' => 0, 'errorCode' => 0, 'message' => 'Not found', 'data' => []]);
         }
     }*/
+
     public function flipPdfGenrate(Request $request, $settings_id)
     {
         $post = $request->input();
-        $path = public_path('uploads/pdfFile/final.pdf');
+
         $user_id = User::where('name', $post['shop_id'])->pluck('id')->first();
         $post['shop_id'] = $user_id;
+
+
+        $settingsData = Settings::find($settings_id);
+
+        $base64 = $post['uploadRequest'];
+        if (str_starts_with($base64, 'data:application/pdf;base64,')) {
+            $base64 = substr($base64, strpos($base64, ',') + 1);
+        }
+
+        $pdfBinary = base64_decode($base64);
+
+        // Make sure folders exist
+        $shopFolder = public_path("uploads/pdfFile/shop_{$post['shop_id']}");
+        if (!file_exists($shopFolder)) mkdir($shopFolder, 0777, true);
+
+        $collectionFolder = $shopFolder . "/collections_" . $settingsData['catalog_name'];
+        if (!file_exists($collectionFolder)) mkdir($collectionFolder, 0777, true);
+
+
+        $chunkFileName = "chunk_{$post['chunkNumber']}.pdf";
+        $chunkPath = "{$collectionFolder}/{$chunkFileName}";
+        file_put_contents($chunkPath, $pdfBinary);
+        $post['uploadRequest'] = $chunkFileName;
         ChunkPdf::create($post);
 
-        $getAllRequest = ChunkPdf::where('shop_id', $user_id)->where('settings_id', $post['settings_id'])->orderBy('current_page','asc')->get()->toArray();
-        $settingsData = Settings::find($settings_id);
-       
-        if ($post['chunkNumber'] == $post['totalChunks']) {
 
+
+        if ((int)$post['chunkNumber'] === (int)$post['totalChunks']) {
             if (!@$settingsData['flipId']) {
                 $flipId = Str::random(10);
-    
                 $settingsData->flipId = $flipId;
-            } else {
+                $settingsData->save();
+            } else{
                 $flipId =  $settingsData['flipId'];
             }
-          
-        //    $settingsData->isLarge = $post['isLarge'];
-            $settingsData->save();
-       //     ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
-
-            $concatRequest = [];
-            foreach ($getAllRequest as $key => $value) {
-                if ($value['uploadRequest'] != NULL) {
-                    $concatRequest[] = $value['uploadRequest'];
-                }
-            }
-            $commaSeparatedString = implode('',$concatRequest);
-            $base64 = substr($commaSeparatedString, strpos($commaSeparatedString, ',') + 1);
-
            
-            $pdfBinary = base64_decode($base64);
-            
+            $allchunk = ChunkPdf::where('shop_id', $user_id)
+            ->where('settings_id', $post['settings_id'])
+            ->orderBy('chunkNumber','asc')
+            ->pluck('uploadRequest')
+            ->toArray();
+            $finalPdf = new Fpdi();
 
-            $shopFolder = public_path() . "/uploads/pdfFile/shop_" . $post['shop_id'];
-            if (!file_exists($shopFolder)) {
-                mkdir($shopFolder, 0777, true);
-            }
-            $collectionFolder = $shopFolder . "/collections_" . $settingsData['catalog_name'];
-            if (!file_exists($collectionFolder)) {
-                mkdir($collectionFolder, 0777, true);
-            }
-            $png_url = "PDF-" . 'te' . time() . ".pdf";
-            $path = $collectionFolder . "/" . $png_url;
-            $img = $commaSeparatedString;
-            $img = substr($img, strpos($img, ",") + 1);
-            $logo = base64_decode($img);
-            $success = file_put_contents($path,$logo);
-         
+            foreach ($allchunk as $value) {
+                $chunkFile = "{$collectionFolder}/{$value}";
 
-            $post['pdfUrl'] = $png_url;
-            if (@$settingsData['pdfUrl']) {
-                $image_path = $collectionFolder . "/" . $settingsData['pdfUrl'];
-                if (file_exists($image_path)) {
-                    @unlink($image_path);
+                if (file_exists($chunkFile)) {
+                    $pageCount = $finalPdf->setSourceFile($chunkFile);
+                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                        $tpl = $finalPdf->importPage($pageNo);
+                        $size = $finalPdf->getTemplateSize($tpl);
+                        $finalPdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                        $finalPdf->useTemplate($tpl);
+                    }
+                    @unlink($chunkFile);
                 }
             }
-            $settingsData->pdfUrl = $png_url;
+
+            // Save the final merged PDF
+            $finalFileName = "PDF-final-" . time() . ".pdf";
+            $finalFilePath = "{$collectionFolder}/{$finalFileName}";
+            $finalPdf->Output($finalFilePath, 'F');
+
+            $flipId = $settingsData->flipId ?: Str::random(10);
+            $settingsData->flipId = $flipId;
+
+            // Delete old PDF if exists
+            if (!empty($settingsData->pdfUrl)) {
+                $oldPath = "{$collectionFolder}/{$settingsData->pdfUrl}";
+                if (file_exists($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $settingsData->pdfUrl = $finalFileName;
             $settingsData->save();
         }
-        if ($post['isLastRequest'] == true) {
 
+        if (!empty($post['isLastRequest']) && $post['isLastRequest'] == true) {
             ChunkPdf::where('shop_id', $post['shop_id'])->where('settings_id', $post['settings_id'])->delete();
-            return response()->json(['responseCode' => 1, 'errorCode' => 0, 'message' => 'Successfully save', 'data' => ['flipId' => $flipId]]);
+
+            return response()->json([
+                'responseCode' => 1,
+                'errorCode' => 0,
+                'message' => 'Successfully saved.',
+                'data' => ['flipId' => $settingsData->flipId ?? null],
+            ]);
         }
     }
     public function flipPdfGet($flipId)
@@ -2118,21 +2148,21 @@ class ApiController extends Controller
                                 $price = floatval($variant['price']);
                                 if ($price >= $minPrice && $price <= $maxPrice) {
 
-                                $variants[] = [
-                                    'id'                  => $variant['id'],
-                                    'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
-                                    'title'               => $variant['title'] ?? null,
-                                    'price'               => $variant['price'] ?? null,
-                                    'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
-                                    'product'             => $productId ?? null,
-                                    'normalizedProductId' => $normalizedProductId,
-                                ];
-                                $totalCount++;
-                                if ($totalCount >= $plan_limit) {
-                                    $isLimitExceed = true;
-                                    break;
+                                    $variants[] = [
+                                        'id'                  => $variant['id'],
+                                        'normalizedId'        => preg_replace('/.*\/(\d+)$/', '$1', $variant['id']),
+                                        'title'               => $variant['title'] ?? null,
+                                        'price'               => $variant['price'] ?? null,
+                                        'compareAtPrice'      => $variant['compareAtPrice'] ?? null,
+                                        'product'             => $productId ?? null,
+                                        'normalizedProductId' => $normalizedProductId,
+                                    ];
+                                    $totalCount++;
+                                    if ($totalCount >= $plan_limit) {
+                                        $isLimitExceed = true;
+                                        break;
+                                    }
                                 }
-                            }
                             }
 
                             $variantEndCursor = $variantData['data']['product']['variants']['pageInfo']['endCursor'] ?? null;
@@ -2177,7 +2207,7 @@ class ApiController extends Controller
         }
     }
 
-    
+
     public function getProductsByCollections(Request $request)
     {
         $shop = base64_decode($request->header('token'));
@@ -2298,7 +2328,7 @@ class ApiController extends Controller
                                     'product'             => $variant['product']['id'] ?? null,
                                     'normalizedProductId' => $normalizedProductId,
                                 ];
-                               
+
                                 if ($totalCount >= $plan_limit) {
                                     $isLimitExceed = true;
                                     break;
@@ -2364,7 +2394,7 @@ class ApiController extends Controller
                                         'product'             => $productId ?? null,
                                         'normalizedProductId' => $normalizedProductId,
                                     ];
-                                   
+
                                     if ($totalCount >= $plan_limit) {
                                         $isLimitExceed = true;
                                         break;
@@ -2388,7 +2418,6 @@ class ApiController extends Controller
                         }
 
                         if ($isLimitExceed) break;
-
                     }
 
                     $hasNextPage = $data['data']['collection']['products']['pageInfo']['hasNextPage'];

@@ -17,6 +17,7 @@ class ChunkPdf extends Model
         'current_page',
         'total_page',
         'page',
-        'pdfRequest'
+        'pdfRequest',
+        'chunkNumber'
     ];
 }
