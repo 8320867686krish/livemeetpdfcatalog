@@ -1489,7 +1489,7 @@ const Configrations = (props = {}) => {
     //     }
     // };
 
-    const generatePDF = async (e) => {
+    const generatePDF = async (e) =>  {
         e.preventDefault();
         setBtnSpinner(true);
 
